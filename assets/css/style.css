@@ -1059,6 +1059,28 @@ ul { list-style: none; }
   margin-top: 12px;
 }
 
+/* ─── Statistiques ─── */
+.section-stats {
+  padding: 120px 0;
+  background: var(--sand-light);
+}
+.section-stats .section-sub {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 48px;
+  color: var(--text-muted);
+}
+.chart-card {
+  max-width: 880px;
+  margin: 0 auto;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+.chart-card canvas { width: 100% !important; height: 360px !important; }
+
 /* ─── Galerie ─── */
 .section-galerie {
   padding: 120px 0;

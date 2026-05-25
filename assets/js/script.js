@@ -471,6 +471,52 @@ cuisineCarousel.addEventListener('touchend', e => {
   if (Math.abs(dx) > 50) goToCarousel(cuisinePos + (dx < 0 ? 1 : -1));
 }, { passive: true });
 
+// ─── Tourism chart (Chart.js) ─────────────────────────────
+const tourismCanvas = document.getElementById('tourismChart');
+if (tourismCanvas && typeof Chart !== 'undefined') {
+  const ctx = tourismCanvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 360);
+  gradient.addColorStop(0, 'rgba(212,175,55,0.95)');
+  gradient.addColorStop(1, 'rgba(193,18,31,0.85)');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['2019', '2020', '2021', '2022', '2023', '2024'],
+      datasets: [{
+        label: 'Touristes (millions)',
+        data: [13.0, 2.8, 3.7, 11.0, 14.5, 17.4],
+        backgroundColor: gradient,
+        borderRadius: 8,
+        borderSkipped: false,
+        maxBarThickness: 56,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0D0D0D',
+          titleColor: '#F0CC5A',
+          bodyColor: '#FFFFFF',
+          padding: 12,
+          callbacks: { label: c => ` ${c.parsed.y} M de touristes` },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#5A5A5A', font: { weight: '600' } } },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          ticks: { color: '#5A5A5A', callback: v => `${v} M` },
+        },
+      },
+    },
+  });
+}
+
 // ─── Active nav link highlighting ─────────────────────────
 const sections = document.querySelectorAll('section[id]');
 window.addEventListener('scroll', () => {
