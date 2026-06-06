@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Association Dunoise – Mémoire & Restauration des Stèles 14-18</title>
+  <meta name="description" content="L'Association Dunoise œuvre pour la restauration et la préservation des stèles, croix et monuments aux morts des soldats de la Grande Guerre dans le territoire du Grand Châteaudun (Eure-et-Loir)." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ NAVIGATION ═══════════════════════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#hero" class="nav-logo">
+        <span class="logo-cross">✛</span>
+        <div class="logo-text">
+          <span class="logo-main">Association Dunoise</span>
+          <span class="logo-sub">Mémoire 14–18</span>
+        </div>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#about" class="nav-link">L'Association</a></li>
+        <li><a href="#mission" class="nav-link">Notre Mission</a></li>
+        <li><a href="#chiffres" class="nav-link">En Chiffres</a></li>
+        <li><a href="#actions" class="nav-link">Nos Actions</a></li>
+        <li><a href="#region" class="nav-link">La Région</a></li>
+        <li><a href="#galerie" class="nav-link">Galerie</a></li>
+        <li><a href="#adhesion" class="nav-link">Adhésion</a></li>
+        <li><a href="#contact" class="nav-link nav-cta">Nous Contacter</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="hero-particles" id="heroParticles"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-barbed-wire top"></div>
+    <div class="hero-barbed-wire bottom"></div>
+    <div class="hero-content">
+      <div class="hero-badge fade-up">Eure-et-Loir · Grand Châteaudun · Depuis 2004</div>
+      <h1 class="hero-title fade-up">
+        <span class="hero-title-line">Gardiens de</span>
+        <span class="hero-title-line hero-title-accent">la Mémoire</span>
+        <span class="hero-title-line">14 – 18</span>
+      </h1>
+      <p class="hero-subtitle fade-up">
+        Restaurer les stèles, croix et monuments aux morts des communes du Grand Châteaudun.<br/>
+        Pour que le sacrifice des soldats de la Grande Guerre ne sombre jamais dans l'oubli.
+      </p>
+      <div class="hero-actions fade-up">
+        <a href="#mission" class="btn btn-primary">Découvrir notre mission</a>
+        <a href="#adhesion" class="btn btn-outline">Rejoindre l'association</a>
+      </div>
+      <div class="hero-scroll-indicator">
+        <span>Défiler</span>
+        <div class="scroll-arrow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ ABOUT ═══════════════════════════════ -->
+  <section class="section about-section" id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-visual reveal">
+          <div class="about-monument-card">
+            <div class="monument-icon">
+              <svg viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+                <rect x="35" y="0" width="10" height="40" fill="#c9a84c" rx="2"/>
+                <rect x="20" y="10" width="40" height="10" fill="#c9a84c" rx="2"/>
+                <rect x="30" y="40" width="20" height="60" fill="#c9a84c" rx="2"/>
+                <rect x="15" y="100" width="50" height="8" fill="#c9a84c" rx="2"/>
+                <rect x="10" y="108" width="60" height="6" fill="#a07835" rx="2"/>
+                <rect x="5" y="114" width="70" height="6" fill="#7a5520" rx="3"/>
+              </svg>
+            </div>
+            <div class="monument-label">Croix de guerre – Commune de Bonneval</div>
+            <div class="monument-date">Restaurée en 2022</div>
+          </div>
+          <div class="about-years-badge">
+            <span class="years-number">20<span>+</span></span>
+            <span class="years-label">Années de<br/>dévouement</span>
+          </div>
+        </div>
+        <div class="about-content reveal">
+          <div class="section-label">L'Association</div>
+          <h2 class="section-title">Qui sommes-nous ?</h2>
+          <p class="about-lead">
+            Fondée en 2004 à Châteaudun, l'Association Dunoise regroupe des bénévoles passionnés d'histoire locale, d'archéologie mémorielle et de patrimoine de la Grande Guerre.
+          </p>
+          <p>
+            Notre territoire d'action couvre l'ensemble des communes du Grand Châteaudun, en Eure-et-Loir — une région qui a payé un lourd tribut lors du conflit de 1914-1918. De nombreux soldats originaires de cette terre de Beauce et du Perche dunois reposent dans les nécropoles nationales de France et de Belgique, ou sont honorés par des stèles érigées au cœur de leurs villages natals.
+          </p>
+          <p>
+            Face à l'érosion du temps, à l'oubli progressif et à la dégradation des monuments, notre association s'est donné pour mission de recenser, restaurer et valoriser chacune de ces stèles, croix et monuments aux morts, symboles fragiles d'une mémoire collective irremplaçable.
+          </p>
+          <div class="about-values">
+            <div class="value-chip"><span class="value-icon">⚑</span><span>Mémoire</span></div>
+            <div class="value-chip"><span class="value-icon">⚒</span><span>Restauration</span></div>
+            <div class="value-chip"><span class="value-icon">✦</span><span>Transmission</span></div>
+            <div class="value-chip"><span class="value-icon">❧</span><span>Solidarité</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ MISSION ═══════════════════════════════ -->
+  <section class="section mission-section" id="mission">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Notre Mission</div>
+        <h2 class="section-title">Trois piliers d'action</h2>
+        <p class="section-desc">Chaque stèle, chaque croix, chaque monument est un témoin irremplaçable. Nous les préservons pour les générations futures.</p>
+      </div>
+      <div class="mission-cards">
+        <div class="mission-card glass-card reveal">
+          <div class="mission-card-icon">
+            <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="28" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <rect x="26" y="8" width="8" height="28" rx="2" fill="#c9a84c"/>
+              <rect x="14" y="16" width="32" height="8" rx="2" fill="#c9a84c"/>
+              <rect x="22" y="36" width="16" height="16" rx="2" fill="#a07835"/>
+            </svg>
+          </div>
+          <div class="mission-card-number">01</div>
+          <h3>Restauration des Stèles</h3>
+          <p>Nous intervenons directement sur le terrain : nettoyage, consolidation, rejointoiement, remplacement des éléments dégradés. Chaque chantier est documenté selon les normes de restauration patrimoniale.</p>
+          <ul class="mission-list">
+            <li>Diagnostic technique préalable</li>
+            <li>Nettoyage et traitement anti-mousse</li>
+            <li>Consolidation des structures</li>
+            <li>Restitution des inscriptions effacées</li>
+          </ul>
+          <a href="#actions" class="mission-link">Voir nos chantiers →</a>
+        </div>
+        <div class="mission-card glass-card reveal">
+          <div class="mission-card-icon">
+            <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="28" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <path d="M15 40 L20 20 L30 35 L40 15 L45 40 Z" fill="none" stroke="#c9a84c" stroke-width="2" stroke-linejoin="round"/>
+              <circle cx="30" cy="35" r="3" fill="#c9a84c"/>
+              <circle cx="20" cy="20" r="3" fill="#c9a84c"/>
+              <circle cx="40" cy="15" r="3" fill="#c9a84c"/>
+            </svg>
+          </div>
+          <div class="mission-card-number">02</div>
+          <h3>Préservation du Patrimoine</h3>
+          <p>Notre travail de recensement systématique permet de constituer une base de données exhaustive de tous les monuments commémoratifs du territoire, accessible aux chercheurs et aux familles.</p>
+          <ul class="mission-list">
+            <li>Inventaire photographique complet</li>
+            <li>Géolocalisation des monuments</li>
+            <li>Recherches archivistiques (AD28)</li>
+            <li>Partenariat avec les mairies</li>
+          </ul>
+          <a href="#region" class="mission-link">Notre territoire →</a>
+        </div>
+        <div class="mission-card glass-card reveal">
+          <div class="mission-card-icon">
+            <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="28" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <path d="M20 45 L20 25 Q20 15 30 15 Q40 15 40 25 L40 45" fill="none" stroke="#c9a84c" stroke-width="2"/>
+              <line x1="15" y1="30" x2="45" y2="30" stroke="#c9a84c" stroke-width="1.5"/>
+              <circle cx="30" cy="15" r="4" fill="#c9a84c"/>
+              <line x1="20" y1="45" x2="40" y2="45" stroke="#c9a84c" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="mission-card-number">03</div>
+          <h3>Transmission de la Mémoire</h3>
+          <p>Au-delà du travail physique, nous organisons des cérémonies, conférences et interventions dans les écoles pour faire vivre la mémoire des 1 400 soldats dunois tombés pour la France.</p>
+          <ul class="mission-list">
+            <li>Cérémonies du 11 Novembre</li>
+            <li>Conférences historiques publiques</li>
+            <li>Partenariats scolaires (CM1/CM2)</li>
+            <li>Publications et expositions itinérantes</li>
+          </ul>
+          <a href="#contact" class="mission-link">Nous contacter →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ CHIFFRES CLÉS ═══════════════════════════════ -->
+  <section class="section chiffres-section" id="chiffres">
+    <div class="chiffres-bg"></div>
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label light">En Chiffres</div>
+        <h2 class="section-title light">Notre engagement en données</h2>
+      </div>
+      <div class="chiffres-grid">
+        <div class="chiffre-item reveal">
+          <div class="chiffre-icon">⊕</div>
+          <div class="chiffre-number" data-target="87">0</div>
+          <div class="chiffre-label">Communes<br/>intervenues</div>
+        </div>
+        <div class="chiffre-item reveal">
+          <div class="chiffre-icon">✛</div>
+          <div class="chiffre-number" data-target="342">0</div>
+          <div class="chiffre-label">Stèles<br/>restaurées</div>
+        </div>
+        <div class="chiffre-item reveal">
+          <div class="chiffre-icon">♦</div>
+          <div class="chiffre-number" data-target="64">0</div>
+          <div class="chiffre-label">Bénévoles<br/>actifs</div>
+        </div>
+        <div class="chiffre-item reveal">
+          <div class="chiffre-icon">◈</div>
+          <div class="chiffre-number" data-target="20">0</div>
+          <div class="chiffre-label">Années<br/>d'engagement</div>
+        </div>
+        <div class="chiffre-item reveal">
+          <div class="chiffre-icon">❖</div>
+          <div class="chiffre-number" data-target="1400">0</div>
+          <div class="chiffre-label">Soldats<br/>dunois recensés</div>
+        </div>
+        <div class="chiffre-item reveal">
+          <div class="chiffre-icon">⬡</div>
+          <div class="chiffre-number" data-target="28">0</div>
+          <div class="chiffre-label">Partenaires<br/>municipaux</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ NOS ACTIONS ═══════════════════════════════ -->
+  <section class="section actions-section" id="actions">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Nos Actions</div>
+        <h2 class="section-title">Projets récents de restauration</h2>
+        <p class="section-desc">Un aperçu de nos dernières interventions sur le territoire du Grand Châteaudun.</p>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item reveal" data-side="left">
+          <div class="timeline-marker"></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">Automne 2023</div>
+            <div class="timeline-location">Bonneval</div>
+            <h3>Monument aux Morts — Place de la République</h3>
+            <p>Restauration complète du monument communal : décapage biologique, traitement hydrofuge, restitution des lettres en bronze des 67 noms gravés. Inauguration le 11 novembre 2023 en présence des familles et du maire.</p>
+            <div class="timeline-tags">
+              <span class="tag">Nettoyage</span>
+              <span class="tag">Dorure</span>
+              <span class="tag">Inauguration</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item reveal" data-side="right">
+          <div class="timeline-marker"></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">Printemps 2023</div>
+            <div class="timeline-location">Cloyes-les-Trois-Rivières</div>
+            <h3>Croix de Guerre — Hameau de Saint-Hilaire</h3>
+            <p>Découverte et restauration d'une croix de guerre isolée, enfouie sous la végétation depuis des décennies. Dépose, traitement de la pierre calcaire, remise en place sur socle neuf. Recherches aux Archives Départementales pour identifier les deux soldats mentionnés.</p>
+            <div class="timeline-tags">
+              <span class="tag">Découverte</span>
+              <span class="tag">Archivistique</span>
+              <span class="tag">Pierre calcaire</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item reveal" data-side="left">
+          <div class="timeline-marker"></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">Été 2022</div>
+            <div class="timeline-location">Châteaudun</div>
+            <h3>Nécropole militaire — Cimetière Saint-Jean</h3>
+            <p>Remise en état de 23 tombes de soldats inconnus et réfection des allées du carré militaire. Pose de plaques nominatives suite aux recherches généalogiques menées avec la FNSS et le Service Historique de la Défense.</p>
+            <div class="timeline-tags">
+              <span class="tag">23 tombes</span>
+              <span class="tag">FNSS</span>
+              <span class="tag">SHD</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item reveal" data-side="right">
+          <div class="timeline-marker"></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">Automne 2021</div>
+            <div class="timeline-location">Illiers-Combray</div>
+            <h3>Stèle commémorative — Église Saint-Jacques</h3>
+            <p>Restauration de la plaque de marbre encastrée dans le porche de l'église paroissiale, sur laquelle figurent 42 noms de paroissiens tombés au front. Consolidation du support, rejointoiement, relecture des noms par expertise épigraphique.</p>
+            <div class="timeline-tags">
+              <span class="tag">Marbre</span>
+              <span class="tag">Épigraphie</span>
+              <span class="tag">42 noms</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item reveal" data-side="left">
+          <div class="timeline-marker"></div>
+          <div class="timeline-card glass-card">
+            <div class="timeline-date">2020–2021</div>
+            <div class="timeline-location">Canton de Vendôme-Beauce</div>
+            <h3>Campagne itinérante — 12 communes rurales</h3>
+            <p>Grande campagne de restauration préventive dans douze communes du canton : Saint-Denis-Lanneray, Sainte-Croix-du-Perche, Montdoubleau, Authon, Arrou… Intervention légère sur 38 monuments (nettoyage, traitement, rejointoiement).</p>
+            <div class="timeline-tags">
+              <span class="tag">12 communes</span>
+              <span class="tag">38 monuments</span>
+              <span class="tag">Campagne</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ LA RÉGION ═══════════════════════════════ -->
+  <section class="section region-section" id="region">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">La Région</div>
+        <h2 class="section-title">Le Grand Châteaudun et la Grande Guerre</h2>
+        <p class="section-desc">Terre de Beauce et du Perche, le territoire du Grand Châteaudun a profondément marqué et été marqué par le conflit de 1914-1918.</p>
+      </div>
+      <div class="region-grid">
+        <div class="region-map reveal">
+          <div class="map-container">
+            <div class="map-label">Territoire du Grand Châteaudun</div>
+            <div class="map-region">
+              <svg viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg" class="territory-svg">
+                <defs>
+                  <radialGradient id="mapGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" style="stop-color:#2a3a6b;stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:#1a2744;stop-opacity:1"/>
+                  </radialGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <rect width="400" height="350" fill="url(#mapGrad)" rx="12"/>
+                <path d="M80 60 L180 40 L280 55 L340 100 L360 180 L320 270 L240 310 L150 315 L70 280 L40 200 L50 130 Z"
+                      fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.6"/>
+                <path d="M140 140 L200 120 L260 135 L285 175 L270 220 L220 250 L165 245 L135 210 L125 175 Z"
+                      fill="#c9a84c" opacity="0.15" stroke="#c9a84c" stroke-width="1.5"/>
+                <path d="M80 160 Q150 155 200 170 Q250 185 320 175" fill="none" stroke="#4a7fa5" stroke-width="2" opacity="0.7"/>
+                <path d="M180 240 Q210 210 230 175" fill="none" stroke="#4a7fa5" stroke-width="1.5" opacity="0.6"/>
+                <circle cx="200" cy="175" r="7" fill="#c9a84c" filter="url(#glow)"/>
+                <text x="212" y="170" fill="#f8f4ed" font-size="11" font-family="Inter">Châteaudun</text>
+                <circle cx="155" cy="148" r="4" fill="#c9a84c" opacity="0.8"/>
+                <text x="162" y="144" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Bonneval</text>
+                <circle cx="235" cy="155" r="4" fill="#c9a84c" opacity="0.8"/>
+                <text x="242" y="151" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Illiers</text>
+                <circle cx="175" cy="215" r="4" fill="#c9a84c" opacity="0.8"/>
+                <text x="183" y="211" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Cloyes</text>
+                <circle cx="245" cy="200" r="4" fill="#c9a84c" opacity="0.8"/>
+                <text x="252" y="196" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Arrou</text>
+                <g fill="#c9a84c" opacity="0.5">
+                  <text x="120" y="160" font-size="8">✛</text>
+                  <text x="220" y="135" font-size="8">✛</text>
+                  <text x="265" y="190" font-size="8">✛</text>
+                  <text x="160" y="235" font-size="8">✛</text>
+                  <text x="195" y="205" font-size="8">✛</text>
+                  <text x="240" y="165" font-size="8">✛</text>
+                  <text x="185" y="145" font-size="8">✛</text>
+                </g>
+                <circle cx="35" cy="310" r="4" fill="#c9a84c"/>
+                <text x="45" y="314" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.8">Ville principale</text>
+                <text x="35" y="330" fill="#c9a84c" font-size="9" font-family="Inter">✛</text>
+                <text x="45" y="332" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.8">Monument restauré</text>
+                <text x="352" y="340" fill="#f8f4ed" font-size="8" font-family="Inter" opacity="0.5">Eure-et-Loir, FR</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="region-content reveal">
+          <h3>Une région façonnée par la Grande Guerre</h3>
+          <p>
+            Le territoire du Grand Châteaudun, situé au cœur du département de l'Eure-et-Loir, regroupe aujourd'hui les communes de l'ancienne Communauté de Communes du Grand Châteaudun — une centaine de bourgs et villages de Beauce et du Perche dunois.
+          </p>
+          <p>
+            Entre 1914 et 1918, ces communes ont envoyé leurs fils sur les fronts de l'Argonne, de la Somme, des Flandres et de la Marne. On estime à <strong>plus de 1 400</strong> le nombre de soldats originaires de ce territoire qui ne sont pas revenus. Dans les villages, les stèles et monuments érigés après l'armistice portent parfois les noms de familles entières décimées.
+          </p>
+          <div class="region-facts">
+            <div class="region-fact">
+              <div class="fact-number">~100</div>
+              <div class="fact-label">communes dans le territoire</div>
+            </div>
+            <div class="region-fact">
+              <div class="fact-number">87</div>
+              <div class="fact-label">communes avec monuments inventoriés</div>
+            </div>
+            <div class="region-fact">
+              <div class="fact-number">1918</div>
+              <div class="fact-label">premières stèles érigées</div>
+            </div>
+          </div>
+          <blockquote class="region-quote">
+            « La commune de Châteaudun perdit à elle seule 312 de ses enfants entre 1914 et 1918. Chacun mérite d'être rappelé par son nom. »
+            <cite>— Registres municipaux, Archives Départementales 28</cite>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ GALERIE ═══════════════════════════════ -->
+  <section class="section galerie-section" id="galerie">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Galerie</div>
+        <h2 class="section-title">Nos chantiers en images</h2>
+        <p class="section-desc">Avant et après chaque intervention, nous documentons scrupuleusement l'état des monuments.</p>
+      </div>
+      <div class="galerie-grid">
+        <div class="galerie-item galerie-large reveal">
+          <div class="galerie-placeholder p1">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Restauration</span>
+                <h4>Monument principal — Châteaudun</h4>
+                <p>Avant/Après • 2022</p>
+              </div>
+            </div>
+            <div class="galerie-pseudo-content">
+              <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+                <rect x="90" y="10" width="20" height="60" rx="4" fill="rgba(201,168,76,0.6)"/>
+                <rect x="65" y="25" width="70" height="18" rx="4" fill="rgba(201,168,76,0.6)"/>
+                <rect x="78" y="70" width="44" height="75" rx="4" fill="rgba(160,120,53,0.5)"/>
+                <rect x="60" y="145" width="80" height="10" rx="3" fill="rgba(120,80,20,0.4)"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item reveal">
+          <div class="galerie-placeholder p2">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Découverte</span>
+                <h4>Croix oubliée — St-Hilaire</h4>
+                <p>Printemps 2023</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item reveal">
+          <div class="galerie-placeholder p3">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Équipe</span>
+                <h4>Bénévoles au travail</h4>
+                <p>Bonneval • Automne 2023</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item reveal">
+          <div class="galerie-placeholder p4">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Détail</span>
+                <h4>Inscriptions restaurées</h4>
+                <p>Illiers-Combray • 2021</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item reveal">
+          <div class="galerie-placeholder p5">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Cérémonie</span>
+                <h4>11 Novembre 2023</h4>
+                <p>Châteaudun</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item galerie-tall reveal">
+          <div class="galerie-placeholder p6">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Archives</span>
+                <h4>Documents historiques</h4>
+                <p>AD28 • Eure-et-Loir</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item reveal">
+          <div class="galerie-placeholder p7">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">École</span>
+                <h4>Intervention scolaire</h4>
+                <p>CM2 • Cloyes • 2022</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="galerie-item reveal">
+          <div class="galerie-placeholder p8">
+            <div class="galerie-overlay">
+              <div class="galerie-info">
+                <span class="galerie-tag">Résultat</span>
+                <h4>Stèle restaurée — Arrou</h4>
+                <p>Résultat final • 2021</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ TÉMOIGNAGES ═══════════════════════════════ -->
+  <section class="section temoignages-section" id="temoignages">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Témoignages</div>
+        <h2 class="section-title">Ils nous font confiance</h2>
+      </div>
+      <div class="carousel-container reveal">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="temoignage-card glass-card">
+            <div class="temoignage-quote-icon">"</div>
+            <p class="temoignage-text">
+              Grâce à l'Association Dunoise, nous avons pu retrouver les noms de nos arrière-grands-oncles sur la stèle restaurée de Cloyes. Ce travail de mémoire est absolument essentiel. L'équipe a fait preuve d'un professionnalisme et d'une sensibilité remarquables.
+            </p>
+            <div class="temoignage-author">
+              <div class="author-avatar">MB</div>
+              <div class="author-info">
+                <strong>Marie-Bernadette Lefèvre</strong>
+                <span>Descendante de soldats dunois, Chartres</span>
+              </div>
+            </div>
+          </div>
+          <div class="temoignage-card glass-card">
+            <div class="temoignage-quote-icon">"</div>
+            <p class="temoignage-text">
+              En tant que maire de Bonneval, j'ai pu mesurer l'investissement extraordinaire de l'Association Dunoise lors de la restauration de notre monument. Leur expertise technique et leur connaissance de l'histoire locale sont un bien commun inestimable pour notre territoire.
+            </p>
+            <div class="temoignage-author">
+              <div class="author-avatar">PD</div>
+              <div class="author-info">
+                <strong>Pierre Duguet</strong>
+                <span>Maire de Bonneval, Eure-et-Loir</span>
+              </div>
+            </div>
+          </div>
+          <div class="temoignage-card glass-card">
+            <div class="temoignage-quote-icon">"</div>
+            <p class="temoignage-text">
+              Bénévole depuis cinq ans au sein de l'association, je suis frappée à chaque chantier par la profondeur de l'émotion que ces pierres peuvent susciter. On touche à quelque chose d'universel : le deuil, la reconnaissance, la fraternité entre les hommes.
+            </p>
+            <div class="temoignage-author">
+              <div class="author-avatar">SV</div>
+              <div class="author-info">
+                <strong>Sophie Villeneuve</strong>
+                <span>Bénévole, enseignante d'histoire à Châteaudun</span>
+              </div>
+            </div>
+          </div>
+          <div class="temoignage-card glass-card">
+            <div class="temoignage-quote-icon">"</div>
+            <p class="temoignage-text">
+              Le partenariat avec les Archives Départementales de l'Eure-et-Loir nous permet de croiser nos sources avec le travail remarquable de terrain mené par l'Association Dunoise. Ensemble, nous contribuons à écrire la mémoire locale de 1914-1918.
+            </p>
+            <div class="temoignage-author">
+              <div class="author-avatar">JC</div>
+              <div class="author-info">
+                <strong>Jean-Claude Moreau</strong>
+                <span>Archiviste départemental, AD28, Chartres</span>
+              </div>
+            </div>
+          </div>
+          <div class="temoignage-card glass-card">
+            <div class="temoignage-quote-icon">"</div>
+            <p class="temoignage-text">
+              Nos élèves de CM2 ont participé à la cérémonie de réinauguration de la stèle restaurée par l'association. Voir ces enfants lire les noms gravés dans la pierre a été un moment d'une intensité rare. L'histoire, soudainement, n'était plus abstraite.
+            </p>
+            <div class="temoignage-author">
+              <div class="author-avatar">AL</div>
+              <div class="author-info">
+                <strong>Anne Laroche</strong>
+                <span>Directrice d'école primaire, Illiers-Combray</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-controls">
+          <button class="carousel-btn" id="prevBtn" aria-label="Précédent">&#8592;</button>
+          <div class="carousel-dots" id="carouselDots"></div>
+          <button class="carousel-btn" id="nextBtn" aria-label="Suivant">&#8594;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ ADHÉSION ═══════════════════════════════ -->
+  <section class="section adhesion-section" id="adhesion">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Adhésion</div>
+        <h2 class="section-title">Rejoignez la cause mémorielle</h2>
+        <p class="section-desc">Votre adhésion est un acte de mémoire. Elle nous permet de financer nos chantiers de restauration et de perpétuer le souvenir des soldats dunois.</p>
+      </div>
+      <div class="adhesion-cards">
+        <div class="adhesion-card glass-card reveal">
+          <div class="adhesion-tier">Membre Sympathisant</div>
+          <div class="adhesion-price">
+            <span class="price-amount">15</span>
+            <span class="price-currency">€</span>
+            <span class="price-period">/ an</span>
+          </div>
+          <p class="adhesion-desc">Soutenir nos actions de restauration et recevoir nos publications.</p>
+          <ul class="adhesion-features">
+            <li>✓ Bulletin annuel de l'association</li>
+            <li>✓ Invitations aux cérémonies</li>
+            <li>✓ Accès à notre base de données</li>
+            <li>✓ Newsletter trimestrielle</li>
+            <li class="disabled">✗ Participation aux chantiers</li>
+            <li class="disabled">✗ Droit de vote en AG</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline-dark">Adhérer</a>
+        </div>
+        <div class="adhesion-card glass-card featured reveal">
+          <div class="adhesion-badge">Le plus choisi</div>
+          <div class="adhesion-tier">Membre Actif</div>
+          <div class="adhesion-price">
+            <span class="price-amount">35</span>
+            <span class="price-currency">€</span>
+            <span class="price-period">/ an</span>
+          </div>
+          <p class="adhesion-desc">Participer activement à nos chantiers et à la vie de l'association.</p>
+          <ul class="adhesion-features">
+            <li>✓ Bulletin annuel de l'association</li>
+            <li>✓ Invitations aux cérémonies</li>
+            <li>✓ Accès à notre base de données</li>
+            <li>✓ Newsletter trimestrielle</li>
+            <li>✓ Participation aux chantiers</li>
+            <li>✓ Droit de vote en AG</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary">Adhérer</a>
+        </div>
+        <div class="adhesion-card glass-card reveal">
+          <div class="adhesion-tier">Membre Bienfaiteur</div>
+          <div class="adhesion-price">
+            <span class="price-amount">100</span>
+            <span class="price-currency">€</span>
+            <span class="price-period">/ an</span>
+          </div>
+          <p class="adhesion-desc">Soutenir généreusement et laisser votre nom dans notre livre d'honneur.</p>
+          <ul class="adhesion-features">
+            <li>✓ Tous les avantages Membre Actif</li>
+            <li>✓ Livre d'honneur de l'association</li>
+            <li>✓ Dédicace dans nos publications</li>
+            <li>✓ Visite privée de chantier</li>
+            <li>✓ Reçu fiscal (don déductible)</li>
+            <li>✓ Accès prioritaire aux conférences</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline-dark">Adhérer</a>
+        </div>
+      </div>
+      <p class="adhesion-note reveal">
+        <span>⚑</span> Les dons versés à l'Association Dunoise sont déductibles des impôts à hauteur de 66 % (dans la limite de 20 % du revenu imposable), conformément à l'article 200 du CGI. Reçu fiscal fourni sur demande.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ CONTACT ═══════════════════════════════ -->
+  <section class="section contact-section" id="contact">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Contact</div>
+        <h2 class="section-title">Nous contacter</h2>
+        <p class="section-desc">Pour toute question, demande de partenariat ou information sur l'adhésion, notre équipe est à votre écoute.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info reveal">
+          <div class="contact-card glass-card">
+            <h3>Association Dunoise</h3>
+            <p class="contact-subtitle">Mémoire &amp; Restauration des Stèles 14–18</p>
+            <div class="contact-details">
+              <div class="contact-detail">
+                <div class="contact-icon">📍</div>
+                <div>
+                  <strong>Siège social</strong><br/>
+                  12, rue des Capucins<br/>
+                  28200 Châteaudun<br/>
+                  Eure-et-Loir, France
+                </div>
+              </div>
+              <div class="contact-detail">
+                <div class="contact-icon">📞</div>
+                <div>
+                  <strong>Téléphone</strong><br/>
+                  <a href="tel:+33237455567">+33 (0)2 37 45 55 67</a>
+                </div>
+              </div>
+              <div class="contact-detail">
+                <div class="contact-icon">✉️</div>
+                <div>
+                  <strong>E-mail</strong><br/>
+                  <a href="mailto:contact@association-dunoise.fr">contact@association-dunoise.fr</a>
+                </div>
+              </div>
+              <div class="contact-detail">
+                <div class="contact-icon">🕐</div>
+                <div>
+                  <strong>Permanences</strong><br/>
+                  Mercredi 14h–17h<br/>
+                  Samedi 9h–12h
+                </div>
+              </div>
+            </div>
+            <div class="contact-social">
+              <a href="#" class="social-link" aria-label="Facebook">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" fill="currentColor"/></svg>
+              </a>
+              <a href="#" class="social-link" aria-label="Twitter/X">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" fill="currentColor"/></svg>
+              </a>
+              <a href="#" class="social-link" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </a>
+              <a href="#" class="social-link" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="9.75,15.02 15.5,12 9.75,8.98" fill="currentColor"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="contact-form-wrapper reveal">
+          <form class="contact-form glass-card" id="contactForm" novalidate>
+            <h3>Envoyer un message</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName">Prénom *</label>
+                <input type="text" id="firstName" name="firstName" placeholder="Jean" required />
+              </div>
+              <div class="form-group">
+                <label for="lastName">Nom *</label>
+                <input type="text" id="lastName" name="lastName" placeholder="Dupont" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">E-mail *</label>
+              <input type="email" id="email" name="email" placeholder="jean.dupont@exemple.fr" required />
+            </div>
+            <div class="form-group">
+              <label for="subject">Objet</label>
+              <select id="subject" name="subject">
+                <option value="">Sélectionner un objet…</option>
+                <option value="adhesion">Demande d'adhésion</option>
+                <option value="restauration">Signaler un monument dégradé</option>
+                <option value="partenariat">Proposition de partenariat</option>
+                <option value="information">Demande d'information</option>
+                <option value="presse">Demande presse/médias</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Message *</label>
+              <textarea id="message" name="message" rows="5" placeholder="Votre message…" required></textarea>
+            </div>
+            <div class="form-group form-check">
+              <input type="checkbox" id="consent" name="consent" required />
+              <label for="consent">J'accepte que mes données soient utilisées pour traiter ma demande conformément à la politique de confidentialité de l'association.</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+              <span class="btn-text">Envoyer le message</span>
+              <span class="btn-icon">→</span>
+            </button>
+            <div class="form-success" id="formSuccess">
+              <span>✓</span> Votre message a été envoyé. Nous vous répondrons dans les meilleurs délais.
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+  <footer class="footer" id="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <div class="footer-logo">
+              <span class="logo-cross">✛</span>
+              <div class="logo-text">
+                <span class="logo-main">Association Dunoise</span>
+                <span class="logo-sub">Mémoire 14–18</span>
+              </div>
+            </div>
+            <p class="footer-tagline">
+              Gardiens du souvenir des soldats du Grand Châteaudun tombés pour la France lors de la Grande Guerre de 1914–1918.
+            </p>
+            <p class="footer-legal-mention">
+              Association loi 1901 — RNA W281000001<br/>
+              Siège : 12, rue des Capucins — 28200 Châteaudun
+            </p>
+          </div>
+          <div class="footer-nav">
+            <h4>Navigation</h4>
+            <ul>
+              <li><a href="#about">L'Association</a></li>
+              <li><a href="#mission">Notre Mission</a></li>
+              <li><a href="#chiffres">En Chiffres</a></li>
+              <li><a href="#actions">Nos Actions</a></li>
+              <li><a href="#region">La Région</a></li>
+              <li><a href="#galerie">Galerie</a></li>
+            </ul>
+          </div>
+          <div class="footer-nav">
+            <h4>Rejoindre</h4>
+            <ul>
+              <li><a href="#adhesion">Membre Sympathisant</a></li>
+              <li><a href="#adhesion">Membre Actif</a></li>
+              <li><a href="#adhesion">Membre Bienfaiteur</a></li>
+              <li><a href="#contact">Faire un don</a></li>
+              <li><a href="#contact">Bénévolat</a></li>
+            </ul>
+          </div>
+          <div class="footer-newsletter">
+            <h4>Newsletter</h4>
+            <p>Recevez nos actualités et nos rapports de chantier.</p>
+            <form class="newsletter-form" id="newsletterForm">
+              <input type="email" placeholder="votre@email.fr" aria-label="Adresse e-mail newsletter" required />
+              <button type="submit" aria-label="S'inscrire">→</button>
+            </form>
+            <div class="footer-social">
+              <a href="#" class="social-link-sm" aria-label="Facebook">fb</a>
+              <a href="#" class="social-link-sm" aria-label="Twitter">tw</a>
+              <a href="#" class="social-link-sm" aria-label="Instagram">ig</a>
+              <a href="#" class="social-link-sm" aria-label="YouTube">yt</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="footer-bottom-content">
+          <p>© 2024 Association Dunoise — Tous droits réservés</p>
+          <div class="footer-bottom-links">
+            <a href="#">Mentions légales</a>
+            <a href="#">Politique de confidentialité</a>
+            <a href="#">Statuts de l'association</a>
+            <a href="#">Plan du site</a>
+          </div>
+        </div>
+        <p class="footer-tribute">
+          <em>« Ils ne vieilliront pas, comme nous qui leur survivons vieillirons. »</em><br/>
+          — Laurence Binyon, Pour les morts tombés (1914)
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
