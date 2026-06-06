@@ -1019,21 +1019,21 @@ ul { list-style: none; }
 }
 
 .map-container {
-  background: var(--navy);
+  background: #f5f8f2;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(26,39,68,0.25);
-  border: 1px solid rgba(201,168,76,0.2);
+  border: 2px solid rgba(201,168,76,0.5);
 }
 
 .map-label {
-  background: rgba(0,0,0,0.3);
+  background: var(--navy);
   padding: 12px 20px;
   font-size: 0.75rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--gold);
-  border-bottom: 1px solid rgba(201,168,76,0.2);
+  border-bottom: 2px solid rgba(201,168,76,0.4);
 }
 
 .territory-svg {

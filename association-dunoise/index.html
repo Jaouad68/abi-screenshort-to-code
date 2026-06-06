@@ -325,50 +325,323 @@
       <div class="region-grid">
         <div class="region-map reveal">
           <div class="map-container">
-            <div class="map-label">Territoire du Grand Châteaudun</div>
+            <div class="map-label">Département d'Eure-et-Loir — Zone d'intervention</div>
             <div class="map-region">
-              <svg viewBox="0 0 400 350" xmlns="http://www.w3.org/2000/svg" class="territory-svg">
+              <!-- Carte fidèle Eure-et-Loir, zone Dunois (Grand Châteaudun) mise en valeur -->
+              <svg viewBox="0 0 520 480" xmlns="http://www.w3.org/2000/svg" class="territory-svg" style="width:100%;height:auto;">
                 <defs>
-                  <radialGradient id="mapGrad" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" style="stop-color:#2a3a6b;stop-opacity:1"/>
-                    <stop offset="100%" style="stop-color:#1a2744;stop-opacity:1"/>
-                  </radialGradient>
-                  <filter id="glow">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#e8f0e8"/>
+                    <stop offset="100%" style="stop-color:#d4e4d4"/>
+                  </linearGradient>
+                  <linearGradient id="reliefGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#c8d8b0"/>
+                    <stop offset="100%" style="stop-color:#b8c89a"/>
+                  </linearGradient>
+                  <linearGradient id="beaucGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#d8e8c0"/>
+                    <stop offset="100%" style="stop-color:#ccdcb0"/>
+                  </linearGradient>
+                  <filter id="mapGlow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                     <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
+                  <filter id="shadow">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000030"/>
+                  </filter>
                 </defs>
-                <rect width="400" height="350" fill="url(#mapGrad)" rx="12"/>
-                <path d="M80 60 L180 40 L280 55 L340 100 L360 180 L320 270 L240 310 L150 315 L70 280 L40 200 L50 130 Z"
-                      fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.6"/>
-                <path d="M140 140 L200 120 L260 135 L285 175 L270 220 L220 250 L165 245 L135 210 L125 175 Z"
-                      fill="#c9a84c" opacity="0.15" stroke="#c9a84c" stroke-width="1.5"/>
-                <path d="M80 160 Q150 155 200 170 Q250 185 320 175" fill="none" stroke="#4a7fa5" stroke-width="2" opacity="0.7"/>
-                <path d="M180 240 Q210 210 230 175" fill="none" stroke="#4a7fa5" stroke-width="1.5" opacity="0.6"/>
-                <circle cx="200" cy="175" r="7" fill="#c9a84c" filter="url(#glow)"/>
-                <text x="212" y="170" fill="#f8f4ed" font-size="11" font-family="Inter">Châteaudun</text>
-                <circle cx="155" cy="148" r="4" fill="#c9a84c" opacity="0.8"/>
-                <text x="162" y="144" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Bonneval</text>
-                <circle cx="235" cy="155" r="4" fill="#c9a84c" opacity="0.8"/>
-                <text x="242" y="151" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Illiers</text>
-                <circle cx="175" cy="215" r="4" fill="#c9a84c" opacity="0.8"/>
-                <text x="183" y="211" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Cloyes</text>
-                <circle cx="245" cy="200" r="4" fill="#c9a84c" opacity="0.8"/>
-                <text x="252" y="196" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.9">Arrou</text>
-                <g fill="#c9a84c" opacity="0.5">
-                  <text x="120" y="160" font-size="8">✛</text>
-                  <text x="220" y="135" font-size="8">✛</text>
-                  <text x="265" y="190" font-size="8">✛</text>
-                  <text x="160" y="235" font-size="8">✛</text>
-                  <text x="195" y="205" font-size="8">✛</text>
-                  <text x="240" y="165" font-size="8">✛</text>
-                  <text x="185" y="145" font-size="8">✛</text>
+
+                <!-- Fond carte -->
+                <rect width="520" height="480" fill="#f0f4f8" rx="10"/>
+
+                <!-- Contour département Eure-et-Loir (forme approximative fidèle) -->
+                <path d="M 155 18 L 175 14 L 215 20 L 255 18 L 300 22 L 340 30 L 370 42 L 395 55 L 405 70 L 415 88 L 418 105 L 412 118 L 420 132 L 425 150 L 415 168 L 408 185 L 415 200 L 410 218 L 400 232 L 390 248 L 375 262 L 358 278 L 340 292 L 318 305 L 295 315 L 270 322 L 248 328 L 225 330 L 200 325 L 178 315 L 158 302 L 138 288 L 118 272 L 100 255 L 85 238 L 72 220 L 62 200 L 55 182 L 50 162 L 48 142 L 52 122 L 60 102 L 68 85 L 78 70 L 88 58 L 102 46 L 120 36 L 140 26 Z"
+                      fill="url(#bgGrad)" stroke="#8aaa6a" stroke-width="2.5" filter="url(#shadow)"/>
+
+                <!-- Relief Thymerais (NW) — teinte plus sombre -->
+                <path d="M 88 58 L 140 26 L 175 14 L 215 20 L 230 45 L 220 68 L 200 85 L 178 95 L 155 100 L 130 95 L 108 82 L 92 70 Z"
+                      fill="url(#reliefGrad)" opacity="0.85"/>
+
+                <!-- Relief Perche (W) — teinte encore plus sombre -->
+                <path d="M 52 122 L 68 85 L 88 58 L 92 70 L 108 82 L 120 100 L 118 125 L 108 148 L 90 162 L 72 168 L 58 158 Z"
+                      fill="#b8c890" opacity="0.9"/>
+
+                <!-- Plaine de Beauce (centre-est) — vert clair -->
+                <path d="M 230 45 L 300 22 L 370 42 L 405 70 L 415 105 L 420 132 L 415 168 L 400 190 L 375 200 L 340 210 L 305 215 L 270 210 L 240 200 L 218 185 L 210 165 L 215 142 L 220 118 L 220 90 L 225 65 Z"
+                      fill="url(#beaucGrad)" opacity="0.7"/>
+
+                <!-- Zone DUNOIS — Grand Châteaudun mise en valeur (or semi-transparent) -->
+                <path d="M 155 235 L 180 225 L 210 220 L 240 222 L 268 228 L 288 242 L 295 262 L 285 282 L 265 298 L 240 308 L 215 312 L 190 308 L 168 295 L 152 278 L 145 260 L 148 245 Z"
+                      fill="#c9a84c" opacity="0.30" stroke="#c9a84c" stroke-width="2" stroke-dasharray="5,3"/>
+
+                <!-- Rivière Eure (traverse N-S) -->
+                <path d="M 255 18 Q 248 50 242 80 Q 238 108 238 132 Q 240 155 245 175 Q 252 198 260 220 Q 268 242 272 265 Q 276 288 275 310"
+                      fill="none" stroke="#5588bb" stroke-width="2.5" opacity="0.85"/>
+                <!-- Label Eure (rivière) -->
+                <text x="243" y="142" fill="#3366aa" font-size="8" font-family="serif" font-style="italic" transform="rotate(-5,243,142)">Eure</text>
+
+                <!-- Rivière Loir (S) -->
+                <path d="M 50 310 Q 80 308 110 305 Q 140 302 165 298 Q 195 295 220 292 Q 248 290 270 288 Q 295 286 315 282 Q 335 278 358 270"
+                      fill="none" stroke="#5588bb" stroke-width="2" opacity="0.8"/>
+                <!-- Label Loir -->
+                <text x="188" y="285" fill="#3366aa" font-size="8" font-family="serif" font-style="italic">Loir</text>
+
+                <!-- Rivière Thironne -->
+                <path d="M 88 240 Q 105 252 125 262 Q 148 272 168 278"
+                      fill="none" stroke="#5588bb" stroke-width="1.5" opacity="0.7"/>
+                <text x="95" y="252" fill="#3366aa" font-size="7" font-family="serif" font-style="italic">Thironne</text>
+
+                <!-- Rivière Voise -->
+                <path d="M 335 125 Q 350 148 358 172 Q 362 195 358 215"
+                      fill="none" stroke="#5588bb" stroke-width="1.5" opacity="0.7"/>
+                <text x="362" y="168" fill="#3366aa" font-size="7" font-family="serif" font-style="italic">Voise</text>
+
+                <!-- Ligne TGV -->
+                <path d="M 135 250 Q 155 268 170 285 Q 185 300 195 318"
+                      fill="none" stroke="#888" stroke-width="2" stroke-dasharray="6,3" opacity="0.6"/>
+                <text x="140" y="272" fill="#666" font-size="7" font-style="italic">TGV</text>
+
+                <!-- Autoroute A11 (rouge) -->
+                <path d="M 390 55 Q 375 90 355 125 Q 335 162 315 195 Q 295 228 278 260"
+                      fill="none" stroke="#cc3333" stroke-width="3" opacity="0.75"/>
+
+                <!-- Route nationale -->
+                <path d="M 248 175 Q 255 200 258 225 Q 260 250 258 275"
+                      fill="none" stroke="#cc6633" stroke-width="1.5" opacity="0.6"/>
+                <path d="M 155 100 Q 178 130 192 155 Q 205 178 210 202 Q 215 226 215 248"
+                      fill="none" stroke="#cc6633" stroke-width="1.5" opacity="0.6"/>
+
+                <!-- Voie ferrée -->
+                <path d="M 175 14 Q 200 48 215 80 Q 230 115 235 148 Q 238 178 238 210"
+                      fill="none" stroke="#888" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.5"/>
+
+                <!-- ═══ NOMS DES RÉGIONS NATURELLES ═══ -->
+                <text x="148" y="62" fill="#4a6a30" font-size="13" font-family="serif" font-style="italic" font-weight="bold" opacity="0.75">Thymerais</text>
+                <text x="72" y="145" fill="#4a6a30" font-size="12" font-family="serif" font-style="italic" font-weight="bold" opacity="0.75" transform="rotate(-5,72,145)">Perche</text>
+                <text x="270" y="155" fill="#4a6a30" font-size="14" font-family="serif" font-style="italic" font-weight="bold" opacity="0.65">Beauce</text>
+                <text x="178" y="265" fill="#7a5020" font-size="13" font-family="serif" font-style="italic" font-weight="bold" opacity="0.85">Dunois</text>
+
+                <!-- ═══ DÉPARTEMENTS VOISINS ═══ -->
+                <text x="185" y="12" fill="#555" font-size="10" font-family="sans-serif" letter-spacing="2" font-weight="bold">E U R E</text>
+                <text x="395" y="80" fill="#555" font-size="9" font-family="sans-serif" letter-spacing="1.5" font-weight="bold" transform="rotate(90,415,120)">YVELINES</text>
+                <text x="428" y="265" fill="#555" font-size="9" font-family="sans-serif" letter-spacing="1.5" font-weight="bold" transform="rotate(90,448,265)">ESSONNE</text>
+                <text x="295" y="468" fill="#555" font-size="10" font-family="sans-serif" letter-spacing="1.5" font-weight="bold">LOIRET</text>
+                <text x="85" y="452" fill="#555" font-size="9" font-family="sans-serif" letter-spacing="1" font-weight="bold">LOIR-ET-CHER</text>
+                <text x="22" y="348" fill="#555" font-size="9" font-family="sans-serif" letter-spacing="1.2" font-weight="bold" transform="rotate(-90,38,348)">SARTHE</text>
+                <text x="18" y="155" fill="#555" font-size="9" font-family="sans-serif" letter-spacing="1" font-weight="bold" transform="rotate(-90,34,155)">ORNE</text>
+
+                <!-- ═══ VILLES — chef-lieu d'arrondissement (grand cercle bleu) ═══ -->
+                <!-- Chartres -->
+                <circle cx="310" cy="148" r="9" fill="#2255cc" stroke="white" stroke-width="2" filter="url(#mapGlow)"/>
+                <text x="323" y="145" fill="#1a2744" font-size="11" font-family="sans-serif" font-weight="bold">Chartres</text>
+
+                <!-- Dreux -->
+                <circle cx="285" cy="38" r="7" fill="#2255cc" stroke="white" stroke-width="1.5"/>
+                <text x="295" y="36" fill="#1a2744" font-size="10" font-family="sans-serif" font-weight="bold">Dreux</text>
+
+                <!-- Nogent-le-Rotrou -->
+                <circle cx="82" cy="228" r="7" fill="#2255cc" stroke="white" stroke-width="1.5"/>
+                <text x="92" y="225" fill="#1a2744" font-size="10" font-family="sans-serif" font-weight="bold">Nogent-</text>
+                <text x="92" y="236" fill="#1a2744" font-size="10" font-family="sans-serif" font-weight="bold">le-Rotrou</text>
+
+                <!-- Châteaudun (chef-lieu DUNOIS) -->
+                <circle cx="210" cy="318" r="9" fill="#2255cc" stroke="white" stroke-width="2" filter="url(#mapGlow)"/>
+                <text x="222" y="316" fill="#1a2744" font-size="11" font-family="sans-serif" font-weight="bold">Châteaudun</text>
+
+                <!-- ═══ CHEFS-LIEUX DE CANTON (cercles rose/magenta) ═══ -->
+                <!-- Maintenon -->
+                <circle cx="368" cy="122" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="378" y="120" fill="#1a2744" font-size="8.5" font-family="sans-serif">Maintenon</text>
+
+                <!-- Épernon -->
+                <circle cx="375" cy="102" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="383" y="100" fill="#1a2744" font-size="8.5" font-family="sans-serif">Épernon</text>
+
+                <!-- Gallardon -->
+                <circle cx="355" cy="155" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="362" y="153" fill="#1a2744" font-size="8.5" font-family="sans-serif">Gallardon</text>
+
+                <!-- Auneau -->
+                <circle cx="352" cy="178" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="360" y="176" fill="#1a2744" font-size="8.5" font-family="sans-serif">Auneau</text>
+
+                <!-- Jouy -->
+                <circle cx="330" cy="165" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="338" y="163" fill="#1a2744" font-size="8.5" font-family="sans-serif">Jouy</text>
+
+                <!-- Voves -->
+                <circle cx="320" cy="228" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="328" y="226" fill="#1a2744" font-size="8.5" font-family="sans-serif">Voves</text>
+
+                <!-- Janville -->
+                <circle cx="378" cy="230" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="386" y="228" fill="#1a2744" font-size="8.5" font-family="sans-serif">Janville</text>
+
+                <!-- Toury -->
+                <circle cx="382" cy="250" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="390" y="248" fill="#1a2744" font-size="8.5" font-family="sans-serif">Toury</text>
+
+                <!-- Brou -->
+                <circle cx="155" cy="268" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="163" y="265" fill="#1a2744" font-size="8.5" font-family="sans-serif">Brou</text>
+
+                <!-- Bonneval -->
+                <circle cx="245" cy="285" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="253" y="282" fill="#1a2744" font-size="8.5" font-family="sans-serif">Bonneval</text>
+
+                <!-- Orgères-en-Beauce -->
+                <circle cx="295" cy="275" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="303" y="272" fill="#1a2744" font-size="8.5" font-family="sans-serif">Orgères-</text>
+                <text x="303" y="282" fill="#1a2744" font-size="8.5" font-family="sans-serif">en-Beauce</text>
+
+                <!-- Loigny-la-Bataille -->
+                <circle cx="322" cy="292" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="330" y="290" fill="#1a2744" font-size="8.5" font-family="sans-serif">Loigny-</text>
+                <text x="330" y="300" fill="#1a2744" font-size="8.5" font-family="sans-serif">la-Bataille</text>
+
+                <!-- Illiers-Combray -->
+                <circle cx="188" cy="222" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="155" y="215" fill="#1a2744" font-size="8.5" font-family="sans-serif">Illiers-</text>
+                <text x="152" y="224" fill="#1a2744" font-size="8.5" font-family="sans-serif">Combray</text>
+
+                <!-- Senonches -->
+                <circle cx="75" cy="102" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="83" y="100" fill="#1a2744" font-size="8.5" font-family="sans-serif">Senonches</text>
+
+                <!-- La Loupe -->
+                <circle cx="88" cy="140" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="96" y="138" fill="#1a2744" font-size="8.5" font-family="sans-serif">La Loupe</text>
+
+                <!-- Thiron-Gardais -->
+                <circle cx="100" cy="195" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="108" y="193" fill="#1a2744" font-size="8.5" font-family="sans-serif">Thiron-</text>
+                <text x="108" y="202" fill="#1a2744" font-size="8.5" font-family="sans-serif">Gardais</text>
+
+                <!-- Courville-sur-Eure -->
+                <circle cx="222" cy="130" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="200" y="122" fill="#1a2744" font-size="8.5" font-family="sans-serif">Courville-</text>
+                <text x="200" y="131" fill="#1a2744" font-size="8.5" font-family="sans-serif">sur-Eure</text>
+
+                <!-- Mainvilliers -->
+                <circle cx="262" cy="145" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="268" y="143" fill="#1a2744" font-size="8.5" font-family="sans-serif">Mainvilliers</text>
+
+                <!-- Lèves -->
+                <circle cx="285" cy="130" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="292" y="128" fill="#1a2744" font-size="8.5" font-family="sans-serif">Lèves</text>
+
+                <!-- Lucé -->
+                <circle cx="295" cy="155" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="302" y="153" fill="#1a2744" font-size="8.5" font-family="sans-serif">Lucé</text>
+
+                <!-- Luisant -->
+                <circle cx="318" cy="162" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="325" y="160" fill="#1a2744" font-size="8.5" font-family="sans-serif">Luisant</text>
+
+                <!-- St-Georges-sur-Eure -->
+                <circle cx="248" cy="165" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="188" y="162" fill="#1a2744" font-size="8" font-family="sans-serif">St-Georges-</text>
+                <text x="188" y="171" fill="#1a2744" font-size="8" font-family="sans-serif">sur-Eure</text>
+
+                <!-- Châteauneuf-en-Thymerais -->
+                <circle cx="148" cy="92" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="105" y="84" fill="#1a2744" font-size="8" font-family="sans-serif">Châteauneuf-</text>
+                <text x="105" y="93" fill="#1a2744" font-size="8" font-family="sans-serif">en-Thymerais</text>
+
+                <!-- Brezolles -->
+                <circle cx="148" cy="52" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="155" y="50" fill="#1a2744" font-size="8.5" font-family="sans-serif">Brezolles</text>
+
+                <!-- La Ferté-Vidame -->
+                <circle cx="95" cy="75" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="60" y="68" fill="#1a2744" font-size="8" font-family="sans-serif">La Ferté-</text>
+                <text x="60" y="77" fill="#1a2744" font-size="8" font-family="sans-serif">Vidame</text>
+
+                <!-- St-Lubin-des-Joncherets -->
+                <circle cx="205" cy="28" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="150" y="28" fill="#1a2744" font-size="8" font-family="sans-serif">St-Lubin-des-</text>
+                <text x="155" y="37" fill="#1a2744" font-size="8" font-family="sans-serif">Joncherets</text>
+
+                <!-- Vernouillet -->
+                <circle cx="252" cy="28" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="258" y="26" fill="#1a2744" font-size="8.5" font-family="sans-serif">Vernouillet</text>
+
+                <!-- St-Rémy-sur-Avre -->
+                <circle cx="272" cy="20" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="258" y="14" fill="#1a2744" font-size="8" font-family="sans-serif">St-Rémy-sur-Avre</text>
+
+                <!-- Nogent-le-Roi -->
+                <circle cx="320" cy="55" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="328" y="53" fill="#1a2744" font-size="8.5" font-family="sans-serif">Nogent-le-Roi</text>
+
+                <!-- Pierres -->
+                <circle cx="308" cy="88" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="315" y="86" fill="#1a2744" font-size="8.5" font-family="sans-serif">Pierres</text>
+
+                <!-- Authon-du-Perche -->
+                <circle cx="65" cy="268" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="32" y="268" fill="#1a2744" font-size="8" font-family="sans-serif">Authon-</text>
+                <text x="32" y="277" fill="#1a2744" font-size="8" font-family="sans-serif">du-Perche</text>
+
+                <!-- Arrou -->
+                <circle cx="148" cy="308" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="125" y="306" fill="#1a2744" font-size="8.5" font-family="sans-serif">Arrou</text>
+
+                <!-- Cloyes-sur-le-Loir -->
+                <circle cx="188" cy="342" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="162" y="342" fill="#1a2744" font-size="8" font-family="sans-serif">Cloyes-</text>
+                <text x="158" y="351" fill="#1a2744" font-size="8" font-family="sans-serif">sur-le-Loir</text>
+
+                <!-- Anet -->
+                <circle cx="340" cy="22" r="5" fill="#cc3388" stroke="white" stroke-width="1.2"/>
+                <text x="348" y="20" fill="#1a2744" font-size="8.5" font-family="sans-serif">Anet</text>
+
+                <!-- ═══ MONUMENTS RESTAURÉS (croix or) dans zone Dunois ═══ -->
+                <g fill="#c9a84c" font-size="10">
+                  <text x="195" y="258" filter="url(#mapGlow)">✛</text>
+                  <text x="222" y="272" filter="url(#mapGlow)">✛</text>
+                  <text x="240" y="248" filter="url(#mapGlow)">✛</text>
+                  <text x="165" y="278" filter="url(#mapGlow)">✛</text>
+                  <text x="260" y="268" filter="url(#mapGlow)">✛</text>
+                  <text x="208" y="298" filter="url(#mapGlow)">✛</text>
+                  <text x="175" y="310" filter="url(#mapGlow)">✛</text>
                 </g>
-                <circle cx="35" cy="310" r="4" fill="#c9a84c"/>
-                <text x="45" y="314" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.8">Ville principale</text>
-                <text x="35" y="330" fill="#c9a84c" font-size="9" font-family="Inter">✛</text>
-                <text x="45" y="332" fill="#f8f4ed" font-size="9" font-family="Inter" opacity="0.8">Monument restauré</text>
-                <text x="352" y="340" fill="#f8f4ed" font-size="8" font-family="Inter" opacity="0.5">Eure-et-Loir, FR</text>
+
+                <!-- ═══ LÉGENDE ═══ -->
+                <rect x="10" y="390" width="205" height="82" fill="white" opacity="0.88" rx="6" stroke="#ccc" stroke-width="1"/>
+                <text x="18" y="405" fill="#333" font-size="9" font-family="sans-serif" font-weight="bold">Légende</text>
+                <!-- chef-lieu d'arrondissement -->
+                <circle cx="22" cy="418" r="5" fill="#2255cc" stroke="white" stroke-width="1.2"/>
+                <text x="32" y="421" fill="#333" font-size="8" font-family="sans-serif">Ch.-l. d'arrondissement</text>
+                <!-- chef-lieu de canton -->
+                <circle cx="22" cy="432" r="4" fill="#cc3388" stroke="white" stroke-width="1"/>
+                <text x="32" y="435" fill="#333" font-size="8" font-family="sans-serif">Ch.-l. de canton</text>
+                <!-- monument restauré -->
+                <text x="19" y="448" fill="#c9a84c" font-size="10">✛</text>
+                <text x="32" y="449" fill="#333" font-size="8" font-family="sans-serif">Monument restauré</text>
+                <!-- zone intervention -->
+                <rect x="16" y="457" width="12" height="8" fill="#c9a84c" opacity="0.35" stroke="#c9a84c" stroke-width="1.2" stroke-dasharray="3,2"/>
+                <text x="32" y="464" fill="#333" font-size="8" font-family="sans-serif">Zone d'intervention</text>
+
+                <!-- Rivière légende -->
+                <line x1="130" y1="418" x2="148" y2="418" stroke="#5588bb" stroke-width="2"/>
+                <text x="152" y="421" fill="#333" font-size="8" font-family="sans-serif">Rivière</text>
+                <!-- Autoroute légende -->
+                <line x1="130" y1="432" x2="148" y2="432" stroke="#cc3333" stroke-width="2.5"/>
+                <text x="152" y="435" fill="#333" font-size="8" font-family="sans-serif">Autoroute</text>
+                <!-- TGV légende -->
+                <line x1="130" y1="446" x2="148" y2="446" stroke="#888" stroke-width="2" stroke-dasharray="4,3"/>
+                <text x="152" y="449" fill="#333" font-size="8" font-family="sans-serif">Voie ferrée / TGV</text>
+
+                <!-- Échelle -->
+                <line x1="380" y1="455" x2="460" y2="455" stroke="#333" stroke-width="1.5"/>
+                <line x1="380" y1="450" x2="380" y2="460" stroke="#333" stroke-width="1.5"/>
+                <line x1="460" y1="450" x2="460" y2="460" stroke="#333" stroke-width="1.5"/>
+                <text x="400" y="470" fill="#333" font-size="8" font-family="sans-serif">20 km</text>
+
+                <!-- Titre département -->
+                <text x="235" y="415" fill="#1a2744" font-size="11" font-family="serif" font-style="italic" font-weight="bold">Eure-et-Loir</text>
+                <text x="237" y="428" fill="#7a5020" font-size="9" font-family="sans-serif">Zone Dunois mise en valeur</text>
               </svg>
             </div>
           </div>
