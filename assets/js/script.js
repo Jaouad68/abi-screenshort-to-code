@@ -448,6 +448,24 @@ function initAOS() {
 }
 initAOS();
 
+// ─── Marketing skill bars ─────────────────────────────────
+function initSkillBars() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const skill = entry.target;
+        const level = skill.dataset.level || 0;
+        const bar = skill.querySelector('.mk-bar span');
+        if (bar) bar.style.width = `${level}%`;
+        observer.unobserve(skill);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll('.mk-skill').forEach(el => observer.observe(el));
+}
+initSkillBars();
+
 // ─── Parallax effect on hero ──────────────────────────────
 window.addEventListener('scroll', () => {
   const scrolled = window.scrollY;
