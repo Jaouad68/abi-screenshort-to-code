@@ -112,6 +112,7 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
   align-items:center;justify-content:space-between;color:var(--green-text);border:1px solid #0a5236;box-shadow:inset 0 0 10px rgba(0,0,0,.4)}
 .band.blue{background:linear-gradient(180deg,#0d3a63,#08243f);color:var(--cyan-soft);border-color:#0c2c4d}
 .band .seg2{font-family:'DSEG7','Courier New',monospace;font-weight:bold}
+.cityname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:165px;display:inline-block;vertical-align:bottom}
 .band small{font-size:9px;letter-spacing:1px;opacity:.8;display:block}
 .date-band{justify-content:center;gap:10px;font-family:'DSEG14','Courier New',monospace;font-weight:bold;font-size:clamp(13px,3.4vw,20px);letter-spacing:1px}
 
@@ -284,7 +285,10 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
           <span id="trendText" style="color:var(--cyan-soft);font-size:12px;font-weight:600">Stable</span>
         </div>
         <div class="band blue" style="justify-content:center">
-          <span style="letter-spacing:2px;font-weight:700">CITY <span id="cityCode" class="seg2 seg" style="font-size:18px">PAR</span></span>
+          <span style="letter-spacing:1px;font-weight:700;display:flex;align-items:center;gap:7px;max-width:100%">
+            <small style="font-size:9px;opacity:.8;letter-spacing:1px">CITY</small>
+            <span id="cityName" class="seg2 seg cityname" style="font-size:16px">PARIS</span>
+          </span>
         </div>
         <div class="clock">
           <span class="seg"><span class="ghost">88:88</span><span class="val" id="clkHM">17:48</span></span><span class="sec" id="clkS">05</span>
@@ -533,7 +537,7 @@ function render(){
   $('comfort').innerHTML=comfortSVG(ch.h);
   // météo centre
   const info=wmoToInfo(wx.code); $('wxIcon').innerHTML=info.svg;
-  $('cityCode').textContent=prefs.city.code;
+  fitCityName($('cityName'), prefs.city.name);
   $('sunrise').textContent=wx.sunrise; $('sunset').textContent=wx.sunset;
   // baromètre
   tweenNum($('pressure'), wx.pressure, 0);
@@ -541,7 +545,7 @@ function render(){
   // badge mode
   const badge=$('modeBadge');
   if(wx.live){ badge.classList.add('live'); $('modeText').textContent='Live · '+prefs.city.name; }
-  else{ badge.classList.remove('live'); $('modeText').textContent='Démo'; }
+  else{ badge.classList.remove('live'); $('modeText').textContent='Démo · '+prefs.city.name; }
   updateMoon(new Date());
   renderForecast();
 }
@@ -684,7 +688,19 @@ const CITIES_FALLBACK=[
 function mkCity(r){ return { name:r.name, code:cityCode(r.name), lat:r.latitude??r.lat, lon:r.longitude??r.lon,
   country:r.country||'', admin:r.admin1||'' }; }
 
-function setActiveCity(c){ prefs.city=c; savePrefs(); renderCityChips(); fetchWeather(); }
+/* Affiche le nom complet de la ville sur l'écran (taille auto selon longueur) */
+function fitCityName(el, name){
+  const n=String(name||'').toUpperCase();
+  el.textContent=n;
+  const L=n.length;
+  el.style.fontSize = (L<=6?18 : L<=9?15 : L<=13?12 : 10) + 'px';
+}
+
+function setActiveCity(c){
+  prefs.city=c; savePrefs(); renderCityChips();
+  render();          // mise à jour instantanée du nom à l'écran
+  fetchWeather();    // puis rafraîchissement météo de la nouvelle ville
+}
 
 function addCity(c, activate){
   const exists = prefs.cities.find(x=>sameCity(x,c));
@@ -729,23 +745,28 @@ function closeAC(){ $('cityAC').classList.remove('open'); acSel=-1; }
 function localFilter(q){ const n=norm(q); return CITIES_FALLBACK.filter(c=>norm(c.name).includes(n)||norm(c.country).includes(n)).slice(0,8).map(mkCity); }
 
 async function acSearch(q){
-  const box=$('cityAC'); openAC(); box.innerHTML='<div class="empty">Recherche…</div>';
-  let results=[];
+  // 1) Affichage instantané des correspondances locales (marche même hors-ligne / réseau lent)
+  const local = localFilter(q);
+  openAC();
+  if(local.length) renderAC(local); else $('cityAC').innerHTML='<div class="empty">Recherche…</div>';
+  // 2) Enrichissement avec les résultats mondiaux Open-Meteo dès qu'ils arrivent
   try{
-    const res=await withTimeout(fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=fr`),7000);
-    const d=await res.json();
-    if(d.results?.length) results=d.results.map(mkCity);
-  }catch(e){ /* repli local */ }
-  if(!results.length) results=localFilter(q);
-  renderAC(results);
+    const res=await withTimeout(fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=fr`),6000);
+    if(res.ok){
+      const d=await res.json();
+      if(d && d.results && d.results.length){ renderAC(d.results.map(mkCity)); return; }
+    }
+  }catch(e){ /* réseau indisponible : on conserve les résultats locaux */ }
+  if(!local.length) renderAC([]);   // aucun résultat local ni distant
 }
 function renderAC(results){
   const box=$('cityAC'); acItems=results; acSel=-1; box.innerHTML='';
-  if(!results.length){ box.innerHTML='<div class="empty">Aucune ville trouvée.</div>'; return; }
+  if(!results.length){ box.innerHTML='<div class="empty">Aucune ville trouvée. Vérifiez l’orthographe.</div>'; return; }
   results.forEach((c,i)=>{
     const el=document.createElement('div'); el.className='item'; el.dataset.i=i;
     el.innerHTML=`${c.name}<small>${[c.admin,c.country].filter(Boolean).join(' · ')||'—'}</small>`;
-    el.addEventListener('mousedown',ev=>{ ev.preventDefault(); pickAC(i); });
+    // pointerdown couvre souris + tactile + stylet ; preventDefault évite la perte de focus
+    el.addEventListener('pointerdown',ev=>{ ev.preventDefault(); pickAC(i); });
     box.appendChild(el);
   });
 }
