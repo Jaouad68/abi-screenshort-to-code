@@ -154,8 +154,23 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 .ch-badge{font-size:9px;letter-spacing:1px;color:var(--cyan-soft);background:rgba(13,58,99,.7);
   border:1px solid #0c2c4d;border-radius:5px;padding:1px 5px}
 
-/* ===== Prévisions 5 jours + courbe horaire ===== */
-.forecast-panel{width:min(960px,100%);margin-top:16px;display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+/* ===== Vigilance (veille seuils) ===== */
+.vigilance{width:min(960px,100%);margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+.vig-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;border:1px solid}
+.vig-jaune{background:rgba(120,90,10,.32);border-color:#7a611f;color:#ffe08a}
+.vig-orange{background:rgba(150,75,12,.4);border-color:#9a5a1f;color:#ffc27d}
+.vig-rouge{background:rgba(135,30,30,.45);border-color:#9a2f2f;color:#ff9b9b}
+.vig-item .ic{font-size:16px}
+.vig-item .lvl{margin-left:auto;font-size:10px;letter-spacing:1px;opacity:.85;text-transform:uppercase}
+
+/* ===== Prévisions 5 jours + graphe 48 h ===== */
+.forecast-panel{width:min(960px,100%);margin-top:16px;display:grid;grid-template-columns:1fr;gap:14px}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.chart-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.chart-tabs button{background:#0a1424;border:1px solid #2a3f63;color:#9fb6d6;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;transition:.15s}
+.chart-tabs button:hover{border-color:#3a578a;color:#dbe6f5}
+.chart-tabs button.active{background:#1d62a8;color:#fff;border-color:#2f7fcf}
+#chart{width:100%;height:160px;display:block;touch-action:none}
 .card{background:rgba(16,26,44,.82);border:1px solid #233a5c;border-radius:16px;padding:14px 16px;backdrop-filter:blur(6px)}
 .card h3{font-size:12px;letter-spacing:1.5px;color:#8fb3d8;text-transform:uppercase;margin-bottom:12px;font-weight:600}
 .days{display:flex;justify-content:space-between;gap:6px}
@@ -255,6 +270,8 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
     <div class="ac" id="cityAC"></div>
   </div>
 </div>
+
+<div class="vigilance" id="vigilance" role="region" aria-label="Alertes météo" hidden></div>
 
 <div class="device">
   <div class="instructions">
@@ -361,9 +378,18 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
     <div class="days" id="days"></div>
   </div>
   <div class="card">
-    <h3>Température · 24 h</h3>
-    <canvas id="hourly" aria-hidden="true"></canvas>
-    <div class="hint-row"><span id="hMin">—</span><span id="hNow">maintenant</span><span id="hMax">—</span></div>
+    <div class="chart-head">
+      <h3 style="margin:0">Évolution · 48 h</h3>
+      <div class="chart-tabs" id="chartTabs" role="tablist">
+        <button data-v="temp" class="active">Température</button>
+        <button data-v="pres">Pression</button>
+        <button data-v="wind">Vent</button>
+        <button data-v="precip">Précip.</button>
+        <button data-v="rh">Humidité</button>
+      </div>
+    </div>
+    <canvas id="chart" aria-hidden="true"></canvas>
+    <div class="hint-row"><span id="chMin">—</span><span id="chHover"></span><span id="chMax">—</span></div>
   </div>
 </div>
 
@@ -425,7 +451,7 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 const $ = (id) => document.getElementById(id);
 
 const DEFAULTS = {
-  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', simInside:true, cycleChan:true,
+  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', chartVar:'temp', simInside:true, cycleChan:true,
   inTempManualC:26.5, inHumManual:59,
   city:{ name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
   cities:[
@@ -458,7 +484,8 @@ let wx = {
   uv:7, precip:0, precipProb:10, cloud:40, visibility:24140, surfaceP:1009,
   obsTime:null, elevation:null, tz:'auto',
   daily:[],   // {date, code, tmax, tmin, uvMax, precipSum, precipProb, windMax}
-  hourly:[]   // {t:Date, temp}
+  hourly:[],  // {t:Date, temp}
+  series:null // {time:[Date], temp:[], pres:[], wind:[], precip:[], rh:[]} sur 48 h
 };
 let channel = 0; // 0=CH1 (réel/extérieur dérivé), 1=CH2, 2=CH3
 
@@ -630,6 +657,7 @@ function render(){
   const mi=moonPhase(new Date()).idx; if(mi!==_lastMoon){ updateMoon(new Date()); _lastMoon=mi; }
   renderForecast();
   renderPro();
+  renderVigilance();
 }
 
 /* Canaux capteurs : CH1 = intérieur réel/simulé ; CH2/CH3 = décalages */
@@ -657,7 +685,7 @@ function renderForecast(){
       box.appendChild(el);
     });
   }
-  drawHourly();
+  Chart.draw();
 }
 
 /* ---------- Panneau professionnel ---------- */
@@ -711,40 +739,124 @@ function synthDaily(){
   for(let i=0;i<5;i++){ const tmax=base+(Math.sin(i)*2)+ (i? (Math.random()*3-1):0); out.push({date:new Date(Date.now()+i*86400000).toISOString(), code:codes[i%codes.length], tmax:tmax, tmin:tmax-7}); }
   return out;
 }
-function synthHourly(){
-  const out=[], base=wx.outTempC, now=new Date();
-  for(let i=0;i<24;i++){ const t=new Date(now.getTime()+i*3600000); const hour=t.getHours();
-    const temp=base - 4 + 5*Math.sin((hour-9)/24*2*Math.PI); out.push({t,temp}); }
-  return out;
-}
-let _hrKey='';
-function drawHourly(){
-  const cv=$('hourly'); if(!cv) return;
-  const data = wx.hourly.length?wx.hourly.slice(0,24):synthHourly();
-  if(data.length<2) return;  // garde-fou contre la division par zéro
-  const W=Math.round(cv.clientWidth||320), H=120;
-  const key=prefs.unit+'|'+W+'|'+data.map(d=>Math.round(d.temp)).join(',');
-  if(key===_hrKey) return; _hrKey=key;   // évite les redessins inutiles
-  const dpr=Math.min(window.devicePixelRatio||1,2);
-  cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
-  g.clearRect(0,0,W,H);
-  const temps=data.map(d=>cToDisplay(d.temp));
-  const min=Math.min(...temps), max=Math.max(...temps), pad=10;
-  const x=i=>pad+i*(W-2*pad)/(data.length-1);
-  const y=v=>H-22-((v-min)/((max-min)||1))*(H-40);
-  // remplissage dégradé
-  const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,'rgba(86,211,255,.35)'); grad.addColorStop(1,'rgba(86,211,255,0)');
-  g.beginPath(); g.moveTo(x(0),H-22);
-  data.forEach((d,i)=>g.lineTo(x(i),y(temps[i]))); g.lineTo(x(data.length-1),H-22); g.closePath(); g.fillStyle=grad; g.fill();
-  // ligne
-  g.beginPath(); data.forEach((d,i)=>{ const px=x(i),py=y(temps[i]); i?g.lineTo(px,py):g.moveTo(px,py); });
-  g.strokeStyle='#56d3ff'; g.lineWidth=2; g.shadowColor='rgba(86,211,255,.6)'; g.shadowBlur=8; g.stroke(); g.shadowBlur=0;
-  // étiquettes heures (toutes les 6h)
-  g.fillStyle='#7f97b6'; g.font='10px Segoe UI'; g.textAlign='center';
-  data.forEach((d,i)=>{ if(i%6===0){ g.fillText(pad2(d.t.getHours())+'h', x(i), H-6); } });
-  $('hMin').textContent='min '+Math.round(min)+'°'; $('hMax').textContent='max '+Math.round(max)+'°';
+function synthSeries(){
+  const now=new Date(), time=[], temp=[], pres=[], wind=[], precip=[], rh=[];
+  for(let i=0;i<48;i++){ const t=new Date(now.getTime()+i*3600000); const hr=t.getHours();
+    time.push(t);
+    temp.push(wx.outTempC - 4 + 5*Math.sin((hr-9)/24*2*Math.PI));
+    pres.push(wx.pressure + 3*Math.sin(i/8));
+    wind.push(clamp(wx.windKmh + 8*Math.sin(i/5) + (Math.random()*3-1.5),0,90));
+    precip.push(Math.max(0, (wx.code>=51? (Math.sin(i/3)>0.6?Math.random()*2:0):0)));
+    rh.push(clamp(wx.outHum + 10*Math.sin(i/6+1),5,99));
+  }
+  return {time,temp,pres,wind,precip,rh};
 }
 function pad2(n){ return String(n).padStart(2,'0'); }
+const DOW3=['dim','lun','mar','mer','jeu','ven','sam'];
+
+/* ---------- Graphe 48 h multi-variables (interactif) ---------- */
+const Chart=(function(){
+  const cv=$('chart');
+  let geom=null, hoverI=-1;
+  const VARS={
+    temp:{label:'Température', color:'#56d3ff', fill:'rgba(86,211,255,', conv:c=>cToDisplay(c), unit:()=>unitLabel(), dec:1},
+    pres:{label:'Pression MSL', color:'#7dffb0', fill:'rgba(125,255,176,', conv:p=>pConv(p), unit:()=>pUnit(), dec:()=>pDecimals()},
+    wind:{label:'Vent', color:'#ffd27d', fill:'rgba(255,210,125,', conv:w=>wConv(w), unit:()=>wUnit(), dec:0},
+    precip:{label:'Précipitations', color:'#8fb6ff', fill:'rgba(143,182,255,', conv:v=>v, unit:()=>'mm', dec:1, bars:true},
+    rh:{label:'Humidité', color:'#9fe6ff', fill:'rgba(159,230,255,', conv:v=>v, unit:()=>'%', dec:0}
+  };
+  function series(){ return (wx.series&&wx.series.time&&wx.series.time.length>1)?wx.series:synthSeries(); }
+  function dec(V){ return typeof V.dec==='function'?V.dec():V.dec; }
+  function draw(){
+    if(!cv) return;
+    const V=VARS[prefs.chartVar]||VARS.temp, s=series();
+    const vals=(s[prefs.chartVar]||[]).map(v=>(v==null?null:V.conv(v)));
+    const fin=vals.filter(v=>v!=null&&isFinite(v));
+    if(fin.length<2) return;
+    const W=Math.round(cv.clientWidth||320), H=160, padL=8, padR=8, padT=12, padB=22;
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,W,H);
+    let min=Math.min(...fin), max=Math.max(...fin); if(V.bars) min=0; if(min===max) max=min+1;
+    const x=i=>padL+i*(W-padL-padR)/(vals.length-1);
+    const y=v=>H-padB-((v-min)/((max-min)||1))*(H-padT-padB);
+    g.strokeStyle='rgba(255,255,255,.06)'; g.lineWidth=1;
+    for(let k=0;k<=3;k++){ const yy=padT+k*(H-padT-padB)/3; g.beginPath(); g.moveTo(padL,yy); g.lineTo(W-padR,yy); g.stroke(); }
+    g.fillStyle='#7f97b6'; g.font='10px Segoe UI'; g.textAlign='center';
+    s.time.forEach((t,i)=>{ if(i%6===0){ g.fillText((i===0?'auj':DOW3[t.getDay()])+' '+pad2(t.getHours())+'h', x(i), H-6); } });
+    if(V.bars){
+      const bw=Math.max(2,(W-padL-padR)/vals.length-1);
+      vals.forEach((v,i)=>{ if(v==null) return; const yy=y(v); g.fillStyle=V.fill+'.85)'; g.fillRect(x(i)-bw/2, yy, bw, (H-padB)-yy); });
+    }else{
+      const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,V.fill+'.32)'); grad.addColorStop(1,V.fill+'0)');
+      g.beginPath(); let st=false;
+      vals.forEach((v,i)=>{ if(v==null) return; const px=x(i),py=y(v); if(!st){ g.moveTo(px,H-padB); g.lineTo(px,py); st=true;} else g.lineTo(px,py); });
+      g.lineTo(x(vals.length-1),H-padB); g.closePath(); g.fillStyle=grad; g.fill();
+      g.beginPath(); st=false;
+      vals.forEach((v,i)=>{ if(v==null) return; const px=x(i),py=y(v); if(!st){ g.moveTo(px,py); st=true;} else g.lineTo(px,py); });
+      g.strokeStyle=V.color; g.lineWidth=2; g.shadowColor=V.fill+'.6)'; g.shadowBlur=8; g.stroke(); g.shadowBlur=0;
+    }
+    if(hoverI>=0 && hoverI<vals.length && vals[hoverI]!=null){
+      const px=x(hoverI), py=y(vals[hoverI]);
+      g.strokeStyle='rgba(255,255,255,.25)'; g.beginPath(); g.moveTo(px,padT); g.lineTo(px,H-padB); g.stroke();
+      g.fillStyle=V.color; g.beginPath(); g.arc(px,py,3.5,0,7); g.fill();
+    }
+    geom={x, vals, W, padL, padR, n:vals.length};
+    const d=dec(V);
+    if(hoverI>=0 && vals[hoverI]!=null){ const t=s.time[hoverI];
+      $('chHover').textContent=(hoverI===0?'auj.':DOW3[t.getDay()])+' '+pad2(t.getHours())+'h · '+vals[hoverI].toFixed(d)+' '+V.unit(); }
+    else $('chHover').textContent='min '+min.toFixed(d)+' · max '+max.toFixed(d)+' '+V.unit();
+    $('chMin').textContent=V.label; $('chMax').textContent=V.unit();
+  }
+  function onMove(ev){
+    if(!geom) return; const rect=cv.getBoundingClientRect();
+    const cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
+    const step=(geom.W-geom.padL-geom.padR)/(geom.n-1);
+    const i=Math.round((cx-geom.padL)/step);
+    if(i<0||i>=geom.n) return;
+    if(i!==hoverI){ hoverI=i; requestAnimationFrame(draw); }
+  }
+  function leave(){ if(hoverI!==-1){ hoverI=-1; draw(); } }
+  function setVar(v){ if(!VARS[v]) return; prefs.chartVar=v; savePrefs(); hoverI=-1;
+    document.querySelectorAll('#chartTabs button').forEach(b=>b.classList.toggle('active', b.dataset.v===v)); draw(); }
+  return {draw, onMove, leave, setVar};
+})();
+
+/* ---------- Vigilance (veille seuils, dérivée des prévisions) ---------- */
+function computeVigilance(){
+  const out=[], add=(level,ic,txt)=>out.push({level,ic,txt});
+  const d0=wx.daily&&wx.daily[0];
+  const tmax=d0?d0.tmax:wx.outTempC, tmin=d0?d0.tmin:wx.outTempC;
+  let maxWind=wx.windKmh, maxGust=wx.gustKmh, maxP1=0, sumP=0;
+  const s=wx.series;
+  if(s&&s.time){ const N=Math.min(24,s.time.length);
+    for(let i=0;i<N;i++){ maxWind=Math.max(maxWind,s.wind[i]||0); maxP1=Math.max(maxP1,s.precip[i]||0); sumP+=s.precip[i]||0; } }
+  const uvMax=Math.max(wx.uv||0, (d0&&d0.uvMax)||0);
+  if(tmax>=40) add('rouge','🔥','Canicule extrême — '+Math.round(cToDisplay(tmax))+unitLabel());
+  else if(tmax>=35) add('orange','🌡️','Forte chaleur — '+Math.round(cToDisplay(tmax))+unitLabel());
+  if(tmin<=-10) add('rouge','❄️','Grand froid — '+Math.round(cToDisplay(tmin))+unitLabel());
+  else if(tmin<=0) add('jaune','🧊','Risque de gel — '+Math.round(cToDisplay(tmin))+unitLabel());
+  if(maxGust>=120||maxWind>=90) add('rouge','💨','Vent violent — rafales '+Math.round(wConv(maxGust))+' '+wUnit());
+  else if(maxGust>=90||maxWind>=70) add('orange','💨','Vent fort — rafales '+Math.round(wConv(maxGust))+' '+wUnit());
+  else if(maxGust>=70) add('jaune','💨','Vent sensible — rafales '+Math.round(wConv(maxGust))+' '+wUnit());
+  if(maxP1>=15||sumP>=50) add('rouge','🌊','Pluies intenses — '+maxP1.toFixed(1)+' mm/h');
+  else if(maxP1>=8||sumP>=30) add('orange','🌧️','Fortes pluies — '+maxP1.toFixed(1)+' mm/h');
+  if((wx.daily||[]).slice(0,2).some(x=>[95,96,99].includes(x.code)) || [95,96,99].includes(wx.code)) add('orange','⛈️','Orages prévus');
+  if(uvMax>=11) add('rouge','🟣','UV extrême — indice '+Math.round(uvMax));
+  else if(uvMax>=8) add('orange','🟠','UV très élevé — indice '+Math.round(uvMax));
+  const rank={rouge:0,orange:1,jaune:2};
+  return out.sort((a,b)=>rank[a.level]-rank[b.level]);
+}
+let _vigKey='';
+function renderVigilance(){
+  const box=$('vigilance'); const items=computeVigilance();
+  const key=items.map(i=>i.level+i.txt).join('|');
+  if(key===_vigKey) return; _vigKey=key;
+  if(!items.length){ box.hidden=true; box.innerHTML=''; return; }
+  box.hidden=false;
+  box.innerHTML='<div style="font-size:10px;letter-spacing:1px;color:#8fa3bd;text-transform:uppercase">Veille seuils · dérivée des prévisions (24 h)</div>'
+    +items.map(i=>`<div class="vig-item vig-${i.level}"><span class="ic">${i.ic}</span><span>${i.txt}</span><span class="lvl">${i.level}</span></div>`).join('');
+}
 
 /* ---------- Fetch météo (Open-Meteo) ---------- */
 function withTimeout(p,ms){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]); }
@@ -756,7 +868,7 @@ async function fetchWeather(){
   const to=setTimeout(()=>ctrl.abort(), 9000);
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
     +`&current=temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m`
-    +`&hourly=pressure_msl,temperature_2m,uv_index,visibility,precipitation_probability`
+    +`&hourly=temperature_2m,pressure_msl,wind_speed_10m,precipitation,relative_humidity_2m,uv_index,visibility,precipitation_probability`
     +`&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max`
     +`&timezone=auto&forecast_days=6&past_days=1`;
   try{
@@ -806,7 +918,11 @@ function applyWeather(d){
   }
   if(H.temperature_2m && H.time){
     let s=H.time.findIndex(t=>new Date(t)>=new Date()); if(s<0)s=0;
-    wx.hourly=H.time.slice(s,s+24).map((t,i)=>({t:new Date(t),temp:H.temperature_2m[s+i]})).filter(x=>x.temp!=null);
+    const n=Math.min(48, H.time.length-s);
+    const sl=arr=>arr?arr.slice(s,s+n).map(v=>(v==null?null:+v)):[];
+    wx.series={ time:H.time.slice(s,s+n).map(t=>new Date(t)),
+      temp:sl(H.temperature_2m), pres:sl(H.pressure_msl), wind:sl(H.wind_speed_10m),
+      precip:sl(H.precipitation), rh:sl(H.relative_humidity_2m) };
   }
   const D=d.daily||{};
   if(D.time){
@@ -840,7 +956,7 @@ function jitterDemo(){
   wx.cloud=clamp(wx.cloud+(Math.random()-0.5)*8,0,100);
   wx.visibility=clamp(wx.visibility+(Math.random()-0.5)*2000,200,40000);
   wx.obsTime=new Date();
-  wx.daily=synthDaily(); wx.hourly=synthHourly();
+  wx.daily=synthDaily(); wx.series=synthSeries();
 }
 function simulateInside(){ wx.prevInTempC=wx.inTempC; wx.inTempC=clamp(wx.inTempC+(Math.random()-0.5)*0.2,16,32); wx.inHum=clamp(wx.inHum+(Math.random()-0.5)*1.2,25,80); }
 function manualInside(){ wx.prevInTempC=wx.inTempC; wx.inTempC=num(prefs.inTempManualC,wx.inTempC); wx.inHum=num(prefs.inHumManual,wx.inHum); }
@@ -1074,7 +1190,7 @@ const Sky=(function(){
   function start(){ resize(); window.addEventListener('resize',resize);
     document.addEventListener('visibilitychange',()=>{ running=!document.hidden; if(running){ last=performance.now(); requestAnimationFrame(frame); } });
     requestAnimationFrame(frame); }
-  return {start, redrawHourly:()=>{}};
+  return {start};
 })();
 
 /* ============================================================
@@ -1116,6 +1232,12 @@ function init(){
   // permettre de cliquer le badge canal pour changer de canal
   $('chBadge').style.cursor='pointer';
   $('chBadge').parentElement.addEventListener('click',()=>{ channel=(channel+1)%3; render(); });
+  // graphe 48 h : onglets de variable + survol
+  document.querySelectorAll('#chartTabs button').forEach(b=>b.addEventListener('click',()=>Chart.setVar(b.dataset.v)));
+  setToggle('chartTabs', prefs.chartVar, 'data-v');
+  const chc=$('chart');
+  chc.addEventListener('pointermove', Chart.onMove);
+  chc.addEventListener('pointerleave', Chart.leave);
 
   tick(); setInterval(tick,1000);
   render(); fetchWeather();
@@ -1125,8 +1247,8 @@ function init(){
   setInterval(()=>{ if(prefs.simInside){ simulateInside(); } render(); },30*1000);
   // cycle des canaux toutes les 8 s
   setInterval(()=>{ if(prefs.cycleChan){ channel=(channel+1)%3; render(); } },8000);
-  // redessiner la courbe au redimensionnement
-  window.addEventListener('resize',()=>drawHourly());
+  // redessiner le graphe au redimensionnement
+  window.addEventListener('resize',()=>Chart.draw());
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>
