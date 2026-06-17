@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<meta name="description" content="Station météo RCC — horloge temps réel, météo live, baromètre, phase de lune, confort intérieur/extérieur." />
+<title>Station Météo Pro — RCC</title>
+
+<!-- Police 7 segments (DSEG) avec repli sûr si le réseau est indisponible -->
+<style>
+@font-face{
+  font-family:'DSEG7';
+  src:url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2');
+  font-weight:bold;font-display:swap;
+}
+@font-face{
+  font-family:'DSEG14';
+  src:url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff2') format('woff2');
+  font-weight:bold;font-display:swap;
+}
+
+:root{
+  --bezel:#e9e7e1;
+  --bezel-edge:#cfccc3;
+  --lcd-1:#0a2a4a;
+  --lcd-2:#0d3a63;
+  --cyan:#56d3ff;
+  --cyan-soft:#9fe6ff;
+  --green:#2fae6b;
+  --green-band:#0f5a3a;
+  --green-text:#7dffb0;
+  --amber:#ffd27d;
+  --ink:#0b1220;
+  --glow:0 0 6px rgba(86,211,255,.55), 0 0 18px rgba(86,211,255,.25);
+  --ghost:rgba(86,211,255,.10);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  background:radial-gradient(1200px 800px at 50% -10%,#243044,#0b1220 60%);
+  color:#e8eef6;
+  min-height:100%;
+  display:flex;flex-direction:column;align-items:center;
+  padding:24px 12px 60px;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1.app-title{
+  font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
+  margin-bottom:4px;text-align:center;
+}
+.app-sub{color:#8fa3bd;font-size:13px;margin-bottom:18px;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#16233a;border:1px solid #243a5c;
+  padding:3px 10px;border-radius:999px;font-size:11px;color:#9fb6d6;vertical-align:middle}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:#f0b429;box-shadow:0 0 8px #f0b429}
+.badge.live .dot{background:#3ad07a;box-shadow:0 0 8px #3ad07a}
+
+/* ===== Boîtier ===== */
+.device{
+  width:min(960px,100%);
+  background:linear-gradient(180deg,#f5f3ee,#e2dfd6);
+  border-radius:26px;
+  padding:18px;
+  box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 1px 0 #fff,inset 0 -3px 8px rgba(0,0,0,.12);
+  border:1px solid var(--bezel-edge);
+}
+.instructions{
+  font-size:9px;line-height:1.45;color:#5a5750;
+  padding:4px 10px 10px;letter-spacing:.2px;
+}
+.instructions b{color:#3c3a35}
+
+/* ===== Écran LCD ===== */
+.screen{
+  background:linear-gradient(165deg,var(--lcd-2),var(--lcd-1) 70%,#06203a);
+  border-radius:14px;
+  padding:14px;
+  border:3px solid #05182c;
+  box-shadow:inset 0 2px 14px rgba(0,0,0,.6),inset 0 0 0 2px rgba(86,211,255,.06);
+  position:relative;overflow:hidden;
+}
+.screen::after{ /* reflet vitre */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 35%);
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1.05fr 1fr;
+  gap:10px;
+}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+.label{display:flex;align-items:center;gap:6px;color:var(--cyan);font-weight:700;
+  font-size:13px;letter-spacing:1px;text-shadow:var(--glow)}
+.label svg{filter:drop-shadow(0 0 5px rgba(86,211,255,.5))}
+
+/* Chiffres segmentés */
+.seg{font-family:'DSEG7','Courier New',monospace;color:var(--cyan);
+  text-shadow:var(--glow);position:relative;line-height:1;font-weight:bold}
+.seg .ghost{position:absolute;inset:0;color:var(--ghost);text-shadow:none;z-index:0}
+.seg .val{position:relative;z-index:1}
+
+.temp-big{font-size:clamp(46px,11vw,86px)}
+.unit{font-family:'Segoe UI',sans-serif;color:var(--cyan-soft);font-weight:700;
+  text-shadow:var(--glow)}
+.row{display:flex;align-items:flex-end;gap:6px}
+.row.center{align-items:center}
+.spread{justify-content:space-between}
+
+.metric-ico{display:flex;align-items:center;gap:8px}
+.hum{font-family:'DSEG7','Courier New',monospace;font-size:clamp(28px,6vw,46px);color:var(--cyan);text-shadow:var(--glow);font-weight:bold}
+
+.clock{font-family:'DSEG7','Courier New',monospace;font-size:clamp(40px,9.5vw,72px);color:var(--cyan);text-shadow:var(--glow);font-weight:bold;text-align:center}
+.clock .sec{font-size:.42em;color:var(--cyan-soft);vertical-align:super}
+.forecast-hd{text-align:center;color:var(--cyan);font-weight:700;letter-spacing:2px;font-size:13px;text-shadow:var(--glow)}
+
+/* Bandeaux verts */
+.band{background:linear-gradient(180deg,#0c6b45,#073d27);
+  border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;
+  color:var(--green-text);border:1px solid #0a5236;box-shadow:inset 0 0 10px rgba(0,0,0,.4)}
+.band.blue{background:linear-gradient(180deg,#0d3a63,#08243f);color:var(--cyan-soft);border-color:#0c2c4d}
+.band .seg2{font-family:'DSEG7','Courier New',monospace;font-weight:bold}
+.band small{font-size:9px;letter-spacing:1px;opacity:.8;display:block}
+.date-band{justify-content:center;gap:10px;font-family:'DSEG14','Courier New',monospace;font-weight:bold;font-size:clamp(13px,3.4vw,20px);letter-spacing:1px}
+
+/* Icône météo centrale */
+.wx-icon{display:flex;justify-content:center;align-items:center;min-height:84px}
+.wx-icon svg{filter:drop-shadow(0 0 8px rgba(86,211,255,.4))}
+
+/* Tendance / paysage */
+.trend-box{position:relative;background:linear-gradient(180deg,#0a3357,#062b48);
+  border-radius:8px;padding:6px;border:1px solid #0c2c4d;min-height:62px;
+  display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.trend-tag{position:absolute;top:5px;left:8px;font-size:9px;letter-spacing:1px;color:var(--cyan);opacity:.85}
+
+/* Baromètre */
+.baro{display:flex;align-items:flex-end;gap:3px;height:42px}
+.baro .bar{width:7px;background:linear-gradient(180deg,var(--green-text),var(--green));
+  border-radius:2px 2px 0 0;box-shadow:0 0 6px rgba(125,255,176,.5);transition:height .5s ease}
+.baro-wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.baro-val{text-align:right}
+.baro-val .seg2{font-size:clamp(20px,4.5vw,30px);color:var(--green-text);text-shadow:0 0 8px rgba(125,255,176,.5)}
+
+.trend-arrow{font-size:18px;line-height:1}
+.up{color:#7dffb0}.down{color:#ff9b9b}.flat{color:var(--cyan-soft)}
+
+.sun-row{display:flex;flex-direction:column;gap:6px}
+.sun-item{display:flex;align-items:center;gap:8px}
+.sun-item .seg2{font-size:clamp(16px,3.6vw,22px)}
+
+.smiley{filter:drop-shadow(0 0 6px rgba(125,255,176,.5))}
+
+/* ===== Barre d'outils ===== */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px;width:min(960px,100%)}
+.btn{background:#16233a;border:1px solid #2a3f63;color:#dbe6f5;padding:9px 14px;border-radius:10px;
+  font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:hover{background:#1d2f4d;border-color:#3a578a;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn svg{width:16px;height:16px}
+
+/* ===== Panneau réglages ===== */
+.overlay{position:fixed;inset:0;background:rgba(4,9,18,.6);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.overlay.open{display:flex}
+.panel{background:#101a2c;border:1px solid #243a5c;border-radius:16px;width:min(440px,100%);
+  padding:22px;box-shadow:0 30px 60px rgba(0,0,0,.6);max-height:90vh;overflow:auto}
+.panel h2{font-size:18px;margin-bottom:4px}
+.panel .muted{color:#8fa3bd;font-size:12px;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:#9fb6d6;margin-bottom:6px;letter-spacing:.3px}
+.field input[type=text],.field input[type=number]{width:100%;background:#0a1424;border:1px solid #2a3f63;
+  color:#e8eef6;padding:10px 12px;border-radius:9px;font-size:14px}
+.field input:focus{outline:none;border-color:#56d3ff}
+.search-row{display:flex;gap:8px}
+.search-row input{flex:1}
+.seg-toggle{display:flex;background:#0a1424;border:1px solid #2a3f63;border-radius:9px;overflow:hidden}
+.seg-toggle button{flex:1;background:transparent;border:0;color:#9fb6d6;padding:9px;cursor:pointer;font-size:13px}
+.seg-toggle button.active{background:#1d62a8;color:#fff}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.switch{position:relative;width:46px;height:26px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#2a3f63;border-radius:999px;transition:.2s;cursor:pointer}
+.slider::before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:#1d62a8}
+.switch input:checked+.slider::before{transform:translateX(20px)}
+.panel-actions{display:flex;gap:8px;margin-top:18px}
+.panel-actions .btn{flex:1;justify-content:center}
+.btn.primary{background:#1d62a8;border-color:#2f7fcf}
+.btn.primary:hover{background:#2371bf}
+.hint{font-size:11px;color:#6f87a6;margin-top:8px}
+.results{margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:160px;overflow:auto}
+.result{background:#0a1424;border:1px solid #1e3050;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:13px}
+.result:hover{border-color:#56d3ff}
+.result small{color:#8fa3bd;display:block}
+
+@media(max-width:560px){
+  .grid{grid-template-columns:1fr;gap:14px}
+  .col{border-bottom:1px solid rgba(86,211,255,.12);padding-bottom:12px}
+  .col:last-child{border-bottom:0}
+  .instructions{display:none}
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<h1 class="app-title">Station Météo Pro <span class="badge" id="modeBadge"><span class="dot"></span><span id="modeText">Démo</span></span></h1>
+<p class="app-sub">Réplique fonctionnelle de la console RCC — horloge temps réel, météo en direct, baromètre, phase de lune.</p>
+
+<div class="device">
+  <div class="instructions">
+    <b>Mode RCC&nbsp;:</b> à la mise sous tension, la console recherche le signal horaire automatiquement et tente une synchronisation aux heures pleines.
+    <b>Mode cycle&nbsp;:</b> l'écran fait défiler les capteurs CH1→CH3. Maintenez le bouton ☀ pour changer de mode.
+    Appuyez sur ⌂ pour annuler le cycle et revenir au canal CH1.
+  </div>
+
+  <div class="screen">
+    <div class="grid">
+
+      <!-- ========== COLONNE OUT (extérieur) ========== -->
+      <div class="col">
+        <div class="row spread">
+          <div class="label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+            OUT
+          </div>
+          <span class="trend-arrow" id="outTrend">→</span>
+        </div>
+
+        <div class="row">
+          <span class="seg temp-big"><span class="ghost">88.8</span><span class="val" id="outTemp">36.8</span></span>
+          <span class="unit" id="outUnit" style="font-size:24px">°C</span>
+        </div>
+
+        <div class="metric-ico" style="margin-top:6px">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><path d="M12 2.5C12 2.5 5 11 5 15.5a7 7 0 0014 0C19 11 12 2.5 12 2.5z"/></svg>
+          <span class="hum"><span class="val" id="outHum">23</span></span>
+          <span class="unit" style="font-size:20px">%</span>
+        </div>
+
+        <div class="band sun-row" style="flex-direction:column;align-items:stretch;margin-top:auto">
+          <div class="sun-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8"><circle cx="12" cy="14" r="4"/><path d="M12 6V4M5 14H3M21 14h-2M6.5 8.5L5 7M17.5 8.5L19 7M3 20h18"/></svg>
+            <span class="seg2 seg" style="font-size:20px"><span class="val" id="sunrise">5:48</span></span>
+            <small style="margin-left:auto">LEVER</small>
+          </div>
+          <div class="sun-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9b6b" stroke-width="1.8"><circle cx="12" cy="10" r="4"/><path d="M3 20h18M12 18v2M5 18l-1 1M19 18l1 1"/><path d="M8 14l-2 2M16 14l2 2"/></svg>
+            <span class="seg2 seg" style="font-size:20px"><span class="val" id="sunset">21:56</span></span>
+            <small style="margin-left:auto">COUCHER</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== COLONNE CENTRE ========== -->
+      <div class="col">
+        <div class="forecast-hd">FORECAST</div>
+        <div class="wx-icon" id="wxIcon"></div>
+        <div class="trend-box">
+          <span class="trend-tag">TREND</span>
+          <span id="trendText" style="color:var(--cyan-soft);font-size:12px;font-weight:600">Stable</span>
+        </div>
+
+        <div class="band blue" style="justify-content:center">
+          <span style="letter-spacing:2px;font-weight:700">CITY <span id="cityCode" class="seg2 seg" style="font-size:18px">PAR</span></span>
+        </div>
+
+        <div class="clock">
+          <span class="seg"><span class="ghost">88:88</span><span class="val" id="clkHM">17:48</span></span><span class="sec" id="clkS">05</span>
+        </div>
+
+        <div class="band date-band">
+          <span id="dateDM">17/JUIN</span>
+          <span id="dateDow" style="color:var(--green-text)">MERCREDI</span>
+        </div>
+
+        <div class="band" style="justify-content:space-between;align-items:center">
+          <span class="metric-ico"><span id="moonIcon"></span><small id="moonName" style="font-size:9px">PLEINE LUNE</small></span>
+          <span class="metric-ico"><small style="font-size:9px">MARÉE</small><span id="tide" class="seg2 seg" style="font-size:14px">HAUTE</span></span>
+        </div>
+      </div>
+
+      <!-- ========== COLONNE IN (intérieur) ========== -->
+      <div class="col">
+        <div class="row spread">
+          <span class="trend-arrow" id="inTrend">→</span>
+          <div class="label" style="margin-left:auto">
+            IN
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+          </div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end">
+          <span class="seg temp-big"><span class="ghost">88.8</span><span class="val" id="inTemp">26.5</span></span>
+          <span class="unit" id="inUnit" style="font-size:24px">°C</span>
+        </div>
+
+        <div class="metric-ico" style="justify-content:flex-end;margin-top:6px">
+          <span id="comfort" class="smiley"></span>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><path d="M12 2.5C12 2.5 5 11 5 15.5a7 7 0 0014 0C19 11 12 2.5 12 2.5z"/></svg>
+          <span class="hum"><span class="val" id="inHum">59</span></span>
+          <span class="unit" style="font-size:20px">%</span>
+        </div>
+
+        <div class="band" style="margin-top:auto;flex-direction:column;align-items:stretch;gap:6px">
+          <div class="baro-wrap">
+            <div class="baro" id="baro"></div>
+            <div class="baro-val">
+              <span class="seg2 seg" id="pressure">1015</span><br>
+              <small style="font-size:9px;letter-spacing:1px">hPa</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== Barre d'outils ===== -->
+<div class="toolbar">
+  <button class="btn" id="btnSettings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Réglages
+  </button>
+  <button class="btn" id="btnRefresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+    Actualiser
+  </button>
+  <button class="btn" id="btnGeo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Ma position
+  </button>
+  <button class="btn" id="btnUnit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 11-4 0V4a2 2 0 014 0z"/></svg>
+    °C / °F
+  </button>
+</div>
+
+<!-- ===== Panneau Réglages ===== -->
+<div class="overlay" id="overlay">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Réglages">
+    <h2>Réglages</h2>
+    <p class="muted">Configurez la station. Les préférences sont enregistrées sur cet appareil.</p>
+
+    <div class="field">
+      <label for="cityInput">Ville (recherche mondiale)</label>
+      <div class="search-row">
+        <input type="text" id="cityInput" placeholder="Ex : Paris, Casablanca, Tokyo…" autocomplete="off" />
+        <button class="btn primary" id="btnSearch">OK</button>
+      </div>
+      <div class="results" id="results"></div>
+      <p class="hint">Recherche via Open-Meteo (sans clé). Sans réseau, la station fonctionne en mode démo.</p>
+    </div>
+
+    <div class="field">
+      <label>Unité de température</label>
+      <div class="seg-toggle" id="unitToggle">
+        <button data-unit="C" class="active">Celsius °C</button>
+        <button data-unit="F">Fahrenheit °F</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Format de l'heure</label>
+      <div class="seg-toggle" id="clockToggle">
+        <button data-clk="24" class="active">24 h</button>
+        <button data-clk="12">12 h</button>
+      </div>
+    </div>
+
+    <div class="switch-row">
+      <span>Capteur intérieur simulé (réaliste)</span>
+      <label class="switch"><input type="checkbox" id="simInside" checked><span class="slider"></span></label>
+    </div>
+
+    <div class="field" id="manualInside" style="display:none">
+      <label>Valeurs intérieures manuelles</label>
+      <div class="search-row">
+        <input type="number" id="inTempManual" step="0.1" placeholder="Temp °C" />
+        <input type="number" id="inHumManual" step="1" placeholder="Hum %" />
+      </div>
+    </div>
+
+    <div class="panel-actions">
+      <button class="btn" id="btnClose">Fermer</button>
+      <button class="btn primary" id="btnApply">Appliquer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   STATION MÉTÉO PRO — logique applicative (vanilla JS, 0 dépendance obligatoire)
+   ============================================================ */
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- État + préférences persistées ---------- */
+const DEFAULTS = {
+  unit: 'C',          // 'C' | 'F'
+  clock: '24',        // '24' | '12'
+  simInside: true,
+  inTempManualC: 26.5,
+  inHumManual: 59,
+  city: { name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' }
+};
+let prefs = loadPrefs();
+
+function loadPrefs(){
+  try{
+    const raw = localStorage.getItem('wxstation');
+    return raw ? Object.assign({}, DEFAULTS, JSON.parse(raw)) : structuredClone(DEFAULTS);
+  }catch(e){ return structuredClone(DEFAULTS); }
+}
+function savePrefs(){ try{ localStorage.setItem('wxstation', JSON.stringify(prefs)); }catch(e){} }
+
+/* Données météo courantes (remplies par l'API ou la démo) */
+let wx = {
+  live:false,
+  outTempC:36.8, outHum:23,
+  code:80,                       // code WMO (averses)
+  sunrise:'5:48', sunset:'21:56',
+  pressure:1015,
+  pressureHistory:[1011,1012,1012,1013,1013,1014,1014,1015,1015,1015,1016,1015],
+  inTempC:26.5, inHum:59,
+  prevOutTempC:36.6, prevInTempC:26.4, prevPressure:1013
+};
+
+/* ============================================================
+   1) HORLOGE TEMPS RÉEL + DATE FRANÇAISE
+   ============================================================ */
+const JOURS = ['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+const MOIS  = ['JANV','FEVR','MARS','AVRIL','MAI','JUIN','JUIL','AOUT','SEPT','OCTO','NOVE','DECE'];
+
+function tick(){
+  const now = new Date();
+  let h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+  let hm;
+  if(prefs.clock === '12'){
+    const ap = h >= 12 ? 'PM' : 'AM';
+    let h12 = h % 12; if(h12 === 0) h12 = 12;
+    hm = `${pad(h12)}:${pad(m)}`;
+    $('clkS').textContent = `${pad(s)} ${ap}`;
+  }else{
+    hm = `${pad(h)}:${pad(m)}`;
+    $('clkS').textContent = pad(s);
+  }
+  $('clkHM').textContent = hm;
+
+  $('dateDM').textContent = `${pad(now.getDate())}/${MOIS[now.getMonth()]}`;
+  $('dateDow').textContent = JOURS[now.getDay()];
+
+  // Marée simulée (cycle ~12h25) + phase de lune (recalcul léger)
+  updateTide(now);
+}
+function pad(n){ return String(n).padStart(2,'0'); }
+
+/* ============================================================
+   2) PHASE DE LUNE (algorithme de Conway, robuste)
+   ============================================================ */
+const MOON_NAMES = ['NOUVELLE','PREM.CROISS','PREM.QUART','GIBB.CROISS','PLEINE','GIBB.DECR','DERN.QUART','DERN.CROISS'];
+function moonPhaseIndex(date){
+  // Jours depuis nouvelle lune de référence connue (2000-01-06)
+  const ref = Date.UTC(2000,0,6,18,14);
+  const days = (date.getTime() - ref) / 86400000;
+  const synodic = 29.53058867;
+  let phase = (days % synodic) / synodic;
+  if(phase < 0) phase += 1;
+  return { idx: Math.round(phase * 8) % 8, frac: phase };
+}
+function moonSVG(idx){
+  // Représentation simple : disque éclairé selon la phase
+  const lit = [0,.25,.5,.75,1,.75,.5,.25][idx];
+  const waxing = idx <= 4;
+  const shadow = waxing ? -1 : 1; // sens du croissant
+  const off = (1 - lit) * 14 * shadow;
+  return `<svg width="22" height="22" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#13314f"/>
+    <clipPath id="mc"><circle cx="12" cy="12" r="10"/></clipPath>
+    <g clip-path="url(#mc)">
+      <circle cx="12" cy="12" r="10" fill="#fdf3c7"/>
+      <ellipse cx="${12+off}" cy="12" rx="${10}" ry="10" fill="#13314f" opacity="${lit>=1?0:1}"/>
+      ${idx===0?'<circle cx="12" cy="12" r="10" fill="#13314f"/>':''}
+    </g>
+  </svg>`;
+}
+function updateMoon(date){
+  const {idx} = moonPhaseIndex(date);
+  $('moonIcon').innerHTML = moonSVG(idx);
+  $('moonName').textContent = MOON_NAMES[idx];
+}
+function updateTide(now){
+  // Marée semi-diurne : pleine/basse alternant ~6h12
+  const hoursTotal = now.getHours() + now.getMinutes()/60;
+  const cyclePos = (hoursTotal % 12.42) / 12.42;
+  $('tide').textContent = cyclePos < 0.5 ? 'HAUTE' : 'BASSE';
+}
+
+/* ============================================================
+   3) ICÔNES MÉTÉO (SVG) + CODES WMO
+   ============================================================ */
+function wmoToInfo(code){
+  // Renvoie {label, icon}
+  const sun = '<circle cx="12" cy="12" r="5" fill="none" stroke="#ffd27d" stroke-width="2"/><g stroke="#ffd27d" stroke-width="2"><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4 4l2 2M18 18l2 2M20 4l-2 2M6 18l-2 2"/></g>';
+  const cloud = '<path d="M7 18a4 4 0 010-8 5 5 0 019.5-1.5A3.5 3.5 0 0117 18z" fill="none" stroke="#9fe6ff" stroke-width="2"/>';
+  const rain = '<g stroke="#56d3ff" stroke-width="2"><path d="M8 19v2M12 19v3M16 19v2"/></g>';
+  const snow = '<g stroke="#cfeeff" stroke-width="2"><path d="M8 20h.01M12 21h.01M16 20h.01"/></g>';
+  const bolt = '<path d="M11 18l-2 4 5-1-1 3" fill="none" stroke="#ffd27d" stroke-width="2"/>';
+  const fog  = '<g stroke="#9fe6ff" stroke-width="2"><path d="M4 16h16M4 19h16M6 13h12"/></g>';
+
+  let label='Ensoleillé', body=`<g transform="translate(0,-1)">${sun}</g>`;
+  if(code===0){label='Ciel clair';}
+  else if([1,2].includes(code)){label='Peu nuageux';body=`<g transform="translate(-5,-4) scale(.8)">${sun}</g><g transform="translate(4,4)">${cloud}</g>`;}
+  else if(code===3){label='Couvert';body=cloud;}
+  else if([45,48].includes(code)){label='Brouillard';body=cloud+fog;}
+  else if([51,53,55,56,57].includes(code)){label='Bruine';body=cloud+rain;}
+  else if([61,63,65,66,67,80,81,82].includes(code)){label='Averses';body=`<g transform="translate(-4,-4) scale(.7)">${sun}</g>`+cloud+rain;}
+  else if([71,73,75,77,85,86].includes(code)){label='Neige';body=cloud+snow;}
+  else if([95,96,99].includes(code)){label='Orage';body=cloud+bolt;}
+  return {label, svg:`<svg width="78" height="78" viewBox="0 0 24 24">${body}</svg>`};
+}
+
+/* Confort (smiley) selon humidité intérieure */
+function comfortSVG(hum){
+  let face, color;
+  if(hum>=40 && hum<=60){ color='#7dffb0'; face='<path d="M8 14a4 4 0 008 0" fill="none" stroke="'+color+'" stroke-width="2"/>'; } // content
+  else if((hum>=30&&hum<40)||(hum>60&&hum<=70)){ color='#ffd27d'; face='<path d="M8 14h8" stroke="'+color+'" stroke-width="2"/>'; } // neutre
+  else { color='#ff9b9b'; face='<path d="M8 15a4 4 0 018 0" fill="none" stroke="'+color+'" stroke-width="2"/>'; } // inconfort
+  return `<svg width="24" height="24" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9.5" fill="none" stroke="${color}" stroke-width="1.6"/>
+    <circle cx="9" cy="10" r="1.2" fill="${color}"/><circle cx="15" cy="10" r="1.2" fill="${color}"/>
+    ${face}</svg>`;
+}
+
+/* ============================================================
+   4) RENDU DE L'AFFICHAGE
+   ============================================================ */
+function cToDisplay(c){ return prefs.unit==='F' ? (c*9/5+32) : c; }
+function unitLabel(){ return prefs.unit==='F' ? '°F' : '°C'; }
+function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+
+function arrow(curr, prev){
+  const d = curr - prev;
+  if(d > 0.15) return {ch:'↑', cls:'up'};
+  if(d < -0.15) return {ch:'↓', cls:'down'};
+  return {ch:'→', cls:'flat'};
+}
+function setArrow(el, a){ el.textContent=a.ch; el.className='trend-arrow '+a.cls; }
+
+function renderBaro(){
+  const wrap = $('baro');
+  wrap.innerHTML='';
+  const hist = wx.pressureHistory;
+  const min = Math.min(...hist)-2, max = Math.max(...hist)+2;
+  hist.forEach(p=>{
+    const h = 8 + ((p-min)/(max-min||1))*34;
+    const b = document.createElement('div');
+    b.className='bar'; b.style.height = h+'px';
+    b.title = p+' hPa';
+    wrap.appendChild(b);
+  });
+}
+
+function renderTrend(){
+  // Tendance générale d'après baromètre (météo s'améliore si pression monte)
+  const h = wx.pressureHistory;
+  const d = h[h.length-1] - h[0];
+  let t = 'Stable';
+  if(d >= 2) t='En amélioration ☀';
+  else if(d <= -2) t='Se dégrade ☂';
+  else t='Stable —';
+  $('trendText').textContent = t;
+}
+
+function render(){
+  // OUT
+  $('outTemp').textContent = fmt1(cToDisplay(wx.outTempC));
+  $('outHum').textContent = Math.round(wx.outHum);
+  $('outUnit').textContent = unitLabel();
+  setArrow($('outTrend'), arrow(wx.outTempC, wx.prevOutTempC));
+
+  // IN
+  $('inTemp').textContent = fmt1(cToDisplay(wx.inTempC));
+  $('inHum').textContent = Math.round(wx.inHum);
+  $('inUnit').textContent = unitLabel();
+  setArrow($('inTrend'), arrow(wx.inTempC, wx.prevInTempC));
+  $('comfort').innerHTML = comfortSVG(wx.inHum);
+
+  // Météo centre
+  const info = wmoToInfo(wx.code);
+  $('wxIcon').innerHTML = info.svg;
+  $('cityCode').textContent = prefs.city.code;
+  $('sunrise').textContent = wx.sunrise;
+  $('sunset').textContent = wx.sunset;
+
+  // Baromètre
+  $('pressure').textContent = Math.round(wx.pressure);
+  renderBaro();
+  renderTrend();
+
+  // Mode badge
+  const badge = $('modeBadge');
+  if(wx.live){ badge.classList.add('live'); $('modeText').textContent='Live · '+prefs.city.name; }
+  else{ badge.classList.remove('live'); $('modeText').textContent='Démo'; }
+
+  updateMoon(new Date());
+}
+
+/* ============================================================
+   5) MÉTÉO EN DIRECT (Open-Meteo, sans clé) + repli démo
+   ============================================================ */
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), ms))
+  ]);
+}
+
+async function fetchWeather(){
+  const {lat, lon} = prefs.city;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    + `&current=temperature_2m,relative_humidity_2m,surface_pressure,weather_code`
+    + `&hourly=surface_pressure&daily=sunrise,sunset&timezone=auto&forecast_days=1&past_days=1`;
+  try{
+    const res = await withTimeout(fetch(url), 8000);
+    if(!res.ok) throw new Error('http '+res.status);
+    const d = await res.json();
+
+    wx.prevOutTempC = wx.outTempC;
+    wx.prevPressure = wx.pressure;
+
+    wx.outTempC = num(d.current.temperature_2m, wx.outTempC);
+    wx.outHum   = num(d.current.relative_humidity_2m, wx.outHum);
+    wx.pressure = num(d.current.surface_pressure, wx.pressure);
+    wx.code     = num(d.current.weather_code, wx.code);
+
+    // Historique de pression : 12 dernières heures dispo
+    if(d.hourly && Array.isArray(d.hourly.surface_pressure)){
+      const arr = d.hourly.surface_pressure.filter(v=>v!=null);
+      if(arr.length>=12) wx.pressureHistory = arr.slice(-12).map(v=>Math.round(v));
+    }
+    // Lever / coucher
+    if(d.daily && d.daily.sunrise && d.daily.sunset){
+      wx.sunrise = toHM(d.daily.sunrise[0]);
+      wx.sunset  = toHM(d.daily.sunset[0]);
+    }
+    wx.live = true;
+  }catch(e){
+    // Repli démo : on garde des valeurs réalistes et on simule une légère variation
+    wx.live = false;
+    jitterDemo();
+  }
+  if(prefs.simInside) simulateInside(); else manualInside();
+  render();
+}
+
+function num(v, fb){ return (typeof v==='number' && isFinite(v)) ? v : fb; }
+function toHM(iso){
+  // iso "2026-06-17T05:48"
+  const t = iso.split('T')[1] || '';
+  const [h,m] = t.split(':');
+  return `${parseInt(h,10)}:${m}`;
+}
+function jitterDemo(){
+  wx.prevOutTempC = wx.outTempC;
+  wx.prevPressure = wx.pressure;
+  wx.outTempC += (Math.random()-0.5)*0.4;
+  wx.outHum = clamp(wx.outHum + (Math.random()-0.5)*2, 5, 99);
+  wx.pressure = clamp(wx.pressure + (Math.random()-0.5)*0.6, 980, 1040);
+  wx.pressureHistory = wx.pressureHistory.slice(1).concat(Math.round(wx.pressure));
+}
+
+/* Capteur intérieur : marche aléatoire réaliste (inertie) */
+function simulateInside(){
+  wx.prevInTempC = wx.inTempC;
+  wx.inTempC = clamp(wx.inTempC + (Math.random()-0.5)*0.2, 16, 32);
+  wx.inHum = clamp(wx.inHum + (Math.random()-0.5)*1.2, 25, 80);
+}
+function manualInside(){
+  wx.prevInTempC = wx.inTempC;
+  wx.inTempC = num(prefs.inTempManualC, wx.inTempC);
+  wx.inHum = num(prefs.inHumManual, wx.inHum);
+}
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+/* ============================================================
+   6) RECHERCHE DE VILLE (géocodage Open-Meteo)
+   ============================================================ */
+async function searchCity(q){
+  const box = $('results');
+  box.innerHTML = '<div class="result">Recherche…</div>';
+  try{
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=fr`;
+    const res = await withTimeout(fetch(url), 8000);
+    const d = await res.json();
+    box.innerHTML = '';
+    if(!d.results || !d.results.length){ box.innerHTML='<div class="result">Aucun résultat. (Hors-ligne ? Le mode démo reste actif.)</div>'; return; }
+    d.results.forEach(r=>{
+      const el = document.createElement('div');
+      el.className='result';
+      el.innerHTML = `${r.name}<small>${[r.admin1, r.country].filter(Boolean).join(' · ')}</small>`;
+      el.onclick = ()=>{
+        prefs.city = {
+          name:r.name,
+          code:(r.name.replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,3) || 'CTY').toUpperCase(),
+          lat:r.latitude, lon:r.longitude, country:r.country
+        };
+        savePrefs();
+        $('cityInput').value = r.name;
+        box.innerHTML='';
+        fetchWeather();
+      };
+      box.appendChild(el);
+    });
+  }catch(e){
+    box.innerHTML = '<div class="result">Réseau indisponible — mode démo conservé.</div>';
+  }
+}
+
+function useGeolocation(){
+  if(!navigator.geolocation){ alert('Géolocalisation non supportée par ce navigateur.'); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      prefs.city = { name:'Ma position', code:'GPS', lat:pos.coords.latitude, lon:pos.coords.longitude, country:'' };
+      savePrefs(); fetchWeather();
+    },
+    ()=>alert('Position refusée ou indisponible.'),
+    {timeout:8000}
+  );
+}
+
+/* ============================================================
+   7) PANNEAU RÉGLAGES & INTERACTIONS
+   ============================================================ */
+function openPanel(){
+  // pré-remplir
+  $('cityInput').value = prefs.city.name==='Ma position' ? '' : prefs.city.name;
+  $('inTempManual').value = prefs.inTempManualC;
+  $('inHumManual').value = prefs.inHumManual;
+  $('simInside').checked = prefs.simInside;
+  $('manualInside').style.display = prefs.simInside ? 'none' : 'block';
+  setToggle('unitToggle','unit', prefs.unit, 'data-unit');
+  setToggle('clockToggle','clock', prefs.clock, 'data-clk');
+  $('overlay').classList.add('open');
+}
+function closePanel(){ $('overlay').classList.remove('open'); }
+
+function setToggle(groupId, attr, value, dataAttr){
+  document.querySelectorAll(`#${groupId} button`).forEach(b=>{
+    b.classList.toggle('active', b.getAttribute(dataAttr) === value);
+  });
+}
+
+function wireToggle(groupId, dataAttr, onPick){
+  document.querySelectorAll(`#${groupId} button`).forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll(`#${groupId} button`).forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      onPick(b.getAttribute(dataAttr));
+    });
+  });
+}
+
+/* ============================================================
+   8) INITIALISATION
+   ============================================================ */
+function init(){
+  // Toggles du panneau
+  wireToggle('unitToggle','data-unit',(v)=>{ prefs.unit=v; });
+  wireToggle('clockToggle','data-clk',(v)=>{ prefs.clock=v; tick(); });
+
+  $('simInside').addEventListener('change', e=>{
+    $('manualInside').style.display = e.target.checked ? 'none' : 'block';
+  });
+
+  $('btnSettings').addEventListener('click', openPanel);
+  $('btnClose').addEventListener('click', closePanel);
+  $('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closePanel(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePanel(); });
+
+  $('btnApply').addEventListener('click', ()=>{
+    prefs.simInside = $('simInside').checked;
+    prefs.inTempManualC = parseFloat($('inTempManual').value) || DEFAULTS.inTempManualC;
+    prefs.inHumManual = parseFloat($('inHumManual').value) || DEFAULTS.inHumManual;
+    savePrefs();
+    closePanel();
+    fetchWeather();
+  });
+
+  $('btnSearch').addEventListener('click', ()=>{ const q=$('cityInput').value.trim(); if(q) searchCity(q); });
+  $('cityInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const q=e.target.value.trim(); if(q) searchCity(q);} });
+
+  $('btnRefresh').addEventListener('click', fetchWeather);
+  $('btnGeo').addEventListener('click', useGeolocation);
+  $('btnUnit').addEventListener('click', ()=>{ prefs.unit = prefs.unit==='C'?'F':'C'; savePrefs(); render(); });
+
+  // Horloge : démarrage + tick chaque seconde
+  tick();
+  setInterval(tick, 1000);
+
+  // Premier rendu immédiat (démo) puis tentative live
+  render();
+  fetchWeather();
+
+  // Rafraîchissement météo périodique (toutes les 5 min) ; capteur intérieur toutes les 30 s
+  setInterval(fetchWeather, 5*60*1000);
+  setInterval(()=>{ if(prefs.simInside){ simulateInside(); render(); } }, 30*1000);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
