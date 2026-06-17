@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Découvrez le Maroc ultra complet — économie, nature, sport, spiritualité, shopping et plus encore." />
+  <title>Maroc — Royaume d'Or & de Lumière</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Inter:wght@300;400;500;600&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+</head>
+<body>
+
+<!-- ========== PROGRESS BAR ========== -->
+<div id="progressBar"></div>
+
+<!-- ========== LOADER ========== -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-star">★</div>
+    <div class="loader-text">المغرب</div>
+    <div class="loader-bar"><span></span></div>
+  </div>
+</div>
+
+<!-- ========== NAVIGATION ========== -->
+<nav id="navbar">
+  <div class="nav-container">
+    <a href="#hero" class="nav-logo">
+      <span class="logo-arabic">المغرب</span>
+      <span class="logo-fr">MAROC</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#about">À Propos</a></li>
+      <li><a href="#destinations">Destinations</a></li>
+      <li><a href="#culture">Culture</a></li>
+      <li><a href="#cuisine">Cuisine</a></li>
+      <li><a href="#histoire">Histoire</a></li>
+      <li><a href="#economie">Économie</a></li>
+      <li><a href="#nature">Nature</a></li>
+      <li><a href="#sport">Sport</a></li>
+      <li><a href="#shopping">Shopping</a></li>
+      <li><a href="#quiz">Quiz</a></li>
+      <li><a href="#galerie">Galerie</a></li>
+    </ul>
+    <button class="dark-toggle" id="darkToggle" aria-label="Mode sombre">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+    <button class="nav-cta" onclick="scrollToSection('contact')">Planifier</button>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <ul>
+    <li><a href="#about" class="mobile-link">À Propos</a></li>
+    <li><a href="#destinations" class="mobile-link">Destinations</a></li>
+    <li><a href="#culture" class="mobile-link">Culture</a></li>
+    <li><a href="#cuisine" class="mobile-link">Cuisine</a></li>
+    <li><a href="#histoire" class="mobile-link">Histoire</a></li>
+    <li><a href="#economie" class="mobile-link">Économie</a></li>
+    <li><a href="#nature" class="mobile-link">Nature</a></li>
+    <li><a href="#sport" class="mobile-link">Sport</a></li>
+    <li><a href="#spirituel" class="mobile-link">Spirituel</a></li>
+    <li><a href="#shopping" class="mobile-link">Shopping</a></li>
+    <li><a href="#quiz" class="mobile-link">Quiz</a></li>
+    <li><a href="#galerie" class="mobile-link">Galerie</a></li>
+    <li><a href="#contact" class="mobile-link">Planifier</a></li>
+  </ul>
+</div>
+
+<!-- ========== HERO ========== -->
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-slide active" style="background-image:url('https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1920&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1548019979-a6e9a8c3d4c7?w=1920&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1539020140153-e479b8c8e9bc?w=1920&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=1920&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1565771768700-ec8e24f4a4e3?w=1920&q=80')"></div>
+    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1577791465485-b8d90f4d3609?w=1920&q=80')"></div>
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-pattern"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ Royaume du Maroc ✦</div>
+    <h1 class="hero-title">
+      <span class="reveal-word">Bienvenue</span>
+      <span class="reveal-word">au</span>
+      <span class="reveal-word golden">Maroc</span>
+    </h1>
+    <p class="hero-subtitle" id="heroTypewriter"></p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="scrollToSection('destinations')"><i class="fa-solid fa-compass"></i> Explorer les Destinations</button>
+      <button class="btn-ghost" onclick="scrollToSection('about')">En Savoir Plus</button>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Défiler</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </div>
+  <div class="hero-dots" id="heroDots">
+    <button class="dot active" data-index="0"></button>
+    <button class="dot" data-index="1"></button>
+    <button class="dot" data-index="2"></button>
+    <button class="dot" data-index="3"></button>
+    <button class="dot" data-index="4"></button>
+    <button class="dot" data-index="5"></button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num" data-target="37">0</span><span>M</span><div class="stat-label">Habitants</div></div>
+    <div class="stat"><span class="stat-num" data-target="12">0</span><span>+</span><div class="stat-label">Sites UNESCO</div></div>
+    <div class="stat"><span class="stat-num" data-target="3500">0</span><span>km</span><div class="stat-label">De Côtes</div></div>
+    <div class="stat"><span class="stat-num" data-target="1000">0</span><span>+</span><div class="stat-label">Ans d'Histoire</div></div>
+  </div>
+</section>
+
+<!-- ========== ABOUT ========== -->
+<section id="about" class="section-about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual" data-aos="fade-right">
+        <div class="about-img-main">
+          <img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&q=80" alt="Marrakech" loading="lazy" />
+        </div>
+        <div class="about-img-secondary">
+          <img src="https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=400&q=80" alt="Artisanat marocain" loading="lazy" />
+        </div>
+        <div class="about-badge-float">
+          <span class="badge-year">1956</span>
+          <span class="badge-text">Indépendance</span>
+        </div>
+      </div>
+      <div class="about-content" data-aos="fade-left">
+        <div class="section-tag">À Propos du Royaume</div>
+        <h2 class="section-title">Un Pays <em>d'Exception</em></h2>
+        <p class="about-lead">Le Maroc, officiellement le Royaume du Maroc, est un pays d'Afrique du Nord baigné par l'Atlantique et la Méditerranée, carrefour de civilisations depuis l'Antiquité.</p>
+        <p class="about-text">Depuis les sommets enneigés du Haut Atlas jusqu'aux dunes dorées du Sahara, en passant par les médinas labyrinthiques de Fès et Marrakech, le Maroc offre une diversité de paysages et de cultures qui n'a pas d'équivalent.</p>
+        <div class="about-facts">
+          <div class="fact-item">
+            <div class="fact-icon"><i class="fa-solid fa-mountain"></i></div>
+            <div>
+              <strong>Géographie diverse</strong>
+              <span>Montagnes, désert, mer, forêts — tout en un pays</span>
+            </div>
+          </div>
+          <div class="fact-item">
+            <div class="fact-icon"><i class="fa-solid fa-mosque"></i></div>
+            <div>
+              <strong>Riche héritage</strong>
+              <span>Berbère, arabe, andalou, saharien et juif</span>
+            </div>
+          </div>
+          <div class="fact-item">
+            <div class="fact-icon"><i class="fa-solid fa-earth-africa"></i></div>
+            <div>
+              <strong>Carrefour de continents</strong>
+              <span>14 km seulement d'Europe, porte de l'Afrique</span>
+            </div>
+          </div>
+        </div>
+        <div class="about-info-grid">
+          <div class="info-card"><div class="info-label">Capitale</div><div class="info-val">Rabat</div></div>
+          <div class="info-card"><div class="info-label">Superficie</div><div class="info-val">710 850 km²</div></div>
+          <div class="info-card"><div class="info-label">Monnaie</div><div class="info-val">Dirham (MAD)</div></div>
+          <div class="info-card"><div class="info-label">Langues</div><div class="info-val">Arabe, Tamazight</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== DESTINATIONS ========== -->
+<section id="destinations" class="section-destinations">
+  <div class="dest-header">
+    <div class="section-tag">Explorez</div>
+    <h2 class="section-title">Destinations <em>Incontournables</em></h2>
+    <p class="section-sub">Des villes impériales aux oasis sahariennes, chaque coin du Maroc est une invitation au voyage.</p>
+  </div>
+  <div class="dest-filter">
+    <button class="filter-btn active" data-filter="all">Tout</button>
+    <button class="filter-btn" data-filter="ville">Villes</button>
+    <button class="filter-btn" data-filter="nature">Nature</button>
+    <button class="filter-btn" data-filter="desert">Désert</button>
+    <button class="filter-btn" data-filter="cote">Côte</button>
+  </div>
+  <div class="dest-grid" id="destGrid">
+
+    <div class="dest-card" data-cat="ville" data-aos="zoom-in">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=700&q=80" alt="Marrakech" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Marrakech</h3>
+            <p>La Ville Rouge — Djemaa el-Fna, souks et palais enchanteurs</p>
+            <div class="dest-tags"><span>Culture</span><span>Shopping</span><span>Gastronomie</span></div>
+            <button class="dest-btn" onclick="openDestModal('marrakech')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Centre</span><span class="dest-rating">★ 4.9</span></div>
+      <h3 class="dest-name">Marrakech</h3>
+      <p class="dest-desc">La ville rouge aux mille et un secrets</p>
+    </div>
+
+    <div class="dest-card dest-featured" data-cat="ville" data-aos="zoom-in" data-aos-delay="100">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1539020140153-e479b8c8e9bc?w=700&q=80" alt="Fès" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Fès</h3>
+            <p>La plus ancienne ville impériale, UNESCO World Heritage</p>
+            <div class="dest-tags"><span>Histoire</span><span>Artisanat</span><span>Spirituel</span></div>
+            <button class="dest-btn" onclick="openDestModal('fes')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-badge">UNESCO</div>
+      <div class="dest-meta"><span class="dest-region">⬤ Nord</span><span class="dest-rating">★ 4.8</span></div>
+      <h3 class="dest-name">Fès</h3>
+      <p class="dest-desc">La capitale spirituelle et culturelle</p>
+    </div>
+
+    <div class="dest-card" data-cat="cote" data-aos="zoom-in" data-aos-delay="200">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1548019979-a6e9a8c3d4c7?w=700&q=80" alt="Chefchaouen" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Chefchaouen</h3>
+            <p>La perle bleue nichée dans le Rif</p>
+            <div class="dest-tags"><span>Photographie</span><span>Randonnée</span><span>Artisanat</span></div>
+            <button class="dest-btn" onclick="openDestModal('chefchaouen')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Nord-Ouest</span><span class="dest-rating">★ 4.9</span></div>
+      <h3 class="dest-name">Chefchaouen</h3>
+      <p class="dest-desc">La ville bleue du Rif</p>
+    </div>
+
+    <div class="dest-card" data-cat="desert" data-aos="zoom-in">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=700&q=80" alt="Sahara" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Merzouga & Sahara</h3>
+            <p>Les grandes dunes de l'Erg Chebbi et la magie du désert</p>
+            <div class="dest-tags"><span>Aventure</span><span>Camping</span><span>Étoiles</span></div>
+            <button class="dest-btn" onclick="openDestModal('sahara')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Sud-Est</span><span class="dest-rating">★ 5.0</span></div>
+      <h3 class="dest-name">Merzouga — Sahara</h3>
+      <p class="dest-desc">Les dunes dorées de l'Erg Chebbi</p>
+    </div>
+
+    <div class="dest-card" data-cat="ville" data-aos="zoom-in" data-aos-delay="100">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80" alt="Casablanca" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Casablanca</h3>
+            <p>La métropole économique, Hassan II et Art Déco</p>
+            <div class="dest-tags"><span>Moderne</span><span>Affaires</span><span>Cuisine</span></div>
+            <button class="dest-btn" onclick="openDestModal('casablanca')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Centre-Ouest</span><span class="dest-rating">★ 4.6</span></div>
+      <h3 class="dest-name">Casablanca</h3>
+      <p class="dest-desc">La métropole cosmopolite du Maroc</p>
+    </div>
+
+    <div class="dest-card" data-cat="nature" data-aos="zoom-in" data-aos-delay="200">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1565771768700-ec8e24f4a4e3?w=700&q=80" alt="Atlas" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Haut Atlas</h3>
+            <p>Toubkal, vallées berbères et villages suspendus</p>
+            <div class="dest-tags"><span>Trekking</span><span>Ski</span><span>Village</span></div>
+            <button class="dest-btn" onclick="openDestModal('atlas')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Centre</span><span class="dest-rating">★ 4.8</span></div>
+      <h3 class="dest-name">Haut Atlas</h3>
+      <p class="dest-desc">Le toit de l'Afrique du Nord</p>
+    </div>
+
+    <div class="dest-card" data-cat="cote" data-aos="zoom-in">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1577791465485-b8d90f4d3609?w=700&q=80" alt="Essaouira" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Essaouira</h3>
+            <p>La cité des alizés — mer, surf et art</p>
+            <div class="dest-tags"><span>Surf</span><span>Art</span><span>Musique</span></div>
+            <button class="dest-btn" onclick="openDestModal('essaouira')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Côte Atlantique</span><span class="dest-rating">★ 4.7</span></div>
+      <h3 class="dest-name">Essaouira</h3>
+      <p class="dest-desc">La cité des alizés et du gnawa</p>
+    </div>
+
+    <div class="dest-card" data-cat="ville" data-aos="zoom-in" data-aos-delay="100">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1534430480872-3498386e7856?w=700&q=80" alt="Rabat" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Rabat</h3>
+            <p>La capitale royale — modernité et tradition</p>
+            <div class="dest-tags"><span>Politique</span><span>Musées</span><span>Plage</span></div>
+            <button class="dest-btn" onclick="openDestModal('rabat')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Nord-Ouest</span><span class="dest-rating">★ 4.7</span></div>
+      <h3 class="dest-name">Rabat</h3>
+      <p class="dest-desc">La capitale royale moderne</p>
+    </div>
+
+    <div class="dest-card" data-cat="desert" data-aos="zoom-in" data-aos-delay="200">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1562166963-bce7c7a8c4f5?w=700&q=80" alt="Aït Benhaddou" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Aït Benhaddou</h3>
+            <p>Ksar mythique, décor de Gladiator et Game of Thrones</p>
+            <div class="dest-tags"><span>UNESCO</span><span>Cinéma</span><span>Architecture</span></div>
+            <button class="dest-btn" onclick="openDestModal('aitbenhaddou')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-badge">UNESCO</div>
+      <div class="dest-meta"><span class="dest-region">⬤ Sud</span><span class="dest-rating">★ 4.9</span></div>
+      <h3 class="dest-name">Aït Benhaddou</h3>
+      <p class="dest-desc">Le ksar légendaire des kasbahs</p>
+    </div>
+
+    <!-- New destinations -->
+    <div class="dest-card" data-cat="ville" data-aos="zoom-in">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=700&q=80" alt="Tanger" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Tanger</h3>
+            <p>La porte de l'Afrique — carrefour de deux mers et deux continents</p>
+            <div class="dest-tags"><span>Littérature</span><span>Plage</span><span>Modernité</span></div>
+            <button class="dest-btn" onclick="openDestModal('tanger')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Nord</span><span class="dest-rating">★ 4.6</span></div>
+      <h3 class="dest-name">Tanger</h3>
+      <p class="dest-desc">Carrefour mythique entre deux mers</p>
+    </div>
+
+    <div class="dest-card" data-cat="cote" data-aos="zoom-in" data-aos-delay="100">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1547451832-5e28f0f4f7b0?w=700&q=80" alt="Agadir" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Agadir</h3>
+            <p>Soleil, plage dorée et station balnéaire moderne</p>
+            <div class="dest-tags"><span>Plage</span><span>Surf</span><span>Famille</span></div>
+            <button class="dest-btn" onclick="openDestModal('agadir')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Sud-Ouest</span><span class="dest-rating">★ 4.5</span></div>
+      <h3 class="dest-name">Agadir</h3>
+      <p class="dest-desc">La station balnéaire du Maroc</p>
+    </div>
+
+    <div class="dest-card" data-cat="ville" data-aos="zoom-in" data-aos-delay="200">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=700&q=80" alt="Meknès" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Meknès</h3>
+            <p>La ville ismaïlienne aux portes monumentales</p>
+            <div class="dest-tags"><span>Histoire</span><span>UNESCO</span><span>Architecture</span></div>
+            <button class="dest-btn" onclick="openDestModal('meknes')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-badge">UNESCO</div>
+      <div class="dest-meta"><span class="dest-region">⬤ Centre-Nord</span><span class="dest-rating">★ 4.7</span></div>
+      <h3 class="dest-name">Meknès</h3>
+      <p class="dest-desc">La ville impériale oubliée</p>
+    </div>
+
+    <div class="dest-card" data-cat="nature" data-aos="zoom-in">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1551009175-8a68da93d5f9?w=700&q=80" alt="Vallée du Dadès" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Vallée du Dadès</h3>
+            <p>Gorges spectaculaires et roses de damas</p>
+            <div class="dest-tags"><span>Nature</span><span>Roses</span><span>Kasbahs</span></div>
+            <button class="dest-btn" onclick="openDestModal('dades')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Centre-Sud</span><span class="dest-rating">★ 4.8</span></div>
+      <h3 class="dest-name">Vallée du Dadès</h3>
+      <p class="dest-desc">La vallée des mille kasbahs</p>
+    </div>
+
+    <div class="dest-card" data-cat="desert" data-aos="zoom-in" data-aos-delay="100">
+      <div class="dest-img">
+        <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700&q=80" alt="Ouarzazate" loading="lazy" />
+        <div class="dest-overlay">
+          <div class="dest-info">
+            <h3>Ouarzazate</h3>
+            <p>Hollywood d'Afrique — studios et paysages féeriques</p>
+            <div class="dest-tags"><span>Cinéma</span><span>Kasbahs</span><span>Désert</span></div>
+            <button class="dest-btn" onclick="openDestModal('ouarzazate')">Découvrir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="dest-meta"><span class="dest-region">⬤ Sud</span><span class="dest-rating">★ 4.7</span></div>
+      <h3 class="dest-name">Ouarzazate</h3>
+      <p class="dest-desc">Hollywood d'Afrique au pied du désert</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========== CULTURE ========== -->
+<section id="culture" class="section-culture">
+  <div class="culture-bg-pattern"></div>
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Art de Vivre</div>
+    <h2 class="section-title" style="text-align:center">La <em>Culture</em> Marocaine</h2>
+    <p class="section-sub">Un kaléidoscope de traditions, de musiques, d'arts et de savoir-faire transmis de génération en génération.</p>
+
+    <div class="culture-tabs">
+      <button class="tab-btn active" data-tab="traditions">Traditions</button>
+      <button class="tab-btn" data-tab="musique">Musique</button>
+      <button class="tab-btn" data-tab="artisanat">Artisanat</button>
+      <button class="tab-btn" data-tab="fetes">Fêtes</button>
+      <button class="tab-btn" data-tab="architecture">Architecture</button>
+    </div>
+
+    <div class="tab-content active" id="tab-traditions">
+      <div class="culture-grid">
+        <div class="culture-item" data-aos="fade-up"><div class="culture-icon">🍵</div><h3>Le Thé à la Menthe</h3><p>Véritable rituel social, le thé à la menthe (atay) symbolise l'hospitalité marocaine. Versé en hauteur pour créer de la mousse, il se boit en trois verres selon la tradition.</p></div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="100"><div class="culture-icon">🧖</div><h3>Le Hammam</h3><p>Bain traditionnel à vapeur, le hammam est un lieu de purification et de sociabilité. Chaque médina possède ses hammams où hommes et femmes se retrouvent pour soin et détente.</p></div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="200"><div class="culture-icon">💒</div><h3>Mariage Traditionnel</h3><p>Célébration épique de 3 à 7 jours, le mariage marocain est un spectacle de couleurs, de musique, de henné et de costumes traditionnels comme la jabador et la takchita.</p></div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="300"><div class="culture-icon">🌙</div><h3>Ramadan</h3><p>Durant le mois sacré, le Maroc prend un visage unique — les nuits s'animent après la rupture du jeûne avec la harira et les chebakia, dans une atmosphère de communion rare.</p></div>
+        <div class="culture-item" data-aos="fade-up"><div class="culture-icon">🐪</div><h3>Moussem</h3><p>Festivals religieux et tribaux liés à un saint patron, les moussems rassemblent des milliers de pèlerins avec fantasia, musique et commerce dans une ambiance festive unique.</p></div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="100"><div class="culture-icon">🏇</div><h3>Fantasia</h3><p>Spectacle équestre où des cavaliers en tenue d'apparat chargent à pleine vitesse avant de tirer simultanément leurs fusils — une tradition guerrière devenue art de vivre.</p></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-musique">
+      <div class="music-grid">
+        <div class="music-card" data-aos="fade-up"><div class="music-img" style="background:linear-gradient(135deg,#8B0000,#FFD700)"><span class="music-emoji">🎵</span></div><h3>Gnawa</h3><p>Musique mystique et spirituelle descendante des esclaves sub-sahariens, le Gnawa utilise le guembri et les qraqeb pour induire des états de transe lors de nuits de lila. Patrimoine UNESCO.</p><div class="music-tag">Patrimoine immatériel UNESCO</div></div>
+        <div class="music-card" data-aos="fade-up" data-aos-delay="100"><div class="music-img" style="background:linear-gradient(135deg,#1a472a,#2d8653)"><span class="music-emoji">🎸</span></div><h3>Chaabi</h3><p>Musique populaire urbaine née à Casablanca, le chaabi mêle poésie dialectale, percussions et sintir dans une ambiance festive et dansante qui rassemble toutes les générations.</p><div class="music-tag">Musique Populaire</div></div>
+        <div class="music-card" data-aos="fade-up" data-aos-delay="200"><div class="music-img" style="background:linear-gradient(135deg,#1e3a5f,#2980b9)"><span class="music-emoji">🎼</span></div><h3>Andalousie</h3><p>Héritée de l'Andalousie médiévale, la musique andalouse marocaine (al-ala) est une symphonie de maqams et de poésies classiques jouée par des orchestres dans les grandes villes impériales.</p><div class="music-tag">Musique Classique</div></div>
+        <div class="music-card" data-aos="fade-up" data-aos-delay="300"><div class="music-img" style="background:linear-gradient(135deg,#4a2040,#9b59b6)"><span class="music-emoji">🥁</span></div><h3>Amazigh</h3><p>La musique berbère ou amazighe, avec ses rythmes entraînants, sa poésie et ses danses collectives (ahidous, ahwach), est l'expression vivante de l'identité ancestrale du pays.</p><div class="music-tag">Tradition Amazighe</div></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-artisanat">
+      <div class="craft-showcase">
+        <div class="craft-item" data-aos="fade-right"><img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=500&q=80" alt="Zellige" loading="lazy" /><div class="craft-info"><h3>Zellige</h3><p>Art du carrelage en mosaïque géométrique, le zellige marocain orne mosquées, palais et riads depuis le XIVème siècle. Chaque carreau est taillé et patiné à la main par des maâlems (maîtres artisans).</p></div></div>
+        <div class="craft-item reverse" data-aos="fade-left"><img src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=500&q=80" alt="Tanneries" loading="lazy" /><div class="craft-info"><h3>Maroquinerie & Tanneries</h3><p>Les tanneries de Fès (Chouara) sont un spectacle unique — des ouvriers trempent et colorent les peaux dans des cuves colorées, selon des techniques inchangées depuis mille ans.</p></div></div>
+        <div class="craft-item" data-aos="fade-right"><img src="https://images.unsplash.com/photo-1583394293214-5a678b3d59fb?w=500&q=80" alt="Tissage" loading="lazy" /><div class="craft-info"><h3>Tapis & Tissage</h3><p>Du tapis berbère géométrique de l'Atlas au kilim en passant par le tapis de Rabat, le tissage marocain est une forme d'art narratif où chaque motif raconte une histoire tribale.</p></div></div>
+        <div class="craft-item reverse" data-aos="fade-left"><img src="https://images.unsplash.com/photo-1567516476308-59c2b37a3b7c?w=500&q=80" alt="Poterie" loading="lazy" /><div class="craft-info"><h3>Poterie de Safi</h3><p>La ville de Safi est la capitale de la poterie marocaine. Des potiers façonnent et décorent céramiques et vaisselles avec des émaux colorés dans un style unique reconnaissable entre tous.</p></div></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-fetes">
+      <div class="fetes-grid">
+        <div class="fete-card" data-aos="fade-up"><div class="fete-month">Janvier</div><h3>Yennayer</h3><p>Nouvel An berbère amazigh, célébré le 14 janvier avec des plats traditionnels, des contes et une communion familiale autour du foyer.</p></div>
+        <div class="fete-card" data-aos="fade-up" data-aos-delay="100"><div class="fete-month">Avril</div><h3>Festival des Roses</h3><p>À Kalaat M'Gouna dans la vallée du Dadès, un festival célèbre la récolte des roses de damas, avec cortège de fleurs, musique et élection de la reine des roses.</p></div>
+        <div class="fete-card" data-aos="fade-up" data-aos-delay="200"><div class="fete-month">Juin</div><h3>Festival Gnaoua</h3><p>Festival international d'Essaouira — pendant 3 jours, les meilleurs maâlems gnawa se mêlent aux grands noms du jazz et des musiques du monde.</p></div>
+        <div class="fete-card" data-aos="fade-up" data-aos-delay="300"><div class="fete-month">Juillet</div><h3>Moussem de Tan-Tan</h3><p>Grand rassemblement des peuples nomades du Sahara — une symphonie de couleurs, de chameaux et de traditions sahariennes unique au monde.</p></div>
+        <div class="fete-card" data-aos="fade-up"><div class="fete-month">Septembre</div><h3>Fantasia</h3><p>Nombreux tournois de tbourida ou fantasia dans tout le Maroc — des cavaliers en costume de cérémonie s'affrontent dans cet art équestre ancestral.</p></div>
+        <div class="fete-card" data-aos="fade-up" data-aos-delay="100"><div class="fete-month">Décembre</div><h3>Fête du Trône</h3><p>Célébrant l'accession au trône du Roi Mohammed VI, cette fête nationale réunit le Maroc entier dans une explosion de fierté et de festivités.</p></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-architecture">
+      <div class="culture-grid">
+        <div class="culture-item" data-aos="fade-up">
+          <div class="culture-icon">🏰</div>
+          <h3>Le Riad</h3>
+          <p>Maison traditionnelle organisée autour d'un patio central avec fontaine et jardins, le riad est un havre de paix au cœur des médinas. Son architecture introvertie cache des intérieurs somptueux ornés de zelliges, stucs et cèdre sculpté.</p>
+        </div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="100">
+          <div class="culture-icon">🏯</div>
+          <h3>La Kasbah</h3>
+          <p>Forteresse ou résidence seigneuriale en pisé rouge, la kasbah est emblématique du Sud marocain. Ses tours à merlons et ses façades ornées de motifs géométriques en font un chef-d'œuvre de l'architecture berbère saharienne.</p>
+        </div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="200">
+          <div class="culture-icon">📚</div>
+          <h3>La Médersa</h3>
+          <p>École coranique médiévale aux décors intérieurs éblouissants, la médersa est un bijou d'architecture islamique. La Médersa Bou Inania de Fès et la Médersa Ben Youssef de Marrakech sont parmi les plus belles au monde.</p>
+        </div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="300">
+          <div class="culture-icon">🎨</div>
+          <h3>Le Zellige & le Stuc</h3>
+          <p>L'artisanat décoratif marocain atteint son apogée dans les combinaisons de zellige (mosaïque en carrelage), de stuc sculpté (plâtre ornemental) et de cèdre gravé qui ornent les mosquées, palais et riads depuis le XIIe siècle.</p>
+        </div>
+        <div class="culture-item" data-aos="fade-up">
+          <div class="culture-icon">🕌</div>
+          <h3>Les Mosquées Andalouses</h3>
+          <p>Héritées de l'Andalousie musulmane, ces mosquées aux minarets carrés ornés de zelliges polychromes et aux cours à arcades à la végétation luxuriante témoignent des échanges culturels entre l'Espagne et le Maroc médiévaux.</p>
+        </div>
+        <div class="culture-item" data-aos="fade-up" data-aos-delay="100">
+          <div class="culture-icon">🌆</div>
+          <h3>Le Ksar</h3>
+          <p>Village fortifié en pisé rouge de l'Atlas et du Sahara, le ksar (pluriel : ksour) regroupe maisons, mosquée, grenier collectif et marché derrière des murailles défensives. Aït Benhaddou en est le plus célèbre exemple.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CUISINE ========== -->
+<section id="cuisine" class="section-cuisine">
+  <div class="cuisine-bg"><div class="cuisine-overlay"></div></div>
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Gastronomie</div>
+    <h2 class="section-title white" style="text-align:center">Saveurs du <em>Maroc</em></h2>
+    <p class="section-sub white">Une cuisine aux mille épices, classée parmi les meilleures au monde — un voyage gustatif unique.</p>
+    <div class="cuisine-carousel" id="cuisineCarousel">
+      <div class="cuisine-track" id="cuisineTrack">
+        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Plat Principal</span><h3>Tajine</h3><p>Plat mythique cuit lentement sous un couvercle conique en terre cuite — poulet aux olives et citron confit, agneau aux pruneaux, kefta aux œufs… chaque région a son tajine.</p><div class="cuisine-ingredients"><span>🫒 Olives</span><span>🍋 Citron</span><span>🧄 Ail</span><span>🌿 Coriandre</span></div></div></div>
+        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1547592166-23ac45744acd?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Plat Festif</span><h3>Couscous</h3><p>Servi traditionnellement le vendredi après la prière, le couscous marocain aux sept légumes est un monument de la cuisine familiale, symbole de générosité et de partage.</p><div class="cuisine-ingredients"><span>🥕 Carotte</span><span>🥒 Courgette</span><span>🧅 Oignon</span><span>🫘 Pois chiche</span></div></div></div>
+        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Entrée</span><h3>Pastilla</h3><p>Chef-d'œuvre de la pâtisserie salée marocaine — feuilletés croustillants de pâte warka farcis de pigeon ou de poulet, d'amandes et de cannelle, saupoudrés de sucre glace.</p><div class="cuisine-ingredients"><span>🥚 Œuf</span><span>🌿 Cannelle</span><span>🫑 Amande</span><span>🍯 Miel</span></div></div></div>
+        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Soupe</span><h3>Harira</h3><p>Soupe épaisse et parfumée aux tomates, lentilles, pois chiches et coriandre fraîche — incontournable pour rompre le jeûne du Ramadan et lors des célébrations.</p><div class="cuisine-ingredients"><span>🍅 Tomate</span><span>🫘 Lentille</span><span>🌿 Coriandre</span><span>🍋 Citron</span></div></div></div>
+        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Pâtisserie</span><h3>Cornes de Gazelle</h3><p>Gâteaux en forme de croissant fourrés de pâte d'amande parfumée à la fleur d'oranger, incontournables lors des mariages et des fêtes religieuses marocaines.</p><div class="cuisine-ingredients"><span>🫑 Amande</span><span>🌸 Fleur d'oranger</span><span>🍯 Miel</span><span>🌿 Cannelle</span></div></div></div>
+        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Street Food</span><h3>Msemen & Rghaïf</h3><p>Crêpes feuilletées marocaines, cuites sur une plaque chaude et dégustées au petit-déjeuner avec du beurre, du miel ou une soupe de fèves — un bonheur simple et authentique.</p><div class="cuisine-ingredients"><span>🌾 Semoule</span><span>🫒 Huile</span><span>🍯 Miel</span><span>🧈 Beurre</span></div></div></div>
+      </div>
+      <button class="carousel-btn prev" id="cuisinePrev">‹</button>
+      <button class="carousel-btn next" id="cuisineNext">›</button>
+      <div class="carousel-dots" id="cuisineDots"></div>
+    </div>
+    <div class="cuisine-spices">
+      <h3>L'Épicerie Marocaine</h3>
+      <div class="spices-grid">
+        <div class="spice"><div class="spice-color" style="background:#C85C2A"></div><span>Ras el Hanout</span></div>
+        <div class="spice"><div class="spice-color" style="background:#E8B84B"></div><span>Curcuma</span></div>
+        <div class="spice"><div class="spice-color" style="background:#8B1A1A"></div><span>Paprika</span></div>
+        <div class="spice"><div class="spice-color" style="background:#4B3832"></div><span>Cumin</span></div>
+        <div class="spice"><div class="spice-color" style="background:#5C3D1E"></div><span>Coriandre</span></div>
+        <div class="spice"><div class="spice-color" style="background:#D4890A"></div><span>Safran</span></div>
+        <div class="spice"><div class="spice-color" style="background:#8B4513"></div><span>Gingembre</span></div>
+        <div class="spice"><div class="spice-color" style="background:#3D2B1F"></div><span>Cannelle</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== HISTOIRE ========== -->
+<section id="histoire" class="section-histoire">
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Patrimoine</div>
+    <h2 class="section-title" style="text-align:center"><em>L'Histoire</em> du Maroc</h2>
+    <p class="section-sub">Trois millénaires de civilisations, d'empires et de résistance.</p>
+    <div class="timeline">
+      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>~800 av. J.-C.</span></div><div class="timeline-content"><h3>Phéniciens & Berbères</h3><p>Les Phéniciens fondent des comptoirs sur les côtes marocaines. Les Berbères (Amazighs), premiers habitants du Maroc, développent une civilisation propre avec leur langue et écriture tifinagh.</p><div class="timeline-tag">Antiquité</div></div></div>
+      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>40 apr. J.-C.</span></div><div class="timeline-content"><h3>Maurétanie Tingitane</h3><p>Intégration dans l'Empire romain sous le nom de Maurétanie Tingitane. Volubilis devient une cité romaine prospère dont les mosaïques éblouissantes sont encore visibles aujourd'hui.</p><div class="timeline-tag">Rome</div></div></div>
+      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>788</span></div><div class="timeline-content"><h3>Idrisides — Premier État</h3><p>Idris Ier fonde la première dynastique arabe et islamique du Maroc et crée Fès, qui deviendra l'une des plus grandes villes du monde islamique médiéval.</p><div class="timeline-tag">Islam</div></div></div>
+      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1040</span></div><div class="timeline-content"><h3>Empire Almoravide</h3><p>Les Almoravides, peuple nomade du Sahara, unissent le Maghreb et l'Andalousie, fondent Marrakech (1070) et édifient un empire s'étendant jusqu'en Espagne et au Mali.</p><div class="timeline-tag">Expansion</div></div></div>
+      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1147</span></div><div class="timeline-content"><h3>Almohades & Apogée</h3><p>Sous les Almohades, le Maroc connaît son âge d'or — Koutoubia, Tour Hassan, Giralda de Séville. Ibn Rushd (Averroès) et Ibn Tufayl illuminent la pensée médiévale.</p><div class="timeline-tag">Âge d'Or</div></div></div>
+      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1269</span></div><div class="timeline-content"><h3>Mérinides — Renaissance Urbaine</h3><p>La dynastie mérinide fait de Fès la capitale intellectuelle du monde islamique. Construction des plus belles médersas (Bou Inania, Attarine) et apogée de l'art marocain médiéval.</p><div class="timeline-tag">Mérinides</div></div></div>
+      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1554</span></div><div class="timeline-content"><h3>Saadiens — L'Âge du Sucre</h3><p>Les Saadiens font de Marrakech leur capitale et accumulent une richesse fabuleuse grâce au commerce de l'or sahélien et du sucre. Les Tombeaux Saadiens témoignent de leur faste incomparable.</p><div class="timeline-tag">Saadiens</div></div></div>
+      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1578</span></div><div class="timeline-content"><h3>Bataille des Trois Rois</h3><p>À Ksar el-Kébir, le Maroc saadien écrase une coalition portugaise — trois rois meurent sur le champ de bataille. Le Maroc devient la première puissance africaine à repousser une invasion coloniale.</p><div class="timeline-tag">Résistance</div></div></div>
+      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1666</span></div><div class="timeline-content"><h3>Dynastie Alaouite</h3><p>La famille royale actuelle, les Alaouites, monte sur le trône. Moulay Ismaïl fait de Meknès une capitale impériale et conclut des traités avec les puissances européennes.</p><div class="timeline-tag">Alaouite</div></div></div>
+      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1912–1956</span></div><div class="timeline-content"><h3>Protectorat & Résistance</h3><p>Sous le Protectorat franco-espagnol, le Sultan Mohammed V mène la résistance nationale. Exilé en 1953, il revient triomphalement en 1955, menant le Maroc vers l'indépendance.</p><div class="timeline-tag">Résistance</div></div></div>
+      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1956</span></div><div class="timeline-content"><h3>Indépendance</h3><p>Le 2 mars 1956, le Maroc recouvre son indépendance. Mohammed V devient roi, inaugurant une ère de modernisation tout en préservant les traditions ancestrales du royaume.</p><div class="timeline-tag">Indépendance</div></div></div>
+      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1999–Aujourd'hui</span></div><div class="timeline-content"><h3>Maroc Moderne</h3><p>Sous le règne de SM le Roi Mohammed VI, le Maroc se modernise — TGV, énergie solaire, réformes sociales, coupe du monde 2030 — tout en s'affirmant comme leader africain.</p><div class="timeline-tag">Renaissance</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ÉCONOMIE & INNOVATION ========== -->
+<section id="economie" class="section-economie">
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Puissance Émergente</div>
+    <h2 class="section-title" style="text-align:center">Économie & <em>Innovation</em></h2>
+    <p class="section-sub">Le Maroc, locomotive économique de l'Afrique, conjugue ressources naturelles exceptionnelles et vision industrielle ambitieuse.</p>
+
+    <div class="eco-stats-grid" data-aos="fade-up">
+      <div class="eco-stat-card">
+        <div class="eco-stat-icon"><i class="fa-solid fa-gem"></i></div>
+        <div class="eco-stat-num">70%</div>
+        <div class="eco-stat-label">Réserves mondiales de phosphates</div>
+      </div>
+      <div class="eco-stat-card">
+        <div class="eco-stat-icon"><i class="fa-solid fa-plane"></i></div>
+        <div class="eco-stat-num">13M</div>
+        <div class="eco-stat-label">Touristes par an</div>
+      </div>
+      <div class="eco-stat-card">
+        <div class="eco-stat-icon"><i class="fa-solid fa-car"></i></div>
+        <div class="eco-stat-num">700K</div>
+        <div class="eco-stat-label">Véhicules produits/an</div>
+      </div>
+      <div class="eco-stat-card">
+        <div class="eco-stat-icon"><i class="fa-solid fa-solar-panel"></i></div>
+        <div class="eco-stat-num">52%</div>
+        <div class="eco-stat-label">Objectif énergie renouvelable 2030</div>
+      </div>
+    </div>
+
+    <div class="eco-grid">
+      <div class="eco-card" data-aos="fade-up">
+        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=500&q=80" alt="Phosphates" loading="lazy" /></div>
+        <div class="eco-card-body">
+          <span class="eco-tag"><i class="fa-solid fa-gem"></i> Ressources</span>
+          <h3>Phosphates — N°1 Mondial</h3>
+          <p>Avec 70% des réserves mondiales, le Maroc domine le marché mondial du phosphate via l'OCP Group. Cette ressource est la base des engrais alimentant l'agriculture mondiale.</p>
+        </div>
+      </div>
+      <div class="eco-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Industrie Auto" loading="lazy" /></div>
+        <div class="eco-card-body">
+          <span class="eco-tag"><i class="fa-solid fa-car"></i> Industrie</span>
+          <h3>Hub Automobile</h3>
+          <p>Renault à Tanger et Stellantis à Kénitra font du Maroc le 1er producteur automobile d'Afrique. L'écosystème automobile représente 27% des exportations industrielles.</p>
+        </div>
+      </div>
+      <div class="eco-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=500&q=80" alt="Énergie Solaire" loading="lazy" /></div>
+        <div class="eco-card-body">
+          <span class="eco-tag"><i class="fa-solid fa-solar-panel"></i> Énergie Verte</span>
+          <h3>Noor Ouarzazate</h3>
+          <p>La centrale solaire Noor est la plus grande au monde — 580 MW. Elle illustre l'ambition du Maroc d'atteindre 52% d'énergies renouvelables d'ici 2030 et d'exporter de l'électricité verte vers l'Europe.</p>
+        </div>
+      </div>
+      <div class="eco-card" data-aos="fade-up">
+        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=500&q=80" alt="TGV Al Boraq" loading="lazy" /></div>
+        <div class="eco-card-body">
+          <span class="eco-tag"><i class="fa-solid fa-train"></i> Infrastructure</span>
+          <h3>TGV Al Boraq</h3>
+          <p>Premier TGV africain reliant Casablanca à Tanger en 2h10 à 320 km/h depuis 2018. Un symbole du programme de modernisation des infrastructures du Royaume.</p>
+        </div>
+      </div>
+      <div class="eco-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=500&q=80" alt="Finance City" loading="lazy" /></div>
+        <div class="eco-card-body">
+          <span class="eco-tag"><i class="fa-solid fa-building-columns"></i> Finance</span>
+          <h3>Casablanca Finance City</h3>
+          <p>Hub financier panafricain de premier rang, CFC accueille plus de 250 entreprises multinationales et fonds d'investissement faisant du Maroc la porte d'entrée vers l'Afrique subsaharienne.</p>
+        </div>
+      </div>
+      <div class="eco-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&q=80" alt="Startups" loading="lazy" /></div>
+        <div class="eco-card-body">
+          <span class="eco-tag"><i class="fa-solid fa-rocket"></i> Innovation</span>
+          <h3>Startups & Tech</h3>
+          <p>Le Maroc est le 3ème écosystème startup africain avec Casablanca et Rabat comme pôles tech. Le programme "Maroc Digital 2030" vise à créer 240 000 emplois dans le numérique.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cdm-banner" data-aos="fade-up">
+      <div class="cdm-content">
+        <div class="cdm-icon">🏆</div>
+        <div>
+          <h3>Coupe du Monde 2030</h3>
+          <p>Le Maroc co-organisera la Coupe du Monde FIFA 2030 avec l'Espagne et le Portugal, avec des matchs aussi au Portugal, Espagne, Argentine, Uruguay et Paraguay. Un investissement de 4,5 milliards de dollars pour transformer les infrastructures sportives.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NATURE & BIODIVERSITÉ ========== -->
+<section id="nature" class="section-nature">
+  <div class="nature-hero-bg"></div>
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Biodiversité</div>
+    <h2 class="section-title" style="text-align:center">Nature & <em>Écosystèmes</em></h2>
+    <p class="section-sub">Du cerisier de l'Atlas aux flamants roses de Souss-Massa, le Maroc recèle une biodiversité spectaculaire.</p>
+
+    <div class="nature-grid">
+      <div class="nature-card" data-aos="fade-up">
+        <div class="nature-img"><img src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&q=80" alt="Toubkal" loading="lazy" /></div>
+        <div class="nature-body">
+          <span class="nature-badge"><i class="fa-solid fa-mountain"></i> Parc National</span>
+          <h3>Parc du Toubkal</h3>
+          <p>Le plus ancien parc national du Maroc (1942) abrite le Jbel Toubkal, point culminant d'Afrique du Nord (4 167 m). Forêts de genévriers, aigles royaux et troupeaux de mouflons à manchettes y vivent.</p>
+        </div>
+      </div>
+      <div class="nature-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="nature-img"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&q=80" alt="Souss-Massa" loading="lazy" /></div>
+        <div class="nature-body">
+          <span class="nature-badge"><i class="fa-solid fa-feather"></i> Flamants Roses</span>
+          <h3>Parc Souss-Massa</h3>
+          <p>Sanctuaire ornithologique de renommée mondiale, il abrite des milliers de flamants roses et de mouettes d'Audouin. Les arganiers endémiques forment un écosystème unique classé réserve de biosphère UNESCO.</p>
+        </div>
+      </div>
+      <div class="nature-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="nature-img"><img src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80" alt="Cèdres Ifrane" loading="lazy" /></div>
+        <div class="nature-body">
+          <span class="nature-badge"><i class="fa-solid fa-tree"></i> Forêt Millénaire</span>
+          <h3>Cèdres d'Ifrane</h3>
+          <p>La forêt de cèdres de l'Atlas, au cœur du Moyen Atlas, abrite les fameux Macaques de Barbarie — primates en danger critique. Certains cèdres ont plus de 800 ans. La ville d'Ifrane est surnommée "la Suisse du Maroc".</p>
+        </div>
+      </div>
+      <div class="nature-card" data-aos="fade-up">
+        <div class="nature-img"><img src="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=500&q=80" alt="Vallée du Draa" loading="lazy" /></div>
+        <div class="nature-body">
+          <span class="nature-badge"><i class="fa-solid fa-water"></i> Oasis</span>
+          <h3>Vallée du Draa</h3>
+          <p>La plus longue vallée d'Afrique du Nord (1 100 km) serpente du Haut Atlas jusqu'à l'Atlantique à travers des palmeraies féeriques, des ksour en pisé et des oasis verdoyantes au milieu du désert.</p>
+        </div>
+      </div>
+      <div class="nature-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="nature-img"><img src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=500&q=80" alt="Huile d'argan" loading="lazy" /></div>
+        <div class="nature-body">
+          <span class="nature-badge"><i class="fa-solid fa-seedling"></i> UNESCO</span>
+          <h3>Arganier & Huile d'Argan</h3>
+          <p>L'arganier (Argania spinosa), endémique au Maroc, pousse uniquement dans le Souss. Son huile précieuse, produite par des coopératives féminines, est classée patrimoine culturel immatériel UNESCO depuis 2014.</p>
+        </div>
+      </div>
+      <div class="nature-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="nature-img"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80" alt="Côte Atlantique" loading="lazy" /></div>
+        <div class="nature-body">
+          <span class="nature-badge"><i class="fa-solid fa-waves"></i> Côtes</span>
+          <h3>Côtes Atlantique & Méditerranée</h3>
+          <p>Le Maroc possède 3 500 km de côtes entre deux mers. La côte atlantique est un paradis pour les cétacés (dauphins, baleines) et les oiseaux migrateurs. La Méditerranée abrite des fonds marins exceptionnels.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="extinct-banner" data-aos="fade-up">
+      <i class="fa-solid fa-paw banner-icon"></i>
+      <div>
+        <h4>Lion de Barbarie — Panthera leo leo</h4>
+        <p>Le Lion de Barbarie, sous-espèce endémique du Maghreb et symbole du Maroc, a été déclaré éteint à l'état sauvage dans les années 1920. Des programmes de réintroduction à partir des spécimens captifs de la ménagerie royale de Rabat sont en cours.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== MAROC SPIRITUEL ========== -->
+<section id="spirituel" class="section-spirituel">
+  <div class="spirituel-bg-pattern"></div>
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Âme du Royaume</div>
+    <h2 class="section-title" style="text-align:center">Maroc <em>Spirituel</em></h2>
+    <p class="section-sub">Terre de foi, de tolérance et de syncrétisme — le Maroc est un carrefour de spiritualités millénaires.</p>
+
+    <div class="spirituel-grid">
+      <div class="spirituel-card featured" data-aos="fade-up">
+        <div class="spirituel-icon"><i class="fa-solid fa-star-and-crescent"></i></div>
+        <h3>Islam au Cœur du Maroc</h3>
+        <p>Le Maroc est un État musulman sunnite de rite malékite, avec le Roi comme Commandeur des Croyants (Amir al-Muminin). Les 5 piliers de l'Islam (Shahada, Salat, Zakat, Sawm, Hajj) structurent la vie quotidienne.</p>
+        <div class="piliers-grid">
+          <span>☪ Shahada</span><span>🕌 Salat</span><span>💰 Zakat</span><span>🌙 Sawm</span><span>🕋 Hajj</span>
+        </div>
+      </div>
+      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="spirituel-icon"><i class="fa-solid fa-place-of-worship"></i></div>
+        <h3>Zawiyas & Saints</h3>
+        <p>Les zawiyas (mausolées de saints) jalonnent tout le territoire. Moulay Idriss Zerhoun, ville sainte inaccessible aux non-musulmans jusqu'en 2005, abrite le tombeau d'Idris Ier, fondateur du Maroc islamique.</p>
+      </div>
+      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="spirituel-icon"><i class="fa-solid fa-star-of-david"></i></div>
+        <h3>Héritage Juif Marocain</h3>
+        <p>Le Maroc abrite l'une des plus vieilles communautés juives au monde. Les mellahs (quartiers juifs) de Fès et Marrakech, les tombeaux de saints (Rabbi Amram Ben Diwan), et les musées du judaïsme témoignent d'une coexistence millénaire.</p>
+      </div>
+      <div class="spirituel-card" data-aos="fade-up">
+        <div class="spirituel-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+        <h3>Confréries Soufies</h3>
+        <p>Les tariqas soufies comme la Tijaniyya (fondée à Fès, présente dans toute l'Afrique de l'Ouest) et la Qadiriyya perpétuent une tradition mystique d'amour divin, de chants (hadra) et de méditation collective.</p>
+      </div>
+      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="spirituel-icon"><i class="fa-solid fa-tent"></i></div>
+        <h3>Moussem de Moulay Idriss</h3>
+        <p>Grand pèlerinage annuel à Moulay Idriss Zerhoun, ville sainte fondée par le premier roi islamique du Maroc. Des milliers de fidèles y convergent pour des prières, processions et fantasia dans une atmosphère de ferveur unique.</p>
+      </div>
+      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="spirituel-icon"><i class="fa-solid fa-mosque"></i></div>
+        <h3>Mosquées Andalouses</h3>
+        <p>Les mosquées Karaouyine (859 AD — la plus ancienne université du monde), Koutoubia et Hassan II témoignent d'une architecture islamique sublime héritée de l'Andalousie et affinée au fil des siècles par les artisans marocains.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SPORT & AVENTURE ========== -->
+<section id="sport" class="section-sport">
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Adrénaline & Performance</div>
+    <h2 class="section-title" style="text-align:center">Sport & <em>Aventure</em></h2>
+    <p class="section-sub">Des Lions de l'Atlas aux dunes de Dakhla, le Maroc est une terre de champions et d'aventuriers.</p>
+
+    <div class="sport-hero-banner" data-aos="zoom-in">
+      <div class="sport-hero-content">
+        <div class="sport-hero-badge">🏆 2022</div>
+        <h3>Lions de l'Atlas — Légende Mondiale</h3>
+        <p>En 2022 au Qatar, le Maroc réalise l'exploit historique d'atteindre les demi-finales de la Coupe du Monde, devenant la première nation africaine et arabe à accomplir cet exploit. Yassine Bounou, Sofyan Amrabat et Achraf Hakimi sont entrés dans la légende.</p>
+        <div class="sport-stats">
+          <div><strong>4ème</strong><span>Mondial 2022</span></div>
+          <div><strong>4×</strong><span>Vainqueur CHAN</span></div>
+          <div><strong>2030</strong><span>Coupe du Monde</span></div>
+        </div>
+      </div>
+      <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&q=80" alt="Football" loading="lazy" />
+    </div>
+
+    <div class="sport-grid">
+      <div class="sport-card" data-aos="fade-up">
+        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=400&q=80" alt="Surf Taghazout" loading="lazy" /></div>
+        <div class="sport-card-body">
+          <span class="sport-icon"><i class="fa-solid fa-person-surfing"></i></span>
+          <h3>Surf & Kitesurf</h3>
+          <p>Taghazout (près d'Agadir) est classé parmi les 10 meilleurs spots de surf au monde. Dakhla, dans le Sud, est la capitale mondiale du kitesurf grâce à son lagon et ses vents réguliers.</p>
+          <div class="sport-tags"><span>Taghazout</span><span>Dakhla</span><span>Essaouira</span></div>
+        </div>
+      </div>
+      <div class="sport-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&q=80" alt="Ski Oukaimeden" loading="lazy" /></div>
+        <div class="sport-card-body">
+          <span class="sport-icon"><i class="fa-solid fa-person-skiing"></i></span>
+          <h3>Ski à Oukaimeden</h3>
+          <p>À 1h de Marrakech, Oukaimeden (2 600 m) est la plus haute station de ski d'Afrique. Un paradoxe délicieux : skier au Maroc avec vue sur le désert. Saison décembre-mars.</p>
+          <div class="sport-tags"><span>Oukaimeden</span><span>Atlas</span><span>Ifrane</span></div>
+        </div>
+      </div>
+      <div class="sport-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1553969546-6f7388a7e07b?w=400&q=80" alt="Marathon des Sables" loading="lazy" /></div>
+        <div class="sport-card-body">
+          <span class="sport-icon"><i class="fa-solid fa-person-running"></i></span>
+          <h3>Marathon des Sables</h3>
+          <p>La course à pied la plus dure du monde (250 km en 6 jours dans le Sahara marocain) attire 1 000 coureurs d'élite du monde entier chaque avril. Autosuffisance alimentaire obligatoire.</p>
+          <div class="sport-tags"><span>Ouarzazate</span><span>Sahara</span><span>Extrême</span></div>
+        </div>
+      </div>
+      <div class="sport-card" data-aos="fade-up">
+        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&q=80" alt="Golf Maroc" loading="lazy" /></div>
+        <div class="sport-card-body">
+          <span class="sport-icon"><i class="fa-solid fa-golf-ball-tee"></i></span>
+          <h3>Golf Royal</h3>
+          <p>Le Maroc compte 17 golfs royaux et de luxe, dont les mythiques parcours de Marrakech, Agadir et Rabat. Hassan II Golf Trophy est un tournoi légendaire. Le Maroc est la 1ère destination golf d'Afrique.</p>
+          <div class="sport-tags"><span>Marrakech</span><span>Agadir</span><span>Rabat</span></div>
+        </div>
+      </div>
+      <div class="sport-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&q=80" alt="Trail Atlas" loading="lazy" /></div>
+        <div class="sport-card-body">
+          <span class="sport-icon"><i class="fa-solid fa-route"></i></span>
+          <h3>Trail & Trekking Atlas</h3>
+          <p>Les sentiers du Haut Atlas offrent des trails épiques entre sommets de 4 000m, villages berbères et valées oubliées. Le GR52 relie Marrakech à l'Atlantique en 30 jours. Un paradis des trail-runners.</p>
+          <div class="sport-tags"><span>Toubkal</span><span>Vallées</span><span>Villages</span></div>
+        </div>
+      </div>
+      <div class="sport-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1489549132488-d00b7eee80f1?w=400&q=80" alt="Quad Désert" loading="lazy" /></div>
+        <div class="sport-card-body">
+          <span class="sport-icon"><i class="fa-solid fa-motorcycle"></i></span>
+          <h3>Quad & 4x4 Désert</h3>
+          <p>Le Sahara marocain est le terrain de jeu idéal pour les sports motorisés — quad, buggy, moto-cross et rallye 4x4. Le Rallye Maroc Challenge est une étape du championnat mondial FIA.</p>
+          <div class="sport-tags"><span>Merzouga</span><span>Zagora</span><span>Dakhla</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SHOPPING GUIDE ========== -->
+<section id="shopping" class="section-shopping">
+  <div class="shopping-bg-pattern"></div>
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Art du Souk</div>
+    <h2 class="section-title" style="text-align:center">Guide <em>Shopping</em></h2>
+    <p class="section-sub">Des souks labyrinthiques aux coopératives équitables — comment rapporter le meilleur du Maroc.</p>
+
+    <div class="shopping-where">
+      <div class="shopping-where-card" data-aos="fade-right">
+        <h3><i class="fa-solid fa-map-pin"></i> Où Acheter</h3>
+        <div class="where-items">
+          <div class="where-item"><div class="where-icon">🏪</div><div><strong>Souks de Marrakech</strong><p>La Kissaria (tissus), souk des épices, souk des tanneurs — chaque métier a son quartier dans la médina. Marchandage de rigueur.</p></div></div>
+          <div class="where-item"><div class="where-icon">🏛️</div><div><strong>Souks de Fès</strong><p>Plus authentiques et moins touristiques que Marrakech. Souk el-Attarine pour les épices, souk en-Nejjarine pour la menuiserie.</p></div></div>
+          <div class="where-item"><div class="where-icon">🤝</div><div><strong>Coopératives à Prix Fixes</strong><p>Coopératives de femmes arganières, coopératives de tapis berbères — prix affichés, qualité garantie, commerce équitable.</p></div></div>
+          <div class="where-item"><div class="where-icon">🏬</div><div><strong>Ensemble Artisanal</strong><p>Showrooms officiels dans les grandes villes (Marrakech, Fès, Rabat) avec prix fixes et sélection de qualité — idéal si vous manquez de temps.</p></div></div>
+        </div>
+      </div>
+      <div class="shopping-what" data-aos="fade-left">
+        <h3><i class="fa-solid fa-shopping-bag"></i> Quoi Acheter</h3>
+        <div class="products-showcase">
+          <div class="product-item">
+            <div class="product-img" style="background:#c8a87a"><i class="fa-solid fa-bottle-droplet"></i></div>
+            <div class="product-info"><strong>Huile d'Argan</strong><span>30-80 MAD / 50ml</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#8B4513"><i class="fa-solid fa-tree"></i></div>
+            <div class="product-info"><strong>Bois de Thuya</strong><span>50-500 MAD</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#9b59b6"><i class="fa-solid fa-shirt"></i></div>
+            <div class="product-info"><strong>Caftan & Takchita</strong><span>200-2000 MAD</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#e67e22"><i class="fa-solid fa-shoe-prints"></i></div>
+            <div class="product-info"><strong>Babouches</strong><span>50-200 MAD</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#C9A84C"><i class="fa-solid fa-ring"></i></div>
+            <div class="product-info"><strong>Bijoux en Argent</strong><span>100-1000 MAD</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#c0392b"><i class="fa-solid fa-rug"></i></div>
+            <div class="product-info"><strong>Tapis Berbère</strong><span>500-5000 MAD</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#2c7a7b"><i class="fa-solid fa-mug-hot"></i></div>
+            <div class="product-info"><strong>Théière & Plateau</strong><span>100-600 MAD</span></div>
+          </div>
+          <div class="product-item">
+            <div class="product-img" style="background:#27ae60"><i class="fa-solid fa-leaf"></i></div>
+            <div class="product-info"><strong>Thé & Épices</strong><span>20-150 MAD</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bargaining-guide" data-aos="fade-up">
+      <h3><i class="fa-solid fa-comments-dollar"></i> L'Art du Marchandage</h3>
+      <div class="bargaining-tips">
+        <div class="btip"><span class="btip-num">01</span><div><strong>Commencez bas</strong><p>Proposez 30-40% du prix annoncé. C'est normal et attendu dans les souks.</p></div></div>
+        <div class="btip"><span class="btip-num">02</span><div><strong>Souriez toujours</strong><p>Le marchandage est un jeu social amical. Restez détendu et jovial — jamais agressif.</p></div></div>
+        <div class="btip"><span class="btip-num">03</span><div><strong>Technique de la sortie</strong><p>Si le prix ne descend pas, remerciez et commencez à partir — souvent le prix baisse instantanément.</p></div></div>
+        <div class="btip"><span class="btip-num">04</span><div><strong>Prix fixes = coopératives</strong><p>Pour éviter le stress, préférez les coopératives avec prix affichés. Qualité souvent meilleure.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== QUIZ ========== -->
+<section id="quiz" class="section-quiz">
+  <div class="quiz-bg-pattern"></div>
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Testez-vous</div>
+    <h2 class="section-title" style="text-align:center">Quiz — <em>Connaissez-vous le Maroc ?</em></h2>
+    <p class="section-sub">8 questions pour tester vos connaissances sur le Royaume Chérifien.</p>
+
+    <div class="quiz-container" id="quizContainer">
+      <div class="quiz-progress-wrap">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+        <span class="quiz-progress-text" id="quizProgressText">Question 1 / 8</span>
+      </div>
+      <div class="quiz-question-wrap" id="quizQuestionWrap">
+        <!-- injected by JS -->
+      </div>
+      <div class="quiz-result" id="quizResult" style="display:none">
+        <div class="quiz-result-icon" id="quizResultIcon">🎉</div>
+        <h3 id="quizResultTitle"></h3>
+        <p id="quizResultDesc"></p>
+        <div class="quiz-score-display" id="quizScoreDisplay"></div>
+        <button class="btn-primary" onclick="restartQuiz()"><i class="fa-solid fa-rotate-right"></i> Rejouer</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== GALERIE ========== -->
+<section id="galerie" class="section-galerie">
+  <div class="section-tag" style="text-align:center">Visuels</div>
+  <h2 class="section-title" style="text-align:center">Galerie <em>Photo</em></h2>
+  <p class="section-sub">Le Maroc en images — une mosaïque de couleurs, de lumières et d'émotions.</p>
+  <div class="gallery-masonry" id="galleryGrid">
+    <div class="gallery-item tall" data-aos="zoom-in" onclick="openLightbox(0)"><img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=600&q=80" alt="Jemaa el-Fna" loading="lazy" /><div class="gallery-caption">Jemaa el-Fna, Marrakech</div></div>
+    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="50" onclick="openLightbox(1)"><img src="https://images.unsplash.com/photo-1539020140153-e479b8c8e9bc?w=600&q=80" alt="Médina de Fès" loading="lazy" /><div class="gallery-caption">Médina de Fès</div></div>
+    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="100" onclick="openLightbox(2)"><img src="https://images.unsplash.com/photo-1548019979-a6e9a8c3d4c7?w=600&q=80" alt="Chefchaouen" loading="lazy" /><div class="gallery-caption">Chefchaouen la Bleue</div></div>
+    <div class="gallery-item wide" data-aos="zoom-in" data-aos-delay="150" onclick="openLightbox(3)"><img src="https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=800&q=80" alt="Dunes du Sahara" loading="lazy" /><div class="gallery-caption">Erg Chebbi, Sahara</div></div>
+    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="200" onclick="openLightbox(4)"><img src="https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=600&q=80" alt="Artisanat" loading="lazy" /><div class="gallery-caption">Artisanat de Marrakech</div></div>
+    <div class="gallery-item tall" data-aos="zoom-in" data-aos-delay="250" onclick="openLightbox(5)"><img src="https://images.unsplash.com/photo-1565771768700-ec8e24f4a4e3?w=600&q=80" alt="Atlas" loading="lazy" /><div class="gallery-caption">Haut Atlas</div></div>
+    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="300" onclick="openLightbox(6)"><img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&q=80" alt="Zellige" loading="lazy" /><div class="gallery-caption">Zellige — Art Marocain</div></div>
+    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="350" onclick="openLightbox(7)"><img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80" alt="Hassan II" loading="lazy" /><div class="gallery-caption">Mosquée Hassan II, Casablanca</div></div>
+    <div class="gallery-item wide" data-aos="zoom-in" data-aos-delay="400" onclick="openLightbox(8)"><img src="https://images.unsplash.com/photo-1577791465485-b8d90f4d3609?w=800&q=80" alt="Essaouira" loading="lazy" /><div class="gallery-caption">Port d'Essaouira</div></div>
+    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="450" onclick="openLightbox(9)"><img src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=600&q=80" alt="Tanneries" loading="lazy" /><div class="gallery-caption">Tanneries de Fès</div></div>
+  </div>
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <button class="lightbox-prev" onclick="changeLightbox(-1)">‹</button>
+    <button class="lightbox-next" onclick="changeLightbox(1)">›</button>
+    <div class="lightbox-img-wrap">
+      <img id="lightboxImg" src="" alt="" />
+      <div class="lightbox-caption" id="lightboxCaption"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CONSEILS ========== -->
+<section id="conseils" class="section-conseils">
+  <div class="container">
+    <div class="section-tag" style="text-align:center">Guide Pratique</div>
+    <h2 class="section-title" style="text-align:center">Conseils de <em>Voyage</em></h2>
+    <div class="conseils-grid">
+      <div class="conseil-card" data-aos="fade-up"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-plane"></i></div><h3>Comment Arriver</h3></div><ul><li>Vols directs depuis Paris, Lyon, Marseille, Bordeaux vers Casablanca, Marrakech, Agadir, Fès et Tanger.</li><li>Compagnies : Royal Air Maroc, Air France, easyJet, Ryanair, Transavia.</li><li>Le ferry depuis Algésiras (Espagne) vers Tanger Med (35 min) est une option pittoresque.</li></ul></div>
+      <div class="conseil-card" data-aos="fade-up" data-aos-delay="100"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-calendar-days"></i></div><h3>Meilleure Période</h3></div><ul><li><strong>Printemps (mars-mai) :</strong> Idéal — températures douces, fleurs, pas de foule.</li><li><strong>Automne (sept-nov) :</strong> Excellent — chaleur réduite, dunes magnifiques.</li><li><strong>Hiver :</strong> Parfait pour le sud et le désert — ski à Oukaimeden en bonus.</li><li><strong>Été :</strong> Très chaud à l'intérieur, mais parfait pour les côtes.</li></ul></div>
+      <div class="conseil-card" data-aos="fade-up" data-aos-delay="200"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-car"></i></div><h3>Se Déplacer</h3></div><ul><li><strong>Train ONCF :</strong> Réseau moderne reliant les grandes villes, TGV Casablanca-Tanger.</li><li><strong>CTM / Supratours :</strong> Bus confortables entre villes.</li><li><strong>Voiture de location :</strong> Indispensable pour explorer le sud et l'Atlas.</li><li><strong>Taxis :</strong> Grand taxi entre villes, petit taxi en ville.</li></ul></div>
+      <div class="conseil-card" data-aos="fade-up" data-aos-delay="300"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-wallet"></i></div><h3>Budget & Argent</h3></div><ul><li>1 EUR ≈ 11 MAD (Dirham marocain), monnaie non convertible hors frontières.</li><li>Budget moyen : 50-100 €/jour en riad confortable.</li><li>Le marchandage est une tradition dans les souks — sourire et patience obligatoires.</li><li>Pourboires appréciés : 10-15% au restaurant, 5-20 MAD pour services.</li></ul></div>
+      <div class="conseil-card" data-aos="fade-up"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-mosque"></i></div><h3>Respecter les Coutumes</h3></div><ul><li>Tenue modeste dans les médinas — épaules et genoux couverts.</li><li>Retirer les chaussures avant d'entrer dans une mosquée ou un riad.</li><li>Demander l'autorisation avant de photographier des personnes.</li><li>Pendant le Ramadan, éviter de manger/boire en public le jour.</li></ul></div>
+      <div class="conseil-card" data-aos="fade-up" data-aos-delay="100"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-kit-medical"></i></div><h3>Santé & Sécurité</h3></div><ul><li>Eau du robinet non potable — boire de l'eau en bouteille ou filtrée.</li><li>Carte européenne d'assurance maladie + assurance voyage recommandée.</li><li>Le Maroc est l'un des pays les plus sûrs d'Afrique pour les touristes.</li><li>Numéros utiles : Police 19, Gendarmerie 177, SAMU 150.</li></ul></div>
+    </div>
+    <div class="phrasebook" data-aos="fade-up">
+      <h3>Quelques Mots en Darija (Arabe Marocain)</h3>
+      <div class="phrases-grid">
+        <div class="phrase"><span class="phrase-fr">Bonjour</span><span class="phrase-ar">Salam / Mrhba</span></div>
+        <div class="phrase"><span class="phrase-fr">Merci</span><span class="phrase-ar">Shukran / Barak Allah fik</span></div>
+        <div class="phrase"><span class="phrase-fr">S'il vous plaît</span><span class="phrase-ar">Afak / 3afak</span></div>
+        <div class="phrase"><span class="phrase-fr">Combien ça coûte ?</span><span class="phrase-ar">Shhal had ?</span></div>
+        <div class="phrase"><span class="phrase-fr">C'est trop cher</span><span class="phrase-ar">Ghali bezzaf</span></div>
+        <div class="phrase"><span class="phrase-fr">Délicieux !</span><span class="phrase-ar">Bnin bezaf !</span></div>
+        <div class="phrase"><span class="phrase-fr">Où est… ?</span><span class="phrase-ar">Fayn kayn… ?</span></div>
+        <div class="phrase"><span class="phrase-fr">Au revoir</span><span class="phrase-ar">Bslama / Ma3 slama</span></div>
+        <div class="phrase"><span class="phrase-fr">Je ne comprends pas</span><span class="phrase-ar">Ma fehemtch</span></div>
+        <div class="phrase"><span class="phrase-fr">Parlez-vous français ?</span><span class="phrase-ar">Katkellem bel-fransawi ?</span></div>
+        <div class="phrase"><span class="phrase-fr">Appelez la police !</span><span class="phrase-ar">3iyet l-polisi !</span></div>
+        <div class="phrase"><span class="phrase-fr">Bienvenue !</span><span class="phrase-ar">Merhba bik !</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== METEO ========== -->
+<section class="section-meteo">
+  <div class="container">
+    <h2 class="section-title" style="text-align:center">Météo des <em>Grandes Villes</em></h2>
+    <div class="meteo-grid">
+      <div class="meteo-card"><div class="meteo-city">Marrakech</div><div class="meteo-icon">☀️</div><div class="meteo-temp">34°C</div><div class="meteo-desc">Ensoleillé</div><div class="meteo-details"><span>Humidité: 25%</span><span>Vent: 12 km/h</span></div></div>
+      <div class="meteo-card"><div class="meteo-city">Casablanca</div><div class="meteo-icon">⛅</div><div class="meteo-temp">22°C</div><div class="meteo-desc">Nuageux</div><div class="meteo-details"><span>Humidité: 70%</span><span>Vent: 18 km/h</span></div></div>
+      <div class="meteo-card"><div class="meteo-city">Fès</div><div class="meteo-icon">🌤️</div><div class="meteo-temp">28°C</div><div class="meteo-desc">Partiellement nuageux</div><div class="meteo-details"><span>Humidité: 45%</span><span>Vent: 8 km/h</span></div></div>
+      <div class="meteo-card"><div class="meteo-city">Agadir</div><div class="meteo-icon">☀️</div><div class="meteo-temp">26°C</div><div class="meteo-desc">Ensoleillé</div><div class="meteo-details"><span>Humidité: 60%</span><span>Vent: 22 km/h</span></div></div>
+      <div class="meteo-card"><div class="meteo-city">Merzouga</div><div class="meteo-icon">🔥</div><div class="meteo-temp">42°C</div><div class="meteo-desc">Chaud & Sec</div><div class="meteo-details"><span>Humidité: 10%</span><span>Vent: 5 km/h</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CONTACT ========== -->
+<section id="contact" class="section-contact">
+  <div class="contact-bg-pattern"></div>
+  <div class="container">
+    <div class="contact-grid">
+      <div class="contact-info" data-aos="fade-right">
+        <div class="section-tag">Planifiez votre voyage</div>
+        <h2 class="section-title white">Votre Maroc <em>Sur Mesure</em></h2>
+        <p class="contact-lead">Laissez-nous vous aider à créer le voyage de vos rêves au Maroc — de l'itinéraire aux hébergements, nous vous accompagnons à chaque étape.</p>
+        <div class="contact-features">
+          <div class="cf-item"><span>✓</span> Itinéraires personnalisés</div>
+          <div class="cf-item"><span>✓</span> Riads & hôtels sélectionnés</div>
+          <div class="cf-item"><span>✓</span> Guides locaux certifiés</div>
+          <div class="cf-item"><span>✓</span> Expériences exclusives</div>
+          <div class="cf-item"><span>✓</span> Transferts & transport</div>
+          <div class="cf-item"><span>✓</span> Support 24/7 en voyage</div>
+        </div>
+        <div class="contact-socials">
+          <a href="#" class="social-btn" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="social-btn" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="social-btn" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" class="social-btn" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div class="contact-form-wrap" data-aos="fade-left">
+        <form class="contact-form" id="contactForm" onsubmit="handleSubmit(event)">
+          <h3>Demande de Devis Gratuit</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Prénom</label><input type="text" placeholder="Votre prénom" required /></div>
+            <div class="form-group"><label>Nom</label><input type="text" placeholder="Votre nom" required /></div>
+          </div>
+          <div class="form-group"><label>Email</label><input type="email" placeholder="votre@email.com" required /></div>
+          <div class="form-group"><label>Destination souhaitée</label><select><option value="">Choisir une destination</option><option>Marrakech & Désert</option><option>Tour des villes impériales</option><option>Côte atlantique</option><option>Grand Tour du Maroc</option><option>Maroc sur mesure</option></select></div>
+          <div class="form-row">
+            <div class="form-group"><label>Durée</label><select><option>3-5 jours</option><option>1 semaine</option><option>2 semaines</option><option>3 semaines+</option></select></div>
+            <div class="form-group"><label>Nombre de voyageurs</label><input type="number" min="1" max="50" value="2" /></div>
+          </div>
+          <div class="form-group"><label>Message</label><textarea rows="4" placeholder="Décrivez vos envies, contraintes, intérêts…"></textarea></div>
+          <div class="form-check"><input type="checkbox" id="newsletter" /><label for="newsletter">Recevoir notre newsletter voyage Maroc</label></div>
+          <button type="submit" class="btn-primary full">Envoyer ma demande →</button>
+        </form>
+        <div class="form-success" id="formSuccess">
+          <div class="success-icon">✓</div>
+          <h3>Demande envoyée !</h3>
+          <p>Nous vous répondrons dans les 24h. Ahlan wa Sahlan !</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer">
+  <div class="footer-pattern"></div>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo"><span class="logo-arabic">المغرب</span><span class="logo-fr">MAROC</span></div>
+        <p>Votre guide complet pour découvrir le Royaume du Maroc — un pays de légendes, de saveurs et d'hospitalité.</p>
+        <div class="footer-star">★ ★ ★ ★ ★</div>
+
+        <!-- Morocco regions map (text-based) -->
+        <div class="footer-regions-map">
+          <div class="regions-title">Régions du Maroc</div>
+          <div class="regions-grid">
+            <span class="region-tag">🏙️ Casablanca-Settat</span>
+            <span class="region-tag">🌿 Souss-Massa</span>
+            <span class="region-tag">🏔️ Drâa-Tafilalet</span>
+            <span class="region-tag">🏛️ Fès-Meknès</span>
+            <span class="region-tag">🌊 Rabat-Salé-Kénitra</span>
+            <span class="region-tag">🏰 Marrakech-Safi</span>
+            <span class="region-tag">⛵ Tanger-Tétouan</span>
+            <span class="region-tag">🌵 Guelmim-Oued Noun</span>
+            <span class="region-tag">🦅 L'Oriental</span>
+            <span class="region-tag">🌊 Laâyoune-Sakia</span>
+            <span class="region-tag">🏜️ Dakhla-Oued Eddahab</span>
+            <span class="region-tag">🫐 Béni Mellal-Khénifra</span>
+          </div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Destinations</h4>
+        <ul>
+          <li><a href="#destinations">Marrakech</a></li>
+          <li><a href="#destinations">Fès</a></li>
+          <li><a href="#destinations">Chefchaouen</a></li>
+          <li><a href="#destinations">Sahara — Merzouga</a></li>
+          <li><a href="#destinations">Casablanca</a></li>
+          <li><a href="#destinations">Tanger</a></li>
+          <li><a href="#destinations">Essaouira</a></li>
+          <li><a href="#destinations">Ouarzazate</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Découvrir</h4>
+        <ul>
+          <li><a href="#culture">Culture & Traditions</a></li>
+          <li><a href="#cuisine">Gastronomie</a></li>
+          <li><a href="#histoire">Histoire</a></li>
+          <li><a href="#economie">Économie</a></li>
+          <li><a href="#nature">Nature & Biodiversité</a></li>
+          <li><a href="#sport">Sport & Aventure</a></li>
+          <li><a href="#spirituel">Maroc Spirituel</a></li>
+          <li><a href="#shopping">Guide Shopping</a></li>
+          <li><a href="#quiz">Quiz Maroc</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Infos Pratiques</h4>
+        <ul>
+          <li>Visa : Non requis (UE, Canada…)</li>
+          <li>Monnaie : Dirham Marocain</li>
+          <li>Fuseau : UTC+1 (GMT+1)</li>
+          <li>Religion : Islam (Sunni)</li>
+          <li>Urgences : 15 (SAMU), 19 (Police)</li>
+          <li>Indicatif : +212</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Maroc — Royaume d'Or & de Lumière. Fait avec ❤️ pour le Maroc.</p>
+      <div class="footer-flag">🇲🇦</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ========== DESTINATION MODAL ========== -->
+<div class="modal" id="destModal">
+  <div class="modal-overlay" onclick="closeDestModal()"></div>
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeDestModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Back to top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fa-solid fa-chevron-up"></i>
+</button>
+
+<!-- Reading time badge -->
+<div class="reading-badge" id="readingBadge">
+  <i class="fa-solid fa-book-open"></i>
+  <span id="readingTime">0 min</span>
+</div>
+
+<script src="assets/js/script.js"></script>
+</body>
+</html>
