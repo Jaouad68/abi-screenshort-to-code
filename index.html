@@ -44,7 +44,29 @@ body{
 
 h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);margin-bottom:4px;text-align:center;
   text-shadow:0 2px 12px rgba(0,0,0,.5)}
-.app-sub{color:#aab8cc;font-size:13px;margin-bottom:18px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.app-sub{color:#aab8cc;font-size:13px;margin-bottom:14px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+/* ===== Barre de villes ===== */
+.citybar{width:min(960px,100%);margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.city-chip{display:inline-flex;align-items:center;gap:7px;background:rgba(22,35,58,.85);border:1px solid #2a3f63;color:#dbe6f5;
+  padding:6px 8px 6px 13px;border-radius:999px;font-size:13px;cursor:pointer;transition:.15s;max-width:240px}
+.city-chip:hover{border-color:#3a578a;background:#1d2f4d}
+.city-chip.active{background:#1d62a8;border-color:#2f7fcf;color:#fff;box-shadow:0 0 0 2px rgba(86,211,255,.25)}
+.city-chip .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.city-chip .rm{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+  background:rgba(255,255,255,.14);font-size:13px;line-height:1;flex:none}
+.city-chip .rm:hover{background:#e0556a;color:#fff}
+.city-search{position:relative}
+.city-search input{background:rgba(22,35,58,.85);border:1px solid #2a3f63;color:#e8eef6;padding:8px 14px;border-radius:999px;font-size:13px;width:230px}
+.city-search input:focus{outline:none;border-color:#56d3ff;width:260px}
+.ac{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#101a2c;border:1px solid #243a5c;border-radius:12px;
+  z-index:30;display:none;box-shadow:0 20px 40px rgba(0,0,0,.5);max-height:280px;overflow-y:auto}
+.ac.open{display:block}
+.ac .item{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.ac .item:last-child{border-bottom:0}
+.ac .item:hover,.ac .item.sel{background:#1d2f4d}
+.ac .item small{display:block;color:#8fa3bd;font-size:11px;margin-top:1px}
+.ac .empty{padding:10px 12px;color:#8fa3bd;font-size:12px}
 .badge{display:inline-flex;align-items:center;gap:6px;background:rgba(22,35,58,.85);border:1px solid #243a5c;
   padding:3px 10px;border-radius:999px;font-size:11px;color:#9fb6d6;vertical-align:middle}
 .badge .dot{width:8px;height:8px;border-radius:50%;background:#f0b429;box-shadow:0 0 8px #f0b429}
@@ -205,6 +227,14 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 <h1 class="app-title">Station Météo Pro <span class="badge" id="modeBadge"><span class="dot"></span><span id="modeText">Démo</span></span></h1>
 <p class="app-sub">Console RCC dynamique — fond jour/nuit animé, météo en direct, prévisions 5 jours, baromètre, phase de lune.</p>
 
+<div class="citybar">
+  <div class="city-chips" id="cityChips" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div>
+  <div class="city-search">
+    <input type="text" id="cityQuick" placeholder="🔍 Ajouter une ville…" autocomplete="off" aria-label="Rechercher une ville" />
+    <div class="ac" id="cityAC"></div>
+  </div>
+</div>
+
 <div class="device">
   <div class="instructions">
     <b>Mode RCC&nbsp;:</b> à la mise sous tension, la console recherche le signal horaire et se synchronise aux heures pleines.
@@ -326,15 +356,7 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
   <div class="panel" role="dialog" aria-modal="true" aria-label="Réglages">
     <h2>Réglages</h2>
     <p class="muted">Configurez la station. Les préférences sont enregistrées sur cet appareil.</p>
-    <div class="field">
-      <label for="cityInput">Ville (recherche mondiale)</label>
-      <div class="search-row">
-        <input type="text" id="cityInput" placeholder="Ex : Paris, Casablanca, Tokyo…" autocomplete="off" />
-        <button class="btn primary" id="btnSearch">OK</button>
-      </div>
-      <div class="results" id="results"></div>
-      <p class="hint">Recherche via Open-Meteo (sans clé). Sans réseau, la station fonctionne en mode démo.</p>
-    </div>
+    <p class="hint" style="margin-bottom:14px">💡 Gérez vos villes directement sur l'écran principal : tapez dans « Ajouter une ville », cliquez une puce pour basculer, ✕ pour supprimer.</p>
     <div class="field">
       <label>Unité de température</label>
       <div class="seg-toggle" id="unitToggle"><button data-unit="C" class="active">Celsius °C</button><button data-unit="F">Fahrenheit °F</button></div>
@@ -363,10 +385,23 @@ const $ = (id) => document.getElementById(id);
 const DEFAULTS = {
   unit:'C', clock:'24', simInside:true, cycleChan:true,
   inTempManualC:26.5, inHumManual:59,
-  city:{ name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' }
+  city:{ name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
+  cities:[
+    { name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
+    { name:'Casablanca', code:'CAS', lat:33.5731, lon:-7.5898, country:'Maroc' }
+  ]
 };
 let prefs = loadPrefs();
-function loadPrefs(){ try{ const r=localStorage.getItem('wxstation'); return r?Object.assign({},DEFAULTS,JSON.parse(r)):structuredClone(DEFAULTS);}catch(e){return structuredClone(DEFAULTS);} }
+function loadPrefs(){
+  let p;
+  try{ const r=localStorage.getItem('wxstation'); p = r?Object.assign({},DEFAULTS,JSON.parse(r)):structuredClone(DEFAULTS); }
+  catch(e){ p = structuredClone(DEFAULTS); }
+  // Migration / cohérence de la liste de villes
+  if(!Array.isArray(p.cities) || !p.cities.length){ p.cities = [p.city || DEFAULTS.city]; }
+  if(!p.city) p.city = p.cities[0];
+  if(!p.cities.some(c=>sameCity(c,p.city))) p.cities.unshift(p.city);
+  return p;
+}
 function savePrefs(){ try{ localStorage.setItem('wxstation', JSON.stringify(prefs)); }catch(e){} }
 
 let wx = {
@@ -613,30 +648,123 @@ function jitterDemo(){
 function simulateInside(){ wx.prevInTempC=wx.inTempC; wx.inTempC=clamp(wx.inTempC+(Math.random()-0.5)*0.2,16,32); wx.inHum=clamp(wx.inHum+(Math.random()-0.5)*1.2,25,80); }
 function manualInside(){ wx.prevInTempC=wx.inTempC; wx.inTempC=num(prefs.inTempManualC,wx.inTempC); wx.inHum=num(prefs.inHumManual,wx.inHum); }
 
-/* ---------- Recherche ville / géoloc ---------- */
-async function searchCity(q){
-  const box=$('results'); box.innerHTML='<div class="result">Recherche…</div>';
-  try{
-    const res=await withTimeout(fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=fr`),8000);
-    const d=await res.json(); box.innerHTML='';
-    if(!d.results?.length){ box.innerHTML='<div class="result">Aucun résultat. (Hors-ligne ? Le mode démo reste actif.)</div>'; return; }
-    d.results.forEach(r=>{ const el=document.createElement('div'); el.className='result';
-      el.innerHTML=`${r.name}<small>${[r.admin1,r.country].filter(Boolean).join(' · ')}</small>`;
-      el.onclick=()=>{ prefs.city={name:r.name,code:(r.name.replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,3)||'CTY').toUpperCase(),lat:r.latitude,lon:r.longitude,country:r.country};
-        savePrefs(); $('cityInput').value=r.name; box.innerHTML=''; fetchWeather(); };
-      box.appendChild(el); });
-  }catch(e){ box.innerHTML='<div class="result">Réseau indisponible — mode démo conservé.</div>'; }
+/* ============================================================
+   GESTION DES VILLES (ajout / suppression / bascule + autocomplétion)
+   ============================================================ */
+function norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+function cityCode(name){ return (String(name).replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,3)||'CTY').toUpperCase(); }
+function sameCity(a,b){ if(!a||!b) return false; return Math.abs(a.lat-b.lat)<0.05 && Math.abs(a.lon-b.lon)<0.05; }
+
+/* Liste de secours hors-ligne (grandes villes mondiales) */
+const CITIES_FALLBACK=[
+  {name:'Paris',country:'France',lat:48.8566,lon:2.3522},{name:'Marseille',country:'France',lat:43.2965,lon:5.3698},
+  {name:'Lyon',country:'France',lat:45.7640,lon:4.8357},{name:'Toulouse',country:'France',lat:43.6047,lon:1.4442},
+  {name:'Nice',country:'France',lat:43.7102,lon:7.2620},{name:'Bordeaux',country:'France',lat:44.8378,lon:-0.5792},
+  {name:'Casablanca',country:'Maroc',lat:33.5731,lon:-7.5898},{name:'Rabat',country:'Maroc',lat:34.0209,lon:-6.8416},
+  {name:'Marrakech',country:'Maroc',lat:31.6295,lon:-7.9811},{name:'Tanger',country:'Maroc',lat:35.7595,lon:-5.8340},
+  {name:'Fès',country:'Maroc',lat:34.0181,lon:-5.0078},{name:'Agadir',country:'Maroc',lat:30.4278,lon:-9.5981},
+  {name:'Londres',country:'Royaume-Uni',lat:51.5072,lon:-0.1276},{name:'Madrid',country:'Espagne',lat:40.4168,lon:-3.7038},
+  {name:'Barcelone',country:'Espagne',lat:41.3851,lon:2.1734},{name:'Rome',country:'Italie',lat:41.9028,lon:12.4964},
+  {name:'Berlin',country:'Allemagne',lat:52.5200,lon:13.4050},{name:'Amsterdam',country:'Pays-Bas',lat:52.3676,lon:4.9041},
+  {name:'Bruxelles',country:'Belgique',lat:50.8503,lon:4.3517},{name:'Genève',country:'Suisse',lat:46.2044,lon:6.1432},
+  {name:'Lisbonne',country:'Portugal',lat:38.7223,lon:-9.1393},{name:'Vienne',country:'Autriche',lat:48.2082,lon:16.3738},
+  {name:'Athènes',country:'Grèce',lat:37.9838,lon:23.7275},{name:'Istanbul',country:'Turquie',lat:41.0082,lon:28.9784},
+  {name:'Moscou',country:'Russie',lat:55.7558,lon:37.6173},{name:'Le Caire',country:'Égypte',lat:30.0444,lon:31.2357},
+  {name:'Dubaï',country:'Émirats',lat:25.2048,lon:55.2708},{name:'Alger',country:'Algérie',lat:36.7538,lon:3.0588},
+  {name:'Tunis',country:'Tunisie',lat:36.8065,lon:10.1815},{name:'Dakar',country:'Sénégal',lat:14.7167,lon:-17.4677},
+  {name:'New York',country:'États-Unis',lat:40.7128,lon:-74.0060},{name:'Los Angeles',country:'États-Unis',lat:34.0522,lon:-118.2437},
+  {name:'Montréal',country:'Canada',lat:45.5019,lon:-73.5674},{name:'Mexico',country:'Mexique',lat:19.4326,lon:-99.1332},
+  {name:'São Paulo',country:'Brésil',lat:-23.5505,lon:-46.6333},{name:'Buenos Aires',country:'Argentine',lat:-34.6037,lon:-58.3816},
+  {name:'Tokyo',country:'Japon',lat:35.6762,lon:139.6503},{name:'Pékin',country:'Chine',lat:39.9042,lon:116.4074},
+  {name:'Shanghai',country:'Chine',lat:31.2304,lon:121.4737},{name:'Séoul',country:'Corée du Sud',lat:37.5665,lon:126.9780},
+  {name:'Singapour',country:'Singapour',lat:1.3521,lon:103.8198},{name:'Bangkok',country:'Thaïlande',lat:13.7563,lon:100.5018},
+  {name:'Mumbai',country:'Inde',lat:19.0760,lon:72.8777},{name:'Sydney',country:'Australie',lat:-33.8688,lon:151.2093}
+];
+
+function mkCity(r){ return { name:r.name, code:cityCode(r.name), lat:r.latitude??r.lat, lon:r.longitude??r.lon,
+  country:r.country||'', admin:r.admin1||'' }; }
+
+function setActiveCity(c){ prefs.city=c; savePrefs(); renderCityChips(); fetchWeather(); }
+
+function addCity(c, activate){
+  const exists = prefs.cities.find(x=>sameCity(x,c));
+  if(exists){ if(activate) setActiveCity(exists); else renderCityChips(); return; }
+  prefs.cities.push(c);
+  savePrefs();
+  if(activate) setActiveCity(c); else renderCityChips();
 }
+
+function removeCity(idx){
+  if(prefs.cities.length<=1) return;          // toujours garder au moins une ville
+  const removed = prefs.cities.splice(idx,1)[0];
+  if(sameCity(removed, prefs.city)){           // on supprimait la ville active
+    prefs.city = prefs.cities[Math.max(0,idx-1)] || prefs.cities[0];
+    savePrefs(); renderCityChips(); fetchWeather();
+  }else{ savePrefs(); renderCityChips(); }
+}
+
+function renderCityChips(){
+  const box=$('cityChips'); box.innerHTML='';
+  prefs.cities.forEach((c,i)=>{
+    const chip=document.createElement('div');
+    chip.className='city-chip'+(sameCity(c,prefs.city)?' active':'');
+    chip.title=[c.name,c.admin,c.country].filter(Boolean).join(' · ');
+    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=c.name;
+    chip.appendChild(nm);
+    chip.addEventListener('click',()=>setActiveCity(c));
+    if(prefs.cities.length>1){
+      const rm=document.createElement('span'); rm.className='rm'; rm.textContent='✕';
+      rm.title='Supprimer cette ville';
+      rm.addEventListener('click',ev=>{ ev.stopPropagation(); removeCity(i); });
+      chip.appendChild(rm);
+    }
+    box.appendChild(chip);
+  });
+}
+
+/* ----- Autocomplétion ----- */
+let acTimer=null, acSel=-1, acItems=[];
+function openAC(){ $('cityAC').classList.add('open'); }
+function closeAC(){ $('cityAC').classList.remove('open'); acSel=-1; }
+function localFilter(q){ const n=norm(q); return CITIES_FALLBACK.filter(c=>norm(c.name).includes(n)||norm(c.country).includes(n)).slice(0,8).map(mkCity); }
+
+async function acSearch(q){
+  const box=$('cityAC'); openAC(); box.innerHTML='<div class="empty">Recherche…</div>';
+  let results=[];
+  try{
+    const res=await withTimeout(fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=fr`),7000);
+    const d=await res.json();
+    if(d.results?.length) results=d.results.map(mkCity);
+  }catch(e){ /* repli local */ }
+  if(!results.length) results=localFilter(q);
+  renderAC(results);
+}
+function renderAC(results){
+  const box=$('cityAC'); acItems=results; acSel=-1; box.innerHTML='';
+  if(!results.length){ box.innerHTML='<div class="empty">Aucune ville trouvée.</div>'; return; }
+  results.forEach((c,i)=>{
+    const el=document.createElement('div'); el.className='item'; el.dataset.i=i;
+    el.innerHTML=`${c.name}<small>${[c.admin,c.country].filter(Boolean).join(' · ')||'—'}</small>`;
+    el.addEventListener('mousedown',ev=>{ ev.preventDefault(); pickAC(i); });
+    box.appendChild(el);
+  });
+}
+function pickAC(i){ const c=acItems[i]; if(!c) return; $('cityQuick').value=''; closeAC(); addCity(c,true); }
+function moveAC(dir){
+  if(!acItems.length) return;
+  acSel=(acSel+dir+acItems.length)%acItems.length;
+  $('cityAC').querySelectorAll('.item').forEach((el,j)=>el.classList.toggle('sel',j===acSel));
+}
+
 function useGeolocation(){
   if(!navigator.geolocation){ alert('Géolocalisation non supportée.'); return; }
   navigator.geolocation.getCurrentPosition(
-    p=>{ prefs.city={name:'Ma position',code:'GPS',lat:p.coords.latitude,lon:p.coords.longitude,country:''}; savePrefs(); fetchWeather(); },
+    p=>{ addCity({name:'Ma position',code:'GPS',lat:p.coords.latitude,lon:p.coords.longitude,country:''}, true); },
     ()=>alert('Position refusée ou indisponible.'), {timeout:8000});
 }
 
 /* ---------- Panneau ---------- */
 function openPanel(){
-  $('cityInput').value=prefs.city.name==='Ma position'?'':prefs.city.name;
   $('inTempManual').value=prefs.inTempManualC; $('inHumManual').value=prefs.inHumManual;
   $('simInside').checked=prefs.simInside; $('cycleChan').checked=prefs.cycleChan;
   $('manualInside').style.display=prefs.simInside?'none':'block';
@@ -751,8 +879,20 @@ function init(){
     prefs.inHumManual=parseFloat($('inHumManual').value)||DEFAULTS.inHumManual;
     savePrefs(); closePanel(); fetchWeather();
   });
-  $('btnSearch').addEventListener('click',()=>{ const q=$('cityInput').value.trim(); if(q) searchCity(q); });
-  $('cityInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const q=e.target.value.trim(); if(q) searchCity(q); } });
+  // Recherche de ville avec autocomplétion
+  const cq=$('cityQuick');
+  cq.addEventListener('input',e=>{ clearTimeout(acTimer); const q=e.target.value.trim();
+    if(q.length<2){ closeAC(); return; } acTimer=setTimeout(()=>acSearch(q),280); });
+  cq.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); moveAC(1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); moveAC(-1); }
+    else if(e.key==='Enter'){ e.preventDefault(); pickAC(acSel>=0?acSel:0); }
+    else if(e.key==='Escape'){ closeAC(); }
+  });
+  cq.addEventListener('focus',()=>{ const q=cq.value.trim(); if(q.length>=2 && acItems.length) openAC(); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('.city-search')) closeAC(); });
+  renderCityChips();
+
   $('btnRefresh').addEventListener('click',fetchWeather);
   $('btnGeo').addEventListener('click',useGeolocation);
   $('btnUnit').addEventListener('click',()=>{ prefs.unit=prefs.unit==='C'?'F':'C'; savePrefs(); render(); });
