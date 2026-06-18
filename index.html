@@ -263,6 +263,17 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 }
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
+/* Infobulles pédagogiques */
+.info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  border:1px solid #3a5680;background:transparent;color:#8fb3d8;font-size:10px;line-height:1;cursor:help;padding:0;margin-left:5px;vertical-align:middle}
+.info:hover{border-color:#56d3ff;color:#56d3ff}
+#tooltip{position:fixed;z-index:60;max-width:250px;background:#0a1424;border:1px solid #2a3f63;color:#dbe6f5;
+  padding:9px 11px;border-radius:9px;font-size:12px;line-height:1.4;box-shadow:0 14px 30px rgba(0,0,0,.5);display:none}
+[data-theme="light"] #tooltip{background:#fff;border-color:#cdd8e6;color:#15202e}
+[data-theme="contrast"] #tooltip{background:#000;border-color:#fff;color:#fff}
+[data-theme="light"] .info{border-color:#9fb8d6;color:#41566b}
+[data-theme="contrast"] .info{border-color:#fff;color:#fff}
+
 /* ===== Accessibilité : focus clavier visible + boutons puces ===== */
 a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
   outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
@@ -336,6 +347,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="skyShade" aria-hidden="true"></div>
 <p id="srSummary" class="sr-only" aria-live="polite"></p>
+<div id="tooltip" role="tooltip"></div>
 
 <h1 class="app-title">Station Météo Pro <span class="badge" id="modeBadge" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="modeText">Démo</span></span></h1>
 <p class="app-sub">Console RCC dynamique — fond jour/nuit animé, météo en direct, prévisions 5 jours, baromètre, phase de lune.</p>
@@ -495,6 +507,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <button class="btn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Réglages</button>
   <button class="btn" id="btnRefresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Actualiser</button>
   <button class="btn" id="btnUnit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 11-4 0V4a2 2 0 014 0z"/></svg>°C / °F</button>
+  <button class="btn" id="btnCSV"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>Export CSV</button>
+  <button class="btn" id="btnPNG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Image</button>
   <button class="btn" id="btnInstall" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Installer l'app</button>
 </div>
 
@@ -817,6 +831,20 @@ function renderForecast(){
 
 /* ---------- Panneau professionnel ---------- */
 const MODEL_LABEL={best_match:'Auto (meilleur modèle)', ecmwf_ifs025:'ECMWF IFS', gfs_seamless:'NOAA GFS', icon_seamless:'DWD ICON', meteofrance_seamless:'Météo-France AROME/ARPEGE'};
+const INFO={
+  'Ressenti':'Température ressentie par le corps, intégrant le vent (refroidissement éolien) et l’humidité (humidex).',
+  'Point de rosée':'Température à laquelle l’air doit refroidir pour saturer (rosée, brouillard). Plus il est élevé, plus l’air est humide et lourd.',
+  'Vent':'Vitesse moyenne du vent à 10 m et secteur d’où il souffle ; force indiquée sur l’échelle de Beaufort.',
+  'Rafales':'Pointe de vent maximale instantanée mesurée sur la période.',
+  'Pression MSL':'Pression atmosphérique ramenée au niveau de la mer (comparable d’un lieu à l’autre). La tendance sur 3 h indique l’évolution du temps.',
+  'Indice UV':'Intensité du rayonnement ultraviolet : 0–2 faible, 3–5 modéré, 6–7 élevé, 8–10 très élevé, 11+ extrême. Protection dès 6.',
+  'Précipitations':'Cumul de précipitations (équivalent en eau) et probabilité associée.',
+  'Couverture nuageuse':'Fraction du ciel couverte par les nuages, de 0 % (dégagé) à 100 % (couvert).',
+  'Visibilité':'Distance horizontale maximale à laquelle on distingue un objet ; < 1 km = brouillard.',
+  'Humidité relative':'Part de vapeur d’eau dans l’air par rapport au maximum possible à cette température.',
+  'Indice AQI (Europe)':'Indice européen de qualité de l’air (0 bon → 100+ extrême), calculé à partir des PM2.5, PM10, NO₂ et O₃.'
+};
+function infoBtn(label){ return INFO[label]? ` <button class="info" type="button" aria-label="Définition : ${label}" data-def="${INFO[label].replace(/"/g,'&quot;')}">ⓘ</button>` : ''; }
 function cloudWord(c){ if(c<10)return'Ciel dégagé'; if(c<40)return'Peu nuageux'; if(c<70)return'Partiellement couvert'; if(c<90)return'Très nuageux'; return'Couvert'; }
 function visWord(km){ if(km==null)return''; if(km<1)return'Brouillard'; if(km<4)return'Médiocre'; if(km<10)return'Modérée'; return'Bonne'; }
 function compassSVG(deg){
@@ -851,7 +879,7 @@ function renderPro(){
     ];
     grid.innerHTML=tiles.map(t=>`<div class="tile${t.alert?' alert':''}">
       ${t.compass!=null?compassSVG(t.compass):''}
-      <div class="tl">${t.l}</div>
+      <div class="tl">${t.l}${infoBtn(t.l)}</div>
       <div class="tv"${t.color?` style="color:${t.color}"`:''}>${t.v}</div>
       <div class="ts">${t.s}</div></div>`).join('');
     const parts=['<span><b>Source</b> Open-Meteo</span>',
@@ -1004,7 +1032,7 @@ function renderAir(){
   if(key===_airKey) return; _airKey=key;
   const cat=aqiCat(a.aqi);
   const tiles=[];
-  tiles.push(`<div class="tile" style="border-color:${cat.c}66"><div class="tl">Indice AQI (Europe)</div><div class="tv" style="color:${cat.c}">${a.aqi!=null?Math.round(a.aqi):'—'}</div><div class="ts">${cat.t}</div></div>`);
+  tiles.push(`<div class="tile" style="border-color:${cat.c}66"><div class="tl">Indice AQI (Europe)${infoBtn('Indice AQI (Europe)')}</div><div class="tv" style="color:${cat.c}">${a.aqi!=null?Math.round(a.aqi):'—'}</div><div class="ts">${cat.t}</div></div>`);
   const pol=(l,v)=>`<div class="tile"><div class="tl">${l}</div><div class="tv">${v!=null?Math.round(v):'—'}<small> µg/m³</small></div></div>`;
   tiles.push(pol('PM2.5',a.pm25)); tiles.push(pol('PM10',a.pm10)); tiles.push(pol('NO₂',a.no2)); tiles.push(pol('O₃',a.o3));
   if(a.pollen!=null){ const pc=pollenCat(a.pollen); tiles.push(`<div class="tile"><div class="tl">Pollens${a.pollenName?' · '+a.pollenName:''}</div><div class="tv" style="color:${pc.c}">${pc.t}</div><div class="ts">${Math.round(a.pollen)} grains/m³</div></div>`); }
@@ -1391,6 +1419,101 @@ const Sky=(function(){
 })();
 
 /* ============================================================
+   EXPORT (CSV / image) + INFOBULLES
+   ============================================================ */
+function slug(s){ return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'').toLowerCase()||'ville'; }
+function r1(v){ return (v==null||!isFinite(v))?'':Math.round(v*10)/10; }
+function csvCell(v){ const s=String(v==null?'':v); return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+function download(content, filename, type){
+  const blob=(content instanceof Blob)?content:new Blob([type.indexOf('csv')>=0?'﻿'+content:content],{type});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function exportCSV(){
+  const c=prefs.city, a=wx.air, R=[];
+  R.push(['Station Météo Pro — export']);
+  R.push(['Ville', c.name, c.country||'']);
+  R.push(['Position (lat, lon)', c.lat, c.lon]);
+  if(wx.elevation!=null) R.push(['Altitude (m)', Math.round(wx.elevation)]);
+  R.push(['Modèle', MODEL_LABEL[prefs.model]||prefs.model]);
+  R.push(['Observation', wx.obsTime?wx.obsTime.toISOString():'']);
+  R.push(['Type','Prévision modèle (interpolée, non observation station)']);
+  R.push([]);
+  R.push(['Variable','Valeur','Unité']);
+  R.push(['Température', r1(wx.outTempC),'°C']);
+  R.push(['Ressenti', r1(wx.apparentC),'°C']);
+  R.push(['Point de rosée', r1(wx.dewpointC),'°C']);
+  R.push(['Humidité relative', Math.round(wx.outHum),'%']);
+  R.push(['Pression MSL', r1(wx.pressure),'hPa']);
+  R.push(['Tendance 3 h', r1(pressureTendency().delta),'hPa/3h']);
+  R.push(['Vent', r1(wx.windKmh),'km/h']);
+  R.push(['Direction', Math.round(wx.windDir),'° ('+compass(wx.windDir)+')']);
+  R.push(['Rafales', r1(wx.gustKmh),'km/h']);
+  R.push(['Indice UV', r1(wx.uv),'']);
+  R.push(['Précipitations', r1(wx.precip),'mm']);
+  R.push(['Couverture nuageuse', Math.round(wx.cloud),'%']);
+  R.push(['Visibilité', Math.round(wx.visibility),'m']);
+  if(a.aqi!=null){ R.push(['AQI (Europe)', Math.round(a.aqi),'']); R.push(['PM2.5', r1(a.pm25),'µg/m³']); R.push(['PM10', r1(a.pm10),'µg/m³']); R.push(['NO2', r1(a.no2),'µg/m³']); R.push(['O3', r1(a.o3),'µg/m³']); }
+  R.push([]);
+  R.push(['Prévisions horaires (48 h)']);
+  R.push(['Heure ISO','Température °C','Pression hPa','Vent km/h','Précip mm','Humidité %']);
+  const s=wx.series; if(s&&s.time) s.time.forEach((t,i)=>R.push([t.toISOString(), r1(s.temp[i]), r1(s.pres[i]), r1(s.wind[i]), r1(s.precip[i]), r1(s.rh[i])]));
+  R.push([]);
+  R.push(['Prévisions quotidiennes']);
+  R.push(['Date','Tmin °C','Tmax °C','Code WMO','UV max','Précip mm','Vent max km/h']);
+  (wx.daily||[]).forEach(d=>R.push([d.date, r1(d.tmin), r1(d.tmax), d.code, r1(d.uvMax), r1(d.precipSum), r1(d.windMax)]));
+  download(R.map(row=>row.map(csvCell).join(';')).join('\r\n'), 'meteo_'+slug(c.name)+'.csv', 'text/csv;charset=utf-8');
+}
+function exportPNG(){
+  const W=1000,H=600,dpr=2, cv=document.createElement('canvas'); cv.width=W*dpr; cv.height=H*dpr;
+  const g=cv.getContext('2d'); g.scale(dpr,dpr);
+  const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,'#123e69'); grad.addColorStop(1,'#07203a'); g.fillStyle=grad; g.fillRect(0,0,W,H);
+  g.fillStyle='#56d3ff'; g.font='700 22px Segoe UI, Arial'; g.fillText('STATION MÉTÉO PRO', 40, 50);
+  g.fillStyle='#cfe6ff'; g.font='600 30px Segoe UI, Arial'; g.fillText(prefs.city.name, 40, 92);
+  const {ms,suf}=displayNow(), dt=new Date(ms);
+  g.fillStyle='#9fb6d6'; g.font='14px Segoe UI, Arial';
+  g.fillText(pad(dt.getUTCDate())+'/'+MOIS[dt.getUTCMonth()]+'  '+pad(dt.getUTCHours())+':'+pad(dt.getUTCMinutes())+(suf?' '+suf:'')+'  ·  '+(MODEL_LABEL[prefs.model]||prefs.model), 40, 118);
+  g.fillStyle='#eaf3ff'; g.font='700 92px Segoe UI, Arial'; g.fillText(Math.round(cToDisplay(wx.outTempC))+unitLabel(), 40, 218);
+  g.fillStyle='#9fe6ff'; g.font='600 22px Segoe UI, Arial'; g.fillText(wmoToInfo(wx.code).label, 44, 252);
+  const tend=pressureTendency(), bf=beaufort(wx.windKmh), uvr=uvRisk(wx.uv);
+  const items=[
+    ['Ressenti', Math.round(cToDisplay(wx.apparentC))+unitLabel()],
+    ['Humidité', Math.round(wx.outHum)+' %'],
+    ['Point de rosée', Math.round(cToDisplay(wx.dewpointC))+unitLabel()],
+    ['Vent', wStr(wx.windKmh)+' '+wUnit()+' '+compass(wx.windDir)+' (F'+bf.force+')'],
+    ['Rafales', wStr(wx.gustKmh)+' '+wUnit()],
+    ['Pression MSL', pStr(wx.pressure)+' '+pUnit()+' '+tend.arrow],
+    ['Indice UV', Math.round(wx.uv)+' · '+uvr.t],
+    ['Précipitations', (wx.precip||0).toFixed(1)+' mm ('+Math.round(wx.precipProb||0)+'%)'],
+    ['Couverture nuageuse', Math.round(wx.cloud)+' %'],
+    ['Visibilité', (wx.visibility!=null?Math.round(wx.visibility/1000):'—')+' km'],
+    ['Qualité air (AQI)', wx.air.aqi!=null?Math.round(wx.air.aqi)+' · '+aqiCat(wx.air.aqi).t:'—'],
+    ['Lever / Coucher', wx.sunrise+' / '+wx.sunset]
+  ];
+  const gx0=40, gy0=312, gcw=(W-80)/3;
+  items.forEach((it,i)=>{ const cx=gx0+(i%3)*gcw, cy=gy0+Math.floor(i/3)*70;
+    g.fillStyle='#8fb3d8'; g.font='12px Segoe UI, Arial'; g.fillText(it[0].toUpperCase(), cx, cy);
+    g.fillStyle='#eaf3ff'; g.font='700 20px Segoe UI, Arial'; g.fillText(it[1], cx, cy+26); });
+  g.fillStyle='#7f97b6'; g.font='12px Segoe UI, Arial';
+  g.fillText('Source : Open-Meteo'+(wx.elevation!=null?'  ·  Altitude '+Math.round(wx.elevation)+' m':'')+'  ·  '+(+prefs.city.lat).toFixed(3)+'°, '+(+prefs.city.lon).toFixed(3)+'°  ·  Prévision modèle (interpolée)', 40, H-26);
+  cv.toBlob(b=>{ if(b) download(b,'meteo_'+slug(prefs.city.name)+'.png','image/png'); },'image/png');
+}
+function setupTooltips(){
+  const tip=$('tooltip');
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('.info');
+    if(b){ e.stopPropagation(); tip.textContent=b.getAttribute('data-def')||''; tip.style.display='block';
+      const r=b.getBoundingClientRect();
+      const x=Math.max(8, Math.min(r.left, window.innerWidth-tip.offsetWidth-10));
+      let y=r.bottom+6; if(y+tip.offsetHeight>window.innerHeight-8) y=Math.max(8, r.top-tip.offsetHeight-6);
+      tip.style.left=x+'px'; tip.style.top=y+'px'; return; }
+    if(!e.target.closest('#tooltip')) tip.style.display='none';
+  });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') tip.style.display='none'; });
+  window.addEventListener('scroll',()=>{ tip.style.display='none'; }, true);
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 function init(){
@@ -1430,6 +1553,9 @@ function init(){
 
   $('btnRefresh').addEventListener('click',fetchWeather);
   $('btnUnit').addEventListener('click',()=>{ prefs.unit=prefs.unit==='C'?'F':'C'; savePrefs(); render(); });
+  $('btnCSV').addEventListener('click',exportCSV);
+  $('btnPNG').addEventListener('click',exportPNG);
+  setupTooltips();
   // badge canal : bouton accessible pour changer de canal
   $('chBadge').addEventListener('click',()=>{ channel=(channel+1)%3; render(); });
   // graphe 48 h : onglets de variable + survol
