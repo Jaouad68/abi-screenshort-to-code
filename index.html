@@ -223,7 +223,16 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 .overlay{position:fixed;inset:0;background:rgba(4,9,18,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
 .overlay.open{display:flex}
 .panel{background:#101a2c;border:1px solid #243a5c;border-radius:16px;width:min(440px,100%);padding:22px;box-shadow:0 30px 60px rgba(0,0,0,.6);max-height:90vh;overflow:auto}
-.panel h2{font-size:18px;margin-bottom:4px}
+.panel h2{font-size:18px;margin:0}
+.panel-head{display:flex;align-items:center;gap:12px;margin:-22px -22px 12px;padding:16px 18px;
+  position:sticky;top:-22px;background:#101a2c;border-bottom:1px solid #243a5c;border-radius:16px 16px 0 0;z-index:2}
+.panel-close{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid #2a3f63;background:#16233a;color:#dbe6f5;
+  font-size:18px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+.panel-close:hover{background:#e0556a;border-color:#e0556a;color:#fff}
+[data-theme="light"] .panel-head{background:#fff;border-bottom-color:#cdd8e6}
+[data-theme="light"] .panel-close{background:#eef3fb;border-color:#cbd7e6;color:#1a2a3c}
+[data-theme="contrast"] .panel-head{background:#000;border-bottom-color:#fff}
+[data-theme="contrast"] .panel-close{background:#000;border-color:#fff;color:#fff}
 .panel .muted{color:#8fa3bd;font-size:12px;margin-bottom:16px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;color:#9fb6d6;margin-bottom:6px;letter-spacing:.3px}
@@ -512,7 +521,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <!-- Réglages -->
 <div class="overlay" id="overlay">
   <div class="panel" role="dialog" aria-modal="true" aria-label="Réglages">
-    <h2>Réglages</h2>
+    <div class="panel-head">
+      <button class="panel-close" id="btnCloseTop" type="button" aria-label="Fermer et revenir à l'application" title="Fermer">✕</button>
+      <h2>Réglages</h2>
+    </div>
     <p class="muted">Configurez la station. Les préférences sont enregistrées sur cet appareil.</p>
     <p class="hint" style="margin-bottom:14px">💡 Gérez vos villes directement sur l'écran principal : tapez dans « Ajouter une ville », cliquez une puce pour basculer, ✕ pour supprimer.</p>
     <div class="field">
@@ -1526,6 +1538,7 @@ function init(){
   $('simInside').addEventListener('change',e=>{ $('manualInside').style.display=e.target.checked?'none':'block'; });
   $('btnSettings').addEventListener('click',openPanel);
   $('btnClose').addEventListener('click',closePanel);
+  $('btnCloseTop').addEventListener('click',closePanel);
   $('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closePanel(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePanel(); });
   $('btnApply').addEventListener('click',()=>{
