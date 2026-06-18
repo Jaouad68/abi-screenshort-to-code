@@ -27,6 +27,7 @@
   --amber:#ffd27d;
   --glow:0 0 6px rgba(86,211,255,.55), 0 0 18px rgba(86,211,255,.25);
   --ghost:rgba(86,211,255,.10);
+  --focus:#8fd0ff;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -253,12 +254,81 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 @media(prefers-reduced-motion:reduce){
   .an-sun,.an-cloud,.an-rain line,.an-bolt,.badge.live .dot{animation:none}
 }
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ===== Accessibilité : focus clavier visible + boutons puces ===== */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+  outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
+.city-chip .nm{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:185px}
+.city-chip .rm{border:0;cursor:pointer;color:inherit;font:inherit}
+.ch-badge{cursor:pointer}
+.city-chip{min-height:36px}
+
+/* ===== Thème clair ===== */
+[data-theme="light"] #sky,[data-theme="light"] #skyShade,
+[data-theme="contrast"] #sky,[data-theme="contrast"] #skyShade{display:none}
+[data-theme="light"]{--focus:#0b57b8}
+[data-theme="light"] body{background:linear-gradient(180deg,#eef3f9,#dde6f1);color:#15202e}
+[data-theme="light"] .app-title{color:#13233a;text-shadow:none}
+[data-theme="light"] .app-sub{color:#48586b;text-shadow:none}
+[data-theme="light"] .badge{background:#fff;border-color:#cdd8e6;color:#3a4a5e}
+[data-theme="light"] .card{background:rgba(255,255,255,.94);border-color:#cfdae8}
+[data-theme="light"] .card h3{color:#41566b}
+[data-theme="light"] .city-chip{background:#fff;border-color:#cbd7e6;color:#1a2a3c}
+[data-theme="light"] .city-chip.active{background:#1565c0;border-color:#1565c0;color:#fff}
+[data-theme="light"] .city-search input{background:#fff;border-color:#cbd7e6;color:#15202e}
+[data-theme="light"] .ac{background:#fff;border-color:#cdd8e6;box-shadow:0 20px 40px rgba(20,40,70,.18)}
+[data-theme="light"] .ac .item{border-bottom-color:rgba(0,0,0,.06)}
+[data-theme="light"] .ac .item:hover,[data-theme="light"] .ac .item.sel{background:#eaf1fb}
+[data-theme="light"] .ac .item small,[data-theme="light"] .ac .empty{color:#5a6b7e}
+[data-theme="light"] .btn{background:#fff;border-color:#cbd7e6;color:#1a2a3c}
+[data-theme="light"] .btn:hover{background:#eef3fb;border-color:#9fb8d6}
+[data-theme="light"] .btn.primary{background:#1565c0;border-color:#1565c0;color:#fff}
+[data-theme="light"] .panel{background:#fff;border-color:#cdd8e6;color:#15202e}
+[data-theme="light"] .panel .muted,[data-theme="light"] .hint{color:#5a6b7e}
+[data-theme="light"] .field label{color:#3a4a5e}
+[data-theme="light"] .field input{background:#f5f8fc;border-color:#cbd7e6;color:#15202e}
+[data-theme="light"] .seg-toggle{background:#f0f4fa;border-color:#cbd7e6}
+[data-theme="light"] .seg-toggle button{color:#4a5b6e}
+[data-theme="light"] .seg-toggle button.active{background:#1565c0;color:#fff}
+[data-theme="light"] .tile{background:#f5f8fc;border-color:#d6e0ec}
+[data-theme="light"] .tile .tv{color:#13233a}
+[data-theme="light"] .tile .tl,[data-theme="light"] .tile .ts{color:#5a6b7e}
+[data-theme="light"] .pro-foot{color:#5a6b7e;border-top-color:rgba(0,0,0,.08)}
+[data-theme="light"] .pro-foot b{color:#33485e}
+[data-theme="light"] .hint-row{color:#5a6b7e}
+[data-theme="light"] .day .dn{color:#5a6b7e}
+[data-theme="light"] .day .tmin{color:#7a8a9c}
+[data-theme="light"] .day:hover{background:rgba(21,101,192,.08)}
+[data-theme="light"] .chart-tabs button{background:#f0f4fa;border-color:#cbd7e6;color:#4a5b6e}
+[data-theme="light"] .chart-tabs button.active{background:#1565c0;color:#fff;border-color:#1565c0}
+[data-theme="light"] .switch .slider{background:#c3d0e0}
+
+/* ===== Thème contraste élevé (WCAG) ===== */
+[data-theme="contrast"]{--focus:#ffd400}
+[data-theme="contrast"] body{background:#000;color:#fff}
+[data-theme="contrast"] .app-title,[data-theme="contrast"] .app-sub{color:#fff;text-shadow:none}
+[data-theme="contrast"] .card,[data-theme="contrast"] .panel,[data-theme="contrast"] .tile,
+[data-theme="contrast"] .badge,[data-theme="contrast"] .btn,[data-theme="contrast"] .city-chip,
+[data-theme="contrast"] .city-search input,[data-theme="contrast"] .ac,[data-theme="contrast"] .field input,
+[data-theme="contrast"] .seg-toggle,[data-theme="contrast"] .chart-tabs button{background:#000;border-color:#fff;color:#fff}
+[data-theme="contrast"] .card h3,[data-theme="contrast"] .tile .tl,[data-theme="contrast"] .tile .ts,
+[data-theme="contrast"] .pro-foot,[data-theme="contrast"] .hint-row,[data-theme="contrast"] .panel .muted,
+[data-theme="contrast"] .hint,[data-theme="contrast"] .field label,
+[data-theme="contrast"] .day .dn,[data-theme="contrast"] .day .tmin,
+[data-theme="contrast"] .ac .item small,[data-theme="contrast"] .ac .empty{color:#fff}
+[data-theme="contrast"] .tile .tv{color:#fff}
+[data-theme="contrast"] .city-chip.active,[data-theme="contrast"] .btn.primary,
+[data-theme="contrast"] .seg-toggle button.active,[data-theme="contrast"] .chart-tabs button.active{background:#ffd400;color:#000;border-color:#ffd400}
+[data-theme="contrast"] .pro-foot b{color:#ffd400}
+[data-theme="contrast"] .ac .item:hover,[data-theme="contrast"] .ac .item.sel{background:#222}
 </style>
 </head>
 <body>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="skyShade" aria-hidden="true"></div>
+<p id="srSummary" class="sr-only" aria-live="polite"></p>
 
 <h1 class="app-title">Station Météo Pro <span class="badge" id="modeBadge" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="modeText">Démo</span></span></h1>
 <p class="app-sub">Console RCC dynamique — fond jour/nuit animé, météo en direct, prévisions 5 jours, baromètre, phase de lune.</p>
@@ -345,7 +415,7 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
         <div class="row spread">
           <span class="trend-arrow" id="inTrend">→</span>
           <div class="label" style="margin-left:auto">
-            <span class="ch-badge" id="chBadge">C1</span> INT
+            <button type="button" class="ch-badge" id="chBadge" aria-label="Changer de canal capteur">C1</button> INT
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
           </div>
         </div>
@@ -417,6 +487,10 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
     <p class="muted">Configurez la station. Les préférences sont enregistrées sur cet appareil.</p>
     <p class="hint" style="margin-bottom:14px">💡 Gérez vos villes directement sur l'écran principal : tapez dans « Ajouter une ville », cliquez une puce pour basculer, ✕ pour supprimer.</p>
     <div class="field">
+      <label>Thème</label>
+      <div class="seg-toggle" id="themeToggle"><button data-th="auto" class="active">Auto</button><button data-th="dark">Sombre</button><button data-th="light">Clair</button><button data-th="contrast">Contraste</button></div>
+    </div>
+    <div class="field">
       <label>Unité de température</label>
       <div class="seg-toggle" id="unitToggle"><button data-unit="C" class="active">Celsius °C</button><button data-unit="F">Fahrenheit °F</button></div>
     </div>
@@ -450,7 +524,7 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 const $ = (id) => document.getElementById(id);
 
 const DEFAULTS = {
-  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', chartVar:'temp', simInside:true, cycleChan:true,
+  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', chartVar:'temp', theme:'auto', simInside:true, cycleChan:true,
   inTempManualC:26.5, inHumManual:59,
   city:{ name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
   cities:[
@@ -470,6 +544,15 @@ function loadPrefs(){
   return p;
 }
 function savePrefs(){ try{ localStorage.setItem('wxstation', JSON.stringify(prefs)); }catch(e){} }
+
+/* ---------- Thème (auto / sombre / clair / contraste) ---------- */
+function resolveTheme(){ const t=prefs.theme||'auto';
+  if(t==='auto') return (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  return t; }
+function applyTheme(){ const r=resolveTheme();
+  document.documentElement.setAttribute('data-theme', r);
+  const mc={dark:'#0b1220',light:'#eef3f9',contrast:'#000000'}[r]||'#0b1220';
+  const m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',mc); }
 
 let wx = {
   live:false, stale:false,
@@ -657,6 +740,12 @@ function render(){
   renderForecast();
   renderPro();
   renderVigilance();
+  // Résumé textuel pour lecteurs d'écran
+  const sr=$('srSummary');
+  if(sr) sr.textContent=`Conditions à ${prefs.city.name}. Extérieur ${Math.round(cToDisplay(wx.outTempC))} ${unitLabel()}, `
+    +`humidité ${Math.round(wx.outHum)} pour cent, vent ${Math.round(wConv(wx.windKmh))} ${wUnit()} de ${compass(wx.windDir)}, `
+    +`pression ${pStr(wx.pressure)} ${pUnit()}. `
+    +(wx.live?'Données en direct.':wx.stale?'Dernière observation, hors-ligne.':'Mode démonstration.');
 }
 
 /* Canaux capteurs : CH1 = intérieur réel/simulé ; CH2/CH3 = décalages */
@@ -1030,15 +1119,19 @@ function removeCity(idx){
 function renderCityChips(){
   const box=$('cityChips'); box.innerHTML='';
   prefs.cities.forEach((c,i)=>{
+    const active=sameCity(c,prefs.city);
     const chip=document.createElement('div');
-    chip.className='city-chip'+(sameCity(c,prefs.city)?' active':'');
-    chip.title=[c.name,c.admin,c.country].filter(Boolean).join(' · ');
-    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=c.name;
-    chip.appendChild(nm);
-    chip.addEventListener('click',()=>setActiveCity(c));
+    chip.className='city-chip'+(active?' active':'');
+    const sel=document.createElement('button'); sel.type='button'; sel.className='nm';
+    sel.textContent=c.name;
+    sel.title=[c.name,c.admin,c.country].filter(Boolean).join(' · ');
+    sel.setAttribute('aria-label','Afficher la météo de '+c.name+(active?' (ville sélectionnée)':''));
+    if(active) sel.setAttribute('aria-current','true');
+    sel.addEventListener('click',()=>setActiveCity(c));
+    chip.appendChild(sel);
     if(prefs.cities.length>1){
-      const rm=document.createElement('span'); rm.className='rm'; rm.textContent='✕';
-      rm.title='Supprimer cette ville';
+      const rm=document.createElement('button'); rm.type='button'; rm.className='rm';
+      rm.textContent='✕'; rm.setAttribute('aria-label','Supprimer la ville '+c.name);
       rm.addEventListener('click',ev=>{ ev.stopPropagation(); removeCity(i); });
       chip.appendChild(rm);
     }
@@ -1090,13 +1183,14 @@ function openPanel(){
   $('inTempManual').value=prefs.inTempManualC; $('inHumManual').value=prefs.inHumManual;
   $('simInside').checked=prefs.simInside; $('cycleChan').checked=prefs.cycleChan;
   $('manualInside').style.display=prefs.simInside?'none':'block';
+  setToggle('themeToggle',prefs.theme,'data-th');
   setToggle('unitToggle',prefs.unit,'data-unit'); setToggle('clockToggle',prefs.clock,'data-clk');
   setToggle('presToggle',prefs.unitP,'data-p'); setToggle('windToggle',prefs.unitW,'data-w');
   $('overlay').classList.add('open');
 }
 function closePanel(){ $('overlay').classList.remove('open'); }
-function setToggle(g,val,attr){ document.querySelectorAll(`#${g} button`).forEach(b=>b.classList.toggle('active',b.getAttribute(attr)===val)); }
-function wireToggle(g,attr,cb){ document.querySelectorAll(`#${g} button`).forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll(`#${g} button`).forEach(x=>x.classList.remove('active')); b.classList.add('active'); cb(b.getAttribute(attr)); })); }
+function setToggle(g,val,attr){ document.querySelectorAll(`#${g} button`).forEach(b=>{ const on=b.getAttribute(attr)===val; b.classList.toggle('active',on); b.setAttribute('aria-pressed',on?'true':'false'); }); }
+function wireToggle(g,attr,cb){ document.querySelectorAll(`#${g} button`).forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll(`#${g} button`).forEach(x=>{x.classList.remove('active');x.setAttribute('aria-pressed','false');}); b.classList.add('active'); b.setAttribute('aria-pressed','true'); cb(b.getAttribute(attr)); })); }
 
 /* ============================================================
    FOND ANIMÉ JOUR/NUIT + MÉTÉO (canvas)
@@ -1189,10 +1283,13 @@ const Sky=(function(){
    INIT
    ============================================================ */
 function init(){
+  applyTheme();
+  if(window.matchMedia){ try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{ if((prefs.theme||'auto')==='auto') applyTheme(); }); }catch(e){} }
   wireToggle('unitToggle','data-unit',v=>{ prefs.unit=v; savePrefs(); render(); });
   wireToggle('clockToggle','data-clk',v=>{ prefs.clock=v; savePrefs(); tick(); });
   wireToggle('presToggle','data-p',v=>{ prefs.unitP=v; savePrefs(); render(); });
   wireToggle('windToggle','data-w',v=>{ prefs.unitW=v; savePrefs(); render(); });
+  wireToggle('themeToggle','data-th',v=>{ prefs.theme=v; savePrefs(); applyTheme(); });
   $('simInside').addEventListener('change',e=>{ $('manualInside').style.display=e.target.checked?'none':'block'; });
   $('btnSettings').addEventListener('click',openPanel);
   $('btnClose').addEventListener('click',closePanel);
@@ -1220,9 +1317,8 @@ function init(){
 
   $('btnRefresh').addEventListener('click',fetchWeather);
   $('btnUnit').addEventListener('click',()=>{ prefs.unit=prefs.unit==='C'?'F':'C'; savePrefs(); render(); });
-  // permettre de cliquer le badge canal pour changer de canal
-  $('chBadge').style.cursor='pointer';
-  $('chBadge').parentElement.addEventListener('click',()=>{ channel=(channel+1)%3; render(); });
+  // badge canal : bouton accessible pour changer de canal
+  $('chBadge').addEventListener('click',()=>{ channel=(channel+1)%3; render(); });
   // graphe 48 h : onglets de variable + survol
   document.querySelectorAll('#chartTabs button').forEach(b=>b.addEventListener('click',()=>Chart.setVar(b.dataset.v)));
   setToggle('chartTabs', prefs.chartVar, 'data-v');
