@@ -641,12 +641,15 @@ const JOURS=['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
 const JOURS_C=['DIM','LUN','MAR','MER','JEU','VEN','SAM'];
 const MOIS=['JANV','FEVR','MARS','AVRIL','MAI','JUIN','JUIL','AOUT','SEPT','OCTO','NOVE','DECE'];
 function pad(n){ return String(n).padStart(2,'0'); }
-/* Instant affiché : UTC, ou heure locale de la VILLE (via utc_offset), sinon appareil */
+/* Décalage horaire approché d'après la longitude (repli hors-ligne / instantané) */
+function cityOffsetSec(lon){ return Math.max(-12,Math.min(14,Math.round((+lon||0)/15)))*3600; }
+function fmtOffset(sec){ const sign=sec<0?'-':'+'; const a=Math.abs(sec)/3600; const hh=Math.floor(a); const mm=Math.round((a-hh)*60); return 'UTC'+sign+hh+(mm?':'+pad(mm):''); }
+/* Instant affiché : UTC, ou heure locale de la VILLE (offset exact de l'API, sinon approché) */
 function displayNow(){
   const utcMs=Date.now()+new Date().getTimezoneOffset()*60000;
   if(prefs.tzMode==='utc') return {ms:utcMs, suf:'UTC'};
-  const off=(wx.utcOffset!=null?wx.utcOffset:-(new Date().getTimezoneOffset()*60));
-  return {ms:utcMs+off*1000, suf:''};
+  const off=(wx.utcOffset!=null?wx.utcOffset:cityOffsetSec(prefs.city&&prefs.city.lon));
+  return {ms:utcMs+off*1000, suf:fmtOffset(off)};
 }
 function tick(){
   const {ms,suf}=displayNow(); const dt=new Date(ms);
@@ -1253,8 +1256,10 @@ function fitCityName(el, name){
 
 function setActiveCity(c){
   prefs.city=c; savePrefs(); renderCityChips();
+  wx.utcOffset=cityOffsetSec(c.lon);  // heure de la nouvelle ville tout de suite (affinée par l'API)
   render();          // mise à jour instantanée du nom à l'écran
-  fetchWeather();    // puis rafraîchissement météo de la nouvelle ville
+  tick();            // recale l'horloge sur le fuseau de la ville sans attendre
+  fetchWeather();    // puis rafraîchissement météo + offset exact
 }
 
 function addCity(c, activate){
