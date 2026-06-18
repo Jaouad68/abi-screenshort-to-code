@@ -499,6 +499,17 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
       <div class="seg-toggle" id="clockToggle"><button data-clk="24" class="active">24 h</button><button data-clk="12">12 h</button></div>
     </div>
     <div class="field">
+      <label>Fuseau de l'horloge</label>
+      <div class="seg-toggle" id="tzToggle"><button data-tz="local" class="active">Heure locale (ville)</button><button data-tz="utc">UTC / Zulu</button></div>
+    </div>
+    <div class="field">
+      <label>Modèle de prévision</label>
+      <div class="seg-toggle" id="modelToggle" style="flex-wrap:wrap">
+        <button data-m="best_match" class="active">Auto</button><button data-m="ecmwf_ifs025">ECMWF</button><button data-m="gfs_seamless">GFS</button><button data-m="icon_seamless">ICON</button><button data-m="meteofrance_seamless">AROME</button>
+      </div>
+      <p class="hint">ICON et AROME sont des modèles régionaux (Europe principalement).</p>
+    </div>
+    <div class="field">
       <label>Unité de pression</label>
       <div class="seg-toggle" id="presToggle"><button data-p="hPa" class="active">hPa</button><button data-p="inHg">inHg</button><button data-p="mmHg">mmHg</button></div>
     </div>
@@ -524,7 +535,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 const $ = (id) => document.getElementById(id);
 
 const DEFAULTS = {
-  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', chartVar:'temp', theme:'auto', simInside:true, cycleChan:true,
+  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', tzMode:'local', model:'best_match',
+  chartVar:'temp', theme:'auto', simInside:true, cycleChan:true,
   inTempManualC:26.5, inHumManual:59,
   city:{ name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
   cities:[
@@ -564,7 +576,7 @@ let wx = {
   // Variables professionnelles (extérieur)
   apparentC:38, dewpointC:10, windKmh:12, windDir:230, gustKmh:24,
   uv:7, precip:0, precipProb:10, cloud:40, visibility:24140, surfaceP:1009,
-  obsTime:null, elevation:null, tz:'auto',
+  obsTime:null, elevation:null, tz:'auto', utcOffset:null,
   daily:[],   // {date, code, tmax, tmin, uvMax, precipSum, precipProb, windMax}
   hourly:[],  // {t:Date, temp}
   series:null // {time:[Date], temp:[], pres:[], wind:[], precip:[], rh:[]} sur 48 h
@@ -576,13 +588,21 @@ const JOURS=['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
 const JOURS_C=['DIM','LUN','MAR','MER','JEU','VEN','SAM'];
 const MOIS=['JANV','FEVR','MARS','AVRIL','MAI','JUIN','JUIL','AOUT','SEPT','OCTO','NOVE','DECE'];
 function pad(n){ return String(n).padStart(2,'0'); }
+/* Instant affiché : UTC, ou heure locale de la VILLE (via utc_offset), sinon appareil */
+function displayNow(){
+  const utcMs=Date.now()+new Date().getTimezoneOffset()*60000;
+  if(prefs.tzMode==='utc') return {ms:utcMs, suf:'UTC'};
+  const off=(wx.utcOffset!=null?wx.utcOffset:-(new Date().getTimezoneOffset()*60));
+  return {ms:utcMs+off*1000, suf:''};
+}
 function tick(){
-  const now=new Date(); let h=now.getHours(); const m=now.getMinutes(), s=now.getSeconds();
-  if(prefs.clock==='12'){ const ap=h>=12?'PM':'AM'; let h12=h%12||12; $('clkHM').textContent=`${pad(h12)}:${pad(m)}`; $('clkS').textContent=`${pad(s)} ${ap}`; }
-  else{ $('clkHM').textContent=`${pad(h)}:${pad(m)}`; $('clkS').textContent=pad(s); }
-  $('dateDM').textContent=`${pad(now.getDate())}/${MOIS[now.getMonth()]}`;
-  $('dateDow').textContent=JOURS[now.getDay()];
-  updateTide(now);
+  const {ms,suf}=displayNow(); const dt=new Date(ms);
+  let h=dt.getUTCHours(); const m=dt.getUTCMinutes(), s=dt.getUTCSeconds();
+  if(prefs.clock==='12'){ const ap=h>=12?'PM':'AM'; let h12=h%12||12; $('clkHM').textContent=`${pad(h12)}:${pad(m)}`; $('clkS').textContent=`${pad(s)} ${ap}${suf?' '+suf:''}`; }
+  else{ $('clkHM').textContent=`${pad(h)}:${pad(m)}`; $('clkS').textContent=pad(s)+(suf?' '+suf:''); }
+  $('dateDM').textContent=`${pad(dt.getUTCDate())}/${MOIS[dt.getUTCMonth()]}`;
+  $('dateDow').textContent=JOURS[dt.getUTCDay()];
+  updateTide(dt);
 }
 
 /* ---------- Lune ---------- */
@@ -593,7 +613,7 @@ function moonSVG(idx){ const lit=[0,.25,.5,.75,1,.75,.5,.25][idx]; const off=(1-
     <g clip-path="url(#mc)"><circle cx="12" cy="12" r="10" fill="#fdf3c7"/>
     <ellipse cx="${12+off}" cy="12" rx="10" ry="10" fill="#13314f" opacity="${lit>=1?0:1}"/>${idx===0?'<circle cx="12" cy="12" r="10" fill="#13314f"/>':''}</g></svg>`; }
 function updateMoon(d){ const{idx}=moonPhase(d); $('moonIcon').innerHTML=moonSVG(idx); $('moonName').textContent=MOON_NAMES[idx]; }
-function updateTide(now){ const ht=now.getHours()+now.getMinutes()/60; $('tide').textContent=((ht%12.42)/12.42)<0.5?'HAUTE':'BASSE'; }
+function updateTide(now){ const ht=now.getUTCHours()+now.getUTCMinutes()/60; $('tide').textContent=((ht%12.42)/12.42)<0.5?'HAUTE':'BASSE'; }
 
 /* ---------- Catégories météo ---------- */
 function wxCat(code){
@@ -777,6 +797,7 @@ function renderForecast(){
 }
 
 /* ---------- Panneau professionnel ---------- */
+const MODEL_LABEL={best_match:'Auto (meilleur modèle)', ecmwf_ifs025:'ECMWF IFS', gfs_seamless:'NOAA GFS', icon_seamless:'DWD ICON', meteofrance_seamless:'Météo-France AROME/ARPEGE'};
 function cloudWord(c){ if(c<10)return'Ciel dégagé'; if(c<40)return'Peu nuageux'; if(c<70)return'Partiellement couvert'; if(c<90)return'Très nuageux'; return'Couvert'; }
 function visWord(km){ if(km==null)return''; if(km<1)return'Brouillard'; if(km<4)return'Médiocre'; if(km<10)return'Modérée'; return'Bonne'; }
 function compassSVG(deg){
@@ -794,7 +815,7 @@ function renderPro(){
   const key=[prefs.unit,prefs.unitP,prefs.unitW,Math.round(wx.apparentC),Math.round(wx.dewpointC),Math.round(wx.windKmh),
     Math.round(wx.windDir),Math.round(wx.gustKmh),Math.round(wx.pressure*10),Math.round(wx.uv),(wx.precip||0).toFixed(1),
     Math.round(wx.precipProb||0),Math.round(wx.cloud),Math.round(wx.visibility),Math.round(wx.outHum),wx.live,wx.stale,
-    wx.obsTime?wx.obsTime.getTime():0].join('|');
+    prefs.model, wx.obsTime?wx.obsTime.getTime():0].join('|');
   if(key!==_proKey){
     _proKey=key;
     const tiles=[
@@ -814,8 +835,10 @@ function renderPro(){
       <div class="tl">${t.l}</div>
       <div class="tv"${t.color?` style="color:${t.color}"`:''}>${t.v}</div>
       <div class="ts">${t.s}</div></div>`).join('');
-    const parts=['<span><b>Source</b> Open-Meteo (modèle automatique)</span>'];
-    if(wx.elevation!=null) parts.push('<span><b>Altitude station</b> '+Math.round(wx.elevation)+' m</span>');
+    const parts=['<span><b>Source</b> Open-Meteo</span>',
+      '<span><b>Modèle</b> '+(MODEL_LABEL[prefs.model]||prefs.model)+'</span>',
+      '<span><b>Type</b> prévision modèle (interpolée, non observation station)</span>'];
+    if(wx.elevation!=null) parts.push('<span><b>Altitude</b> '+Math.round(wx.elevation)+' m</span>');
     parts.push('<span><b>Position</b> '+(+prefs.city.lat).toFixed(3)+'°, '+(+prefs.city.lon).toFixed(3)+'°</span>');
     if(wx.obsTime) parts.push('<span><b>Observation</b> '+pad2(wx.obsTime.getHours())+':'+pad2(wx.obsTime.getMinutes())+' ('+timeAgo(wx.obsTime)+')</span>');
     $('proFoot').innerHTML=parts.join('');
@@ -958,7 +981,7 @@ async function fetchWeather(){
     +`&current=temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m`
     +`&hourly=temperature_2m,pressure_msl,wind_speed_10m,precipitation,relative_humidity_2m,uv_index,visibility,precipitation_probability`
     +`&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max`
-    +`&timezone=auto&forecast_days=6&past_days=1`;
+    +`&models=${prefs.model||'best_match'}&timezone=auto&forecast_days=6&past_days=1`;
   try{
     const res=await fetch(url,{signal:ctrl.signal}); clearTimeout(to);
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -995,6 +1018,7 @@ function applyWeather(d){
   wx.obsTime=c.time?new Date(c.time):new Date();
   wx.elevation=num(d.elevation,wx.elevation);
   wx.tz=d.timezone||wx.tz;
+  wx.utcOffset=num(d.utc_offset_seconds, wx.utcOffset);
   const H=d.hourly||{};
   if(H.pressure_msl){ const a=H.pressure_msl.filter(v=>v!=null); if(a.length>=4) wx.pressureHistory=a.slice(-12).map(v=>Math.round(v*10)/10); }
   if(H.time){
@@ -1184,6 +1208,7 @@ function openPanel(){
   $('simInside').checked=prefs.simInside; $('cycleChan').checked=prefs.cycleChan;
   $('manualInside').style.display=prefs.simInside?'none':'block';
   setToggle('themeToggle',prefs.theme,'data-th');
+  setToggle('tzToggle',prefs.tzMode,'data-tz'); setToggle('modelToggle',prefs.model,'data-m');
   setToggle('unitToggle',prefs.unit,'data-unit'); setToggle('clockToggle',prefs.clock,'data-clk');
   setToggle('presToggle',prefs.unitP,'data-p'); setToggle('windToggle',prefs.unitW,'data-w');
   $('overlay').classList.add('open');
@@ -1290,6 +1315,8 @@ function init(){
   wireToggle('presToggle','data-p',v=>{ prefs.unitP=v; savePrefs(); render(); });
   wireToggle('windToggle','data-w',v=>{ prefs.unitW=v; savePrefs(); render(); });
   wireToggle('themeToggle','data-th',v=>{ prefs.theme=v; savePrefs(); applyTheme(); });
+  wireToggle('tzToggle','data-tz',v=>{ prefs.tzMode=v; savePrefs(); tick(); });
+  wireToggle('modelToggle','data-m',v=>{ prefs.model=v; savePrefs(); fetchWeather(); });
   $('simInside').addEventListener('change',e=>{ $('manualInside').style.display=e.target.checked?'none':'block'; });
   $('btnSettings').addEventListener('click',openPanel);
   $('btnClose').addEventListener('click',closePanel);
