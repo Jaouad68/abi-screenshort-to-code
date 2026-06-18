@@ -1,1197 +1,1611 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Découvrez le Maroc ultra complet — économie, nature, sport, spiritualité, shopping et plus encore." />
-  <title>Maroc — Royaume d'Or & de Lumière</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Inter:wght@300;400;500;600&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b1220" />
+<meta name="description" content="Station météo RCC dynamique — horloge temps réel, météo live animée, baromètre, phase de lune, prévisions 5 jours." />
+<title>Station Météo Pro de Jassim</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Météo Pro" />
+
+<style>
+@font-face{
+  font-family:'DSEG7';
+  src:url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2');
+  font-weight:bold;font-display:swap;
+}
+@font-face{
+  font-family:'DSEG14';
+  src:url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff2') format('woff2');
+  font-weight:bold;font-display:swap;
+}
+
+:root{
+  --cyan:#56d3ff;
+  --cyan-soft:#9fe6ff;
+  --green-text:#7dffb0;
+  --green:#2fae6b;
+  --amber:#ffd27d;
+  --glow:0 0 6px rgba(86,211,255,.55), 0 0 18px rgba(86,211,255,.25);
+  --ghost:rgba(86,211,255,.10);
+  --focus:#8fd0ff;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+  background:#0b1220;color:#e8eef6;min-height:100%;
+  display:flex;flex-direction:column;align-items:center;
+  padding:24px 12px 60px;-webkit-font-smoothing:antialiased;position:relative;
+}
+/* Fond animé jour/nuit + météo */
+#sky{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block}
+#skyShade{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(1200px 700px at 50% 120%,rgba(0,0,0,.35),transparent 70%)}
+
+.app-head{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:4px;flex-wrap:wrap}
+.avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;flex:none;
+  border:2px solid var(--cyan);box-shadow:0 0 0 4px rgba(86,211,255,.14),0 6px 18px rgba(0,0,0,.45)}
+.app-by{color:var(--cyan-soft);font-weight:600}
+[data-theme="light"] .avatar{box-shadow:0 0 0 4px rgba(21,101,192,.12),0 6px 16px rgba(20,40,70,.2)}
+[data-theme="light"] .app-by{color:#1565c0}
+[data-theme="contrast"] .avatar{border-color:#ffd400;box-shadow:0 0 0 3px #ffd400}
+[data-theme="contrast"] .app-by{color:#ffd400}
+h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);margin-bottom:0;text-align:center;
+  text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.app-sub{color:#aab8cc;font-size:13px;margin-bottom:14px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+/* ===== Barre de villes ===== */
+.citybar{width:min(960px,100%);margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.city-chip{display:inline-flex;align-items:center;gap:7px;background:rgba(22,35,58,.85);border:1px solid #2a3f63;color:#dbe6f5;
+  padding:6px 8px 6px 13px;border-radius:999px;font-size:13px;cursor:pointer;transition:.15s;max-width:240px}
+.city-chip:hover{border-color:#3a578a;background:#1d2f4d}
+.city-chip.active{background:#1d62a8;border-color:#2f7fcf;color:#fff;box-shadow:0 0 0 2px rgba(86,211,255,.25)}
+.city-chip .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.city-chip .rm{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+  background:rgba(255,255,255,.14);font-size:13px;line-height:1;flex:none}
+.city-chip .rm:hover{background:#e0556a;color:#fff}
+.city-search{position:relative}
+.city-search input{background:rgba(22,35,58,.85);border:1px solid #2a3f63;color:#e8eef6;padding:8px 14px;border-radius:999px;font-size:13px;width:230px}
+.city-search input:focus{outline:none;border-color:#56d3ff;width:260px}
+.ac{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#101a2c;border:1px solid #243a5c;border-radius:12px;
+  z-index:30;display:none;box-shadow:0 20px 40px rgba(0,0,0,.5);max-height:280px;overflow-y:auto}
+.ac.open{display:block}
+.ac .item{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.ac .item:last-child{border-bottom:0}
+.ac .item:hover,.ac .item.sel{background:#1d2f4d}
+.ac .item small{display:block;color:#8fa3bd;font-size:11px;margin-top:1px}
+.ac .empty{padding:10px 12px;color:#8fa3bd;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(22,35,58,.85);border:1px solid #243a5c;
+  padding:3px 10px;border-radius:999px;font-size:11px;color:#9fb6d6;vertical-align:middle}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:#f0b429;box-shadow:0 0 8px #f0b429}
+.badge.live .dot{background:#3ad07a;box-shadow:0 0 8px #3ad07a;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ===== Boîtier ===== */
+.device{width:min(960px,100%);background:linear-gradient(180deg,#f5f3ee,#e2dfd6);border-radius:26px;padding:18px;
+  box-shadow:0 30px 60px rgba(0,0,0,.55),inset 0 1px 0 #fff,inset 0 -3px 8px rgba(0,0,0,.12);border:1px solid #cfccc3}
+.instructions{font-size:9px;line-height:1.45;color:#5a5750;padding:4px 10px 10px;letter-spacing:.2px}
+.instructions b{color:#3c3a35}
+
+/* ===== Écran LCD ===== */
+.screen{background:linear-gradient(165deg,#0d3a63,#0a2a4a 70%,#06203a);border-radius:14px;padding:14px;
+  border:3px solid #05182c;box-shadow:inset 0 2px 14px rgba(0,0,0,.6),inset 0 0 0 2px rgba(86,211,255,.06);
+  position:relative;overflow:hidden}
+.screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 35%)}
+.grid{display:grid;grid-template-columns:1fr 1.05fr 1fr;gap:10px}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+.label{display:flex;align-items:center;gap:6px;color:var(--cyan);font-weight:700;font-size:13px;letter-spacing:1px;text-shadow:var(--glow)}
+.label svg{filter:drop-shadow(0 0 5px rgba(86,211,255,.5))}
+
+.seg{font-family:'DSEG7','Courier New',monospace;color:var(--cyan);text-shadow:var(--glow);position:relative;line-height:1;font-weight:bold}
+.seg .ghost{position:absolute;inset:0;color:var(--ghost);text-shadow:none;z-index:0}
+.seg .val{position:relative;z-index:1;transition:opacity .15s}
+.seg.flash .val{animation:flick .35s}
+@keyframes flick{0%{opacity:.25}40%{opacity:1}55%{opacity:.5}100%{opacity:1}}
+
+.temp-big{font-size:clamp(46px,11vw,86px)}
+.unit{font-family:'Segoe UI',sans-serif;color:var(--cyan-soft);font-weight:700;text-shadow:var(--glow)}
+.row{display:flex;align-items:flex-end;gap:6px}
+.spread{justify-content:space-between}
+.metric-ico{display:flex;align-items:center;gap:8px}
+.hum{font-family:'DSEG7','Courier New',monospace;font-size:clamp(28px,6vw,46px);color:var(--cyan);text-shadow:var(--glow);font-weight:bold}
+
+.clock{font-family:'DSEG7','Courier New',monospace;font-size:clamp(40px,9.5vw,72px);color:var(--cyan);text-shadow:var(--glow);font-weight:bold;text-align:center}
+.clock .sec{font-size:.42em;color:var(--cyan-soft);vertical-align:super}
+.forecast-hd{text-align:center;color:var(--cyan);font-weight:700;letter-spacing:2px;font-size:13px;text-shadow:var(--glow)}
+
+.band{background:linear-gradient(180deg,#0c6b45,#073d27);border-radius:8px;padding:7px 10px;display:flex;
+  align-items:center;justify-content:space-between;color:var(--green-text);border:1px solid #0a5236;box-shadow:inset 0 0 10px rgba(0,0,0,.4)}
+.band.blue{background:linear-gradient(180deg,#0d3a63,#08243f);color:var(--cyan-soft);border-color:#0c2c4d}
+.band .seg2{font-family:'DSEG7','Courier New',monospace;font-weight:bold}
+.cityname{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;font-weight:700;
+  letter-spacing:.6px;color:var(--cyan-soft);text-shadow:var(--glow);text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px;display:inline-block;vertical-align:bottom}
+.band small{font-size:9px;letter-spacing:1px;opacity:.8;display:block}
+.date-band{justify-content:center;gap:10px;font-family:'DSEG14','Courier New',monospace;font-weight:bold;font-size:clamp(13px,3.4vw,20px);letter-spacing:1px}
+
+/* Icône météo animée */
+.wx-icon{display:flex;justify-content:center;align-items:center;min-height:90px;position:relative}
+.wx-icon svg{filter:drop-shadow(0 0 8px rgba(86,211,255,.4));overflow:visible}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drift{0%{transform:translateX(-3px)}50%{transform:translateX(3px)}100%{transform:translateX(-3px)}}
+@keyframes raindrop{0%{transform:translateY(-2px);opacity:0}30%{opacity:1}100%{transform:translateY(10px);opacity:0}}
+@keyframes boltflash{0%,92%,100%{opacity:.25}94%,98%{opacity:1}}
+.an-sun{transform-origin:center;animation:spin 28s linear infinite}
+.an-cloud{animation:drift 5s ease-in-out infinite}
+.an-rain line{animation:raindrop 1.1s linear infinite}
+.an-rain line:nth-child(2){animation-delay:.35s}
+.an-rain line:nth-child(3){animation-delay:.7s}
+.an-bolt{animation:boltflash 3s infinite}
+
+.trend-box{position:relative;background:linear-gradient(180deg,#0a3357,#062b48);border-radius:8px;padding:6px;
+  border:1px solid #0c2c4d;min-height:62px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.trend-tag{position:absolute;top:5px;left:8px;font-size:9px;letter-spacing:1px;color:var(--cyan);opacity:.85}
+
+.baro{display:flex;align-items:flex-end;gap:3px;height:42px}
+.baro .bar{width:7px;background:linear-gradient(180deg,var(--green-text),var(--green));border-radius:2px 2px 0 0;
+  box-shadow:0 0 6px rgba(125,255,176,.5);transition:height .6s cubic-bezier(.22,1,.36,1)}
+.baro-wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.baro-val{text-align:right}
+.baro-val .seg2{font-size:clamp(20px,4.5vw,30px);color:var(--green-text);text-shadow:0 0 8px rgba(125,255,176,.5)}
+
+.trend-arrow{font-size:18px;line-height:1;transition:color .3s}
+.trend-arrow.bump{animation:bump .5s}
+@keyframes bump{0%{transform:translateY(0)}30%{transform:translateY(-3px)}100%{transform:translateY(0)}}
+.up{color:#7dffb0}.down{color:#ff9b9b}.flat{color:var(--cyan-soft)}
+.sun-row{display:flex;flex-direction:column;gap:6px}
+.sun-item{display:flex;align-items:center;gap:8px}
+.sun-item .seg2{font-size:clamp(16px,3.6vw,22px)}
+.smiley{filter:drop-shadow(0 0 6px rgba(125,255,176,.5))}
+.ch-badge{font-size:9px;letter-spacing:1px;color:var(--cyan-soft);background:rgba(13,58,99,.7);
+  border:1px solid #0c2c4d;border-radius:5px;padding:1px 5px}
+
+/* ===== Vigilance (veille seuils) ===== */
+.vigilance{width:min(960px,100%);margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+.vig-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;border:1px solid}
+.vig-jaune{background:rgba(120,90,10,.32);border-color:#7a611f;color:#ffe08a}
+.vig-orange{background:rgba(150,75,12,.4);border-color:#9a5a1f;color:#ffc27d}
+.vig-rouge{background:rgba(135,30,30,.45);border-color:#9a2f2f;color:#ff9b9b}
+.vig-item .ic{font-size:16px}
+.vig-item .lvl{margin-left:auto;font-size:10px;letter-spacing:1px;opacity:.85;text-transform:uppercase}
+
+/* ===== Prévisions 5 jours + graphe 48 h ===== */
+.forecast-panel{width:min(960px,100%);margin-top:16px;display:grid;grid-template-columns:1fr;gap:14px}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.chart-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.chart-tabs button{background:#0a1424;border:1px solid #2a3f63;color:#9fb6d6;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;transition:.15s}
+.chart-tabs button:hover{border-color:#3a578a;color:#dbe6f5}
+.chart-tabs button.active{background:#1d62a8;color:#fff;border-color:#2f7fcf}
+#chart{width:100%;height:160px;display:block;touch-action:none}
+.card{background:rgba(16,26,44,.82);border:1px solid #233a5c;border-radius:16px;padding:14px 16px;backdrop-filter:blur(6px)}
+.card h3{font-size:12px;letter-spacing:1.5px;color:#8fb3d8;text-transform:uppercase;margin-bottom:12px;font-weight:600}
+.days{display:flex;justify-content:space-between;gap:6px}
+.day{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:8px 4px;border-radius:12px;transition:.2s;opacity:0;transform:translateY(8px);animation:rise .5s forwards}
+.day:hover{background:rgba(86,211,255,.08)}
+@keyframes rise{to{opacity:1;transform:none}}
+.day .dn{font-size:11px;color:#9fb6d6;font-weight:600}
+.day .ic{width:34px;height:34px}
+.day .tmax{font-size:15px;font-weight:700}
+.day .tmin{font-size:12px;color:#8fa3bd}
+#hourly{width:100%;height:120px;display:block}
+.hint-row{font-size:11px;color:#7f97b6;margin-top:8px;display:flex;justify-content:space-between}
+
+/* ===== Panneau professionnel ===== */
+.pro-panel{width:min(960px,100%);margin-top:14px}
+.pro-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.pro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:6px}
+.tile{background:rgba(10,20,36,.7);border:1px solid #1e3050;border-radius:12px;padding:11px 12px;position:relative}
+.tile .tl{font-size:10px;letter-spacing:.6px;color:#8fa3bd;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.tile .tv{font-size:22px;font-weight:700;color:#eaf3ff;margin-top:3px;line-height:1.1}
+.tile .tv small{font-size:12px;font-weight:600;color:#9fb6d6}
+.tile .ts{font-size:11px;color:#9fb6d6;margin-top:2px}
+.tile.alert{border-color:#7a3b46;background:rgba(60,20,28,.45)}
+.compass{position:absolute;top:9px;right:9px;width:34px;height:34px}
+.compass .needle{transition:transform .6s cubic-bezier(.22,1,.36,1);transform-origin:50% 50%}
+.pro-foot{margin-top:12px;font-size:11px;color:#7f97b6;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;
+  border-top:1px solid rgba(255,255,255,.06);padding-top:10px}
+.pro-foot b{color:#9fb6d6;font-weight:600}
+.stale-tag{background:#5a3a14;color:#ffcf8f;border:1px solid #7a531f;border-radius:6px;padding:1px 7px;font-size:10px}
+.live-tag{background:#0f3d2a;color:#7dffb0;border:1px solid #14592f;border-radius:6px;padding:1px 7px;font-size:10px}
+
+/* ===== Barre d'outils ===== */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px;width:min(960px,100%)}
+.btn{background:rgba(22,35,58,.85);border:1px solid #2a3f63;color:#dbe6f5;padding:9px 14px;border-radius:10px;
+  font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:hover{background:#1d2f4d;border-color:#3a578a;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn svg{width:16px;height:16px}
+
+/* ===== Panneau réglages ===== */
+.overlay{position:fixed;inset:0;background:rgba(4,9,18,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.overlay.open{display:flex}
+.panel{background:#101a2c;border:1px solid #243a5c;border-radius:16px;width:min(440px,100%);padding:22px;box-shadow:0 30px 60px rgba(0,0,0,.6);max-height:90vh;overflow:auto}
+.panel h2{font-size:18px;margin:0}
+.panel-head{display:flex;align-items:center;gap:12px;margin:-22px -22px 12px;padding:16px 18px;
+  position:sticky;top:-22px;background:#101a2c;border-bottom:1px solid #243a5c;border-radius:16px 16px 0 0;z-index:2}
+.panel-close{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid #2a3f63;background:#16233a;color:#dbe6f5;
+  font-size:18px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s}
+.panel-close:hover{background:#e0556a;border-color:#e0556a;color:#fff}
+[data-theme="light"] .panel-head{background:#fff;border-bottom-color:#cdd8e6}
+[data-theme="light"] .panel-close{background:#eef3fb;border-color:#cbd7e6;color:#1a2a3c}
+[data-theme="contrast"] .panel-head{background:#000;border-bottom-color:#fff}
+[data-theme="contrast"] .panel-close{background:#000;border-color:#fff;color:#fff}
+.panel .muted{color:#8fa3bd;font-size:12px;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:#9fb6d6;margin-bottom:6px;letter-spacing:.3px}
+.field input[type=text],.field input[type=number]{width:100%;background:#0a1424;border:1px solid #2a3f63;color:#e8eef6;padding:10px 12px;border-radius:9px;font-size:14px}
+.field input:focus{outline:none;border-color:#56d3ff}
+.search-row{display:flex;gap:8px}
+.search-row input{flex:1}
+.seg-toggle{display:flex;background:#0a1424;border:1px solid #2a3f63;border-radius:9px;overflow:hidden}
+.seg-toggle button{flex:1;background:transparent;border:0;color:#9fb6d6;padding:9px;cursor:pointer;font-size:13px}
+.seg-toggle button.active{background:#1d62a8;color:#fff}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.switch{position:relative;width:46px;height:26px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#2a3f63;border-radius:999px;transition:.2s;cursor:pointer}
+.slider::before{content:"";position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:#1d62a8}
+.switch input:checked+.slider::before{transform:translateX(20px)}
+.panel-actions{display:flex;gap:8px;margin-top:18px}
+.panel-actions .btn{flex:1;justify-content:center}
+.btn.primary{background:#1d62a8;border-color:#2f7fcf}
+.btn.primary:hover{background:#2371bf}
+.hint{font-size:11px;color:#6f87a6;margin-top:8px}
+.results{margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:160px;overflow:auto}
+.result{background:#0a1424;border:1px solid #1e3050;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:13px}
+.result:hover{border-color:#56d3ff}
+.result small{color:#8fa3bd;display:block}
+
+@media(max-width:640px){
+  .grid{grid-template-columns:1fr;gap:14px}
+  .col{border-bottom:1px solid rgba(86,211,255,.12);padding-bottom:12px}
+  .col:last-child{border-bottom:0}
+  .instructions{display:none}
+  .forecast-panel{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  .an-sun,.an-cloud,.an-rain line,.an-bolt,.badge.live .dot{animation:none}
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Infobulles pédagogiques */
+.info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  border:1px solid #3a5680;background:transparent;color:#8fb3d8;font-size:10px;line-height:1;cursor:help;padding:0;margin-left:5px;vertical-align:middle}
+.info:hover{border-color:#56d3ff;color:#56d3ff}
+#tooltip{position:fixed;z-index:60;max-width:250px;background:#0a1424;border:1px solid #2a3f63;color:#dbe6f5;
+  padding:9px 11px;border-radius:9px;font-size:12px;line-height:1.4;box-shadow:0 14px 30px rgba(0,0,0,.5);display:none}
+[data-theme="light"] #tooltip{background:#fff;border-color:#cdd8e6;color:#15202e}
+[data-theme="contrast"] #tooltip{background:#000;border-color:#fff;color:#fff}
+[data-theme="light"] .info{border-color:#9fb8d6;color:#41566b}
+[data-theme="contrast"] .info{border-color:#fff;color:#fff}
+
+/* ===== Accessibilité : focus clavier visible + boutons puces ===== */
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+  outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
+.city-chip .nm{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:185px}
+.city-chip .rm{border:0;cursor:pointer;color:inherit;font:inherit}
+.ch-badge{cursor:pointer}
+.city-chip{min-height:36px}
+
+/* ===== Thème clair ===== */
+[data-theme="light"] #sky,[data-theme="light"] #skyShade,
+[data-theme="contrast"] #sky,[data-theme="contrast"] #skyShade{display:none}
+[data-theme="light"]{--focus:#0b57b8}
+[data-theme="light"] body{background:linear-gradient(180deg,#eef3f9,#dde6f1);color:#15202e}
+[data-theme="light"] .app-title{color:#13233a;text-shadow:none}
+[data-theme="light"] .app-sub{color:#48586b;text-shadow:none}
+[data-theme="light"] .badge{background:#fff;border-color:#cdd8e6;color:#3a4a5e}
+[data-theme="light"] .card{background:rgba(255,255,255,.94);border-color:#cfdae8}
+[data-theme="light"] .card h3{color:#41566b}
+[data-theme="light"] .city-chip{background:#fff;border-color:#cbd7e6;color:#1a2a3c}
+[data-theme="light"] .city-chip.active{background:#1565c0;border-color:#1565c0;color:#fff}
+[data-theme="light"] .city-search input{background:#fff;border-color:#cbd7e6;color:#15202e}
+[data-theme="light"] .ac{background:#fff;border-color:#cdd8e6;box-shadow:0 20px 40px rgba(20,40,70,.18)}
+[data-theme="light"] .ac .item{border-bottom-color:rgba(0,0,0,.06)}
+[data-theme="light"] .ac .item:hover,[data-theme="light"] .ac .item.sel{background:#eaf1fb}
+[data-theme="light"] .ac .item small,[data-theme="light"] .ac .empty{color:#5a6b7e}
+[data-theme="light"] .btn{background:#fff;border-color:#cbd7e6;color:#1a2a3c}
+[data-theme="light"] .btn:hover{background:#eef3fb;border-color:#9fb8d6}
+[data-theme="light"] .btn.primary{background:#1565c0;border-color:#1565c0;color:#fff}
+[data-theme="light"] .panel{background:#fff;border-color:#cdd8e6;color:#15202e}
+[data-theme="light"] .panel .muted,[data-theme="light"] .hint{color:#5a6b7e}
+[data-theme="light"] .field label{color:#3a4a5e}
+[data-theme="light"] .field input{background:#f5f8fc;border-color:#cbd7e6;color:#15202e}
+[data-theme="light"] .seg-toggle{background:#f0f4fa;border-color:#cbd7e6}
+[data-theme="light"] .seg-toggle button{color:#4a5b6e}
+[data-theme="light"] .seg-toggle button.active{background:#1565c0;color:#fff}
+[data-theme="light"] .tile{background:#f5f8fc;border-color:#d6e0ec}
+[data-theme="light"] .tile .tv{color:#13233a}
+[data-theme="light"] .tile .tl,[data-theme="light"] .tile .ts{color:#5a6b7e}
+[data-theme="light"] .pro-foot{color:#5a6b7e;border-top-color:rgba(0,0,0,.08)}
+[data-theme="light"] .pro-foot b{color:#33485e}
+[data-theme="light"] .hint-row{color:#5a6b7e}
+[data-theme="light"] .day .dn{color:#5a6b7e}
+[data-theme="light"] .day .tmin{color:#7a8a9c}
+[data-theme="light"] .day:hover{background:rgba(21,101,192,.08)}
+[data-theme="light"] .chart-tabs button{background:#f0f4fa;border-color:#cbd7e6;color:#4a5b6e}
+[data-theme="light"] .chart-tabs button.active{background:#1565c0;color:#fff;border-color:#1565c0}
+[data-theme="light"] .switch .slider{background:#c3d0e0}
+
+/* ===== Thème contraste élevé (WCAG) ===== */
+[data-theme="contrast"]{--focus:#ffd400}
+[data-theme="contrast"] body{background:#000;color:#fff}
+[data-theme="contrast"] .app-title,[data-theme="contrast"] .app-sub{color:#fff;text-shadow:none}
+[data-theme="contrast"] .card,[data-theme="contrast"] .panel,[data-theme="contrast"] .tile,
+[data-theme="contrast"] .badge,[data-theme="contrast"] .btn,[data-theme="contrast"] .city-chip,
+[data-theme="contrast"] .city-search input,[data-theme="contrast"] .ac,[data-theme="contrast"] .field input,
+[data-theme="contrast"] .seg-toggle,[data-theme="contrast"] .chart-tabs button{background:#000;border-color:#fff;color:#fff}
+[data-theme="contrast"] .card h3,[data-theme="contrast"] .tile .tl,[data-theme="contrast"] .tile .ts,
+[data-theme="contrast"] .pro-foot,[data-theme="contrast"] .hint-row,[data-theme="contrast"] .panel .muted,
+[data-theme="contrast"] .hint,[data-theme="contrast"] .field label,
+[data-theme="contrast"] .day .dn,[data-theme="contrast"] .day .tmin,
+[data-theme="contrast"] .ac .item small,[data-theme="contrast"] .ac .empty{color:#fff}
+[data-theme="contrast"] .tile .tv{color:#fff}
+[data-theme="contrast"] .city-chip.active,[data-theme="contrast"] .btn.primary,
+[data-theme="contrast"] .seg-toggle button.active,[data-theme="contrast"] .chart-tabs button.active{background:#ffd400;color:#000;border-color:#ffd400}
+[data-theme="contrast"] .pro-foot b{color:#ffd400}
+[data-theme="contrast"] .ac .item:hover,[data-theme="contrast"] .ac .item.sel{background:#222}
+</style>
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div id="skyShade" aria-hidden="true"></div>
+<p id="srSummary" class="sr-only" aria-live="polite"></p>
+<div id="tooltip" role="tooltip"></div>
 
-<!-- ========== PROGRESS BAR ========== -->
-<div id="progressBar"></div>
+<div class="app-head">
+  <img class="avatar" src="jassim.png" width="58" height="58" alt="Portrait de Jassim" />
+  <h1 class="app-title">Station Météo Pro <span class="app-by">de Jassim</span> <span class="badge" id="modeBadge" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="modeText">Démo</span></span></h1>
+</div>
+<p class="app-sub">Console RCC dynamique — fond jour/nuit animé, météo en direct, prévisions 5 jours, baromètre, phase de lune.</p>
 
-<!-- ========== LOADER ========== -->
-<div id="loader">
-  <div class="loader-inner">
-    <div class="loader-star">★</div>
-    <div class="loader-text">المغرب</div>
-    <div class="loader-bar"><span></span></div>
+<div class="citybar">
+  <div class="city-chips" id="cityChips" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center"></div>
+  <div class="city-search">
+    <input type="text" id="cityQuick" placeholder="🔍 Ajouter une ville…" autocomplete="off" aria-label="Rechercher une ville" />
+    <div class="ac" id="cityAC"></div>
   </div>
 </div>
 
-<!-- ========== NAVIGATION ========== -->
-<nav id="navbar">
-  <div class="nav-container">
-    <a href="#hero" class="nav-logo">
-      <span class="logo-arabic">المغرب</span>
-      <span class="logo-fr">MAROC</span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#about">À Propos</a></li>
-      <li><a href="#destinations">Destinations</a></li>
-      <li><a href="#culture">Culture</a></li>
-      <li><a href="#cuisine">Cuisine</a></li>
-      <li><a href="#histoire">Histoire</a></li>
-      <li><a href="#economie">Économie</a></li>
-      <li><a href="#nature">Nature</a></li>
-      <li><a href="#sport">Sport</a></li>
-      <li><a href="#shopping">Shopping</a></li>
-      <li><a href="#quiz">Quiz</a></li>
-      <li><a href="#galerie">Galerie</a></li>
-    </ul>
-    <button class="dark-toggle" id="darkToggle" aria-label="Mode sombre">
-      <i class="fa-solid fa-moon"></i>
-    </button>
-    <button class="nav-cta" onclick="scrollToSection('contact')">Planifier</button>
-    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+<div class="vigilance" id="vigilance" role="region" aria-label="Alertes météo" hidden></div>
+
+<div class="device">
+  <div class="instructions">
+    <b>Mode RCC&nbsp;:</b> à la mise sous tension, la console recherche le signal horaire et se synchronise aux heures pleines.
+    <b>Mode cycle&nbsp;:</b> l'écran fait défiler les capteurs C1→C3. Maintenez ☀ pour changer de mode, ⌂ pour revenir au canal C1.
   </div>
-</nav>
 
-<!-- Mobile Menu -->
-<div class="mobile-menu" id="mobileMenu">
-  <button class="mobile-close" id="mobileClose">✕</button>
-  <ul>
-    <li><a href="#about" class="mobile-link">À Propos</a></li>
-    <li><a href="#destinations" class="mobile-link">Destinations</a></li>
-    <li><a href="#culture" class="mobile-link">Culture</a></li>
-    <li><a href="#cuisine" class="mobile-link">Cuisine</a></li>
-    <li><a href="#histoire" class="mobile-link">Histoire</a></li>
-    <li><a href="#economie" class="mobile-link">Économie</a></li>
-    <li><a href="#nature" class="mobile-link">Nature</a></li>
-    <li><a href="#sport" class="mobile-link">Sport</a></li>
-    <li><a href="#spirituel" class="mobile-link">Spirituel</a></li>
-    <li><a href="#shopping" class="mobile-link">Shopping</a></li>
-    <li><a href="#quiz" class="mobile-link">Quiz</a></li>
-    <li><a href="#galerie" class="mobile-link">Galerie</a></li>
-    <li><a href="#contact" class="mobile-link">Planifier</a></li>
-  </ul>
-</div>
+  <div class="screen">
+    <div class="grid">
 
-<!-- ========== HERO ========== -->
-<section id="hero">
-  <div class="hero-bg">
-    <div class="hero-slide active" style="background-image:url('https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1920&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1548019979-a6e9a8c3d4c7?w=1920&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1539020140153-e479b8c8e9bc?w=1920&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=1920&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1565771768700-ec8e24f4a4e3?w=1920&q=80')"></div>
-    <div class="hero-slide" style="background-image:url('https://images.unsplash.com/photo-1577791465485-b8d90f4d3609?w=1920&q=80')"></div>
-  </div>
-  <div class="hero-overlay"></div>
-  <div class="hero-pattern"></div>
-  <div class="hero-content">
-    <div class="hero-badge">✦ Royaume du Maroc ✦</div>
-    <h1 class="hero-title">
-      <span class="reveal-word">Bienvenue</span>
-      <span class="reveal-word">au</span>
-      <span class="reveal-word golden">Maroc</span>
-    </h1>
-    <p class="hero-subtitle" id="heroTypewriter"></p>
-    <div class="hero-actions">
-      <button class="btn-primary" onclick="scrollToSection('destinations')"><i class="fa-solid fa-compass"></i> Explorer les Destinations</button>
-      <button class="btn-ghost" onclick="scrollToSection('about')">En Savoir Plus</button>
-    </div>
-    <div class="hero-scroll-hint">
-      <span>Défiler</span>
-      <div class="scroll-arrow"></div>
-    </div>
-  </div>
-  <div class="hero-dots" id="heroDots">
-    <button class="dot active" data-index="0"></button>
-    <button class="dot" data-index="1"></button>
-    <button class="dot" data-index="2"></button>
-    <button class="dot" data-index="3"></button>
-    <button class="dot" data-index="4"></button>
-    <button class="dot" data-index="5"></button>
-  </div>
-  <div class="hero-stats">
-    <div class="stat"><span class="stat-num" data-target="37">0</span><span>M</span><div class="stat-label">Habitants</div></div>
-    <div class="stat"><span class="stat-num" data-target="12">0</span><span>+</span><div class="stat-label">Sites UNESCO</div></div>
-    <div class="stat"><span class="stat-num" data-target="3500">0</span><span>km</span><div class="stat-label">De Côtes</div></div>
-    <div class="stat"><span class="stat-num" data-target="1000">0</span><span>+</span><div class="stat-label">Ans d'Histoire</div></div>
-  </div>
-</section>
-
-<!-- ========== ABOUT ========== -->
-<section id="about" class="section-about">
-  <div class="container">
-    <div class="about-grid">
-      <div class="about-visual" data-aos="fade-right">
-        <div class="about-img-main">
-          <img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&q=80" alt="Marrakech" loading="lazy" />
-        </div>
-        <div class="about-img-secondary">
-          <img src="https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=400&q=80" alt="Artisanat marocain" loading="lazy" />
-        </div>
-        <div class="about-badge-float">
-          <span class="badge-year">1956</span>
-          <span class="badge-text">Indépendance</span>
-        </div>
-      </div>
-      <div class="about-content" data-aos="fade-left">
-        <div class="section-tag">À Propos du Royaume</div>
-        <h2 class="section-title">Un Pays <em>d'Exception</em></h2>
-        <p class="about-lead">Le Maroc, officiellement le Royaume du Maroc, est un pays d'Afrique du Nord baigné par l'Atlantique et la Méditerranée, carrefour de civilisations depuis l'Antiquité.</p>
-        <p class="about-text">Depuis les sommets enneigés du Haut Atlas jusqu'aux dunes dorées du Sahara, en passant par les médinas labyrinthiques de Fès et Marrakech, le Maroc offre une diversité de paysages et de cultures qui n'a pas d'équivalent.</p>
-        <div class="about-facts">
-          <div class="fact-item">
-            <div class="fact-icon"><i class="fa-solid fa-mountain"></i></div>
-            <div>
-              <strong>Géographie diverse</strong>
-              <span>Montagnes, désert, mer, forêts — tout en un pays</span>
-            </div>
+      <!-- OUT -->
+      <div class="col">
+        <div class="row spread">
+          <div class="label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+            EXT
           </div>
-          <div class="fact-item">
-            <div class="fact-icon"><i class="fa-solid fa-mosque"></i></div>
-            <div>
-              <strong>Riche héritage</strong>
-              <span>Berbère, arabe, andalou, saharien et juif</span>
-            </div>
-          </div>
-          <div class="fact-item">
-            <div class="fact-icon"><i class="fa-solid fa-earth-africa"></i></div>
-            <div>
-              <strong>Carrefour de continents</strong>
-              <span>14 km seulement d'Europe, porte de l'Afrique</span>
-            </div>
-          </div>
+          <span class="trend-arrow" id="outTrend">→</span>
         </div>
-        <div class="about-info-grid">
-          <div class="info-card"><div class="info-label">Capitale</div><div class="info-val">Rabat</div></div>
-          <div class="info-card"><div class="info-label">Superficie</div><div class="info-val">710 850 km²</div></div>
-          <div class="info-card"><div class="info-label">Monnaie</div><div class="info-val">Dirham (MAD)</div></div>
-          <div class="info-card"><div class="info-label">Langues</div><div class="info-val">Arabe, Tamazight</div></div>
+        <div class="row">
+          <span class="seg temp-big"><span class="ghost">88.8</span><span class="val" id="outTemp">36.8</span></span>
+          <span class="unit" id="outUnit" style="font-size:24px">°C</span>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== DESTINATIONS ========== -->
-<section id="destinations" class="section-destinations">
-  <div class="dest-header">
-    <div class="section-tag">Explorez</div>
-    <h2 class="section-title">Destinations <em>Incontournables</em></h2>
-    <p class="section-sub">Des villes impériales aux oasis sahariennes, chaque coin du Maroc est une invitation au voyage.</p>
-  </div>
-  <div class="dest-filter">
-    <button class="filter-btn active" data-filter="all">Tout</button>
-    <button class="filter-btn" data-filter="ville">Villes</button>
-    <button class="filter-btn" data-filter="nature">Nature</button>
-    <button class="filter-btn" data-filter="desert">Désert</button>
-    <button class="filter-btn" data-filter="cote">Côte</button>
-  </div>
-  <div class="dest-grid" id="destGrid">
-
-    <div class="dest-card" data-cat="ville" data-aos="zoom-in">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=700&q=80" alt="Marrakech" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Marrakech</h3>
-            <p>La Ville Rouge — Djemaa el-Fna, souks et palais enchanteurs</p>
-            <div class="dest-tags"><span>Culture</span><span>Shopping</span><span>Gastronomie</span></div>
-            <button class="dest-btn" onclick="openDestModal('marrakech')">Découvrir →</button>
+        <div class="metric-ico" style="margin-top:6px">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><path d="M12 2.5C12 2.5 5 11 5 15.5a7 7 0 0014 0C19 11 12 2.5 12 2.5z"/></svg>
+          <span class="hum"><span class="val" id="outHum">23</span></span>
+          <span class="unit" style="font-size:20px">%</span>
+        </div>
+        <div class="band sun-row" style="flex-direction:column;align-items:stretch;margin-top:auto">
+          <div class="sun-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8"><circle cx="12" cy="14" r="4"/><path d="M12 6V4M5 14H3M21 14h-2M6.5 8.5L5 7M17.5 8.5L19 7M3 20h18"/></svg>
+            <span class="seg2 seg" style="font-size:20px"><span class="val" id="sunrise">5:48</span></span>
+            <small style="margin-left:auto">LEVER</small>
+          </div>
+          <div class="sun-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9b6b" stroke-width="1.8"><circle cx="12" cy="10" r="4"/><path d="M3 20h18M12 18v2M5 18l-1 1M19 18l1 1"/><path d="M8 14l-2 2M16 14l2 2"/></svg>
+            <span class="seg2 seg" style="font-size:20px"><span class="val" id="sunset">21:56</span></span>
+            <small style="margin-left:auto">COUCHER</small>
           </div>
         </div>
       </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Centre</span><span class="dest-rating">★ 4.9</span></div>
-      <h3 class="dest-name">Marrakech</h3>
-      <p class="dest-desc">La ville rouge aux mille et un secrets</p>
-    </div>
 
-    <div class="dest-card dest-featured" data-cat="ville" data-aos="zoom-in" data-aos-delay="100">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1539020140153-e479b8c8e9bc?w=700&q=80" alt="Fès" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Fès</h3>
-            <p>La plus ancienne ville impériale, UNESCO World Heritage</p>
-            <div class="dest-tags"><span>Histoire</span><span>Artisanat</span><span>Spirituel</span></div>
-            <button class="dest-btn" onclick="openDestModal('fes')">Découvrir →</button>
+      <!-- CENTRE -->
+      <div class="col">
+        <div class="forecast-hd">PRÉVISION</div>
+        <div class="wx-icon" id="wxIcon"></div>
+        <div class="trend-box"><span class="trend-tag">TENDANCE</span>
+          <span id="trendText" style="color:var(--cyan-soft);font-size:12px;font-weight:600">Stable</span>
+        </div>
+        <div class="band blue" style="justify-content:center">
+          <span style="letter-spacing:1px;font-weight:700;display:flex;align-items:center;gap:7px;max-width:100%">
+            <small style="font-size:9px;opacity:.8;letter-spacing:1px">VILLE</small>
+            <span id="cityName" class="cityname" style="font-size:17px">PARIS</span>
+          </span>
+        </div>
+        <div class="clock">
+          <span class="seg"><span class="ghost">88:88</span><span class="val" id="clkHM">17:48</span></span><span class="sec" id="clkS">05</span>
+        </div>
+        <div class="band date-band">
+          <span id="dateDM">17/JUIN</span>
+          <span id="dateDow" style="color:var(--green-text)">MERCREDI</span>
+        </div>
+        <div class="band" style="justify-content:space-between;align-items:center">
+          <span class="metric-ico"><span id="moonIcon"></span><small id="moonName" style="font-size:9px">PLEINE LUNE</small></span>
+          <span class="metric-ico"><small style="font-size:9px">MARÉE</small><span id="tide" class="seg2 seg" style="font-size:14px">HAUTE</span></span>
+        </div>
+      </div>
+
+      <!-- IN -->
+      <div class="col">
+        <div class="row spread">
+          <span class="trend-arrow" id="inTrend">→</span>
+          <div class="label" style="margin-left:auto">
+            <button type="button" class="ch-badge" id="chBadge" aria-label="Changer de canal capteur">C1</button> INT
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+          </div>
+        </div>
+        <div class="row" style="justify-content:flex-end">
+          <span class="seg temp-big"><span class="ghost">88.8</span><span class="val" id="inTemp">26.5</span></span>
+          <span class="unit" id="inUnit" style="font-size:24px">°C</span>
+        </div>
+        <div class="metric-ico" style="justify-content:flex-end;margin-top:6px">
+          <span id="comfort" class="smiley"></span>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><path d="M12 2.5C12 2.5 5 11 5 15.5a7 7 0 0014 0C19 11 12 2.5 12 2.5z"/></svg>
+          <span class="hum"><span class="val" id="inHum">59</span></span>
+          <span class="unit" style="font-size:20px">%</span>
+        </div>
+        <div class="band" style="margin-top:auto;flex-direction:column;align-items:stretch;gap:6px">
+          <div class="baro-wrap">
+            <div class="baro" id="baro"></div>
+            <div class="baro-val"><span class="seg2 seg" id="pressure">1015</span><br><small id="pressUnit" style="font-size:9px;letter-spacing:1px">hPa MSL</small></div>
           </div>
         </div>
       </div>
-      <div class="dest-badge">UNESCO</div>
-      <div class="dest-meta"><span class="dest-region">⬤ Nord</span><span class="dest-rating">★ 4.8</span></div>
-      <h3 class="dest-name">Fès</h3>
-      <p class="dest-desc">La capitale spirituelle et culturelle</p>
+
     </div>
-
-    <div class="dest-card" data-cat="cote" data-aos="zoom-in" data-aos-delay="200">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1548019979-a6e9a8c3d4c7?w=700&q=80" alt="Chefchaouen" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Chefchaouen</h3>
-            <p>La perle bleue nichée dans le Rif</p>
-            <div class="dest-tags"><span>Photographie</span><span>Randonnée</span><span>Artisanat</span></div>
-            <button class="dest-btn" onclick="openDestModal('chefchaouen')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Nord-Ouest</span><span class="dest-rating">★ 4.9</span></div>
-      <h3 class="dest-name">Chefchaouen</h3>
-      <p class="dest-desc">La ville bleue du Rif</p>
-    </div>
-
-    <div class="dest-card" data-cat="desert" data-aos="zoom-in">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=700&q=80" alt="Sahara" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Merzouga & Sahara</h3>
-            <p>Les grandes dunes de l'Erg Chebbi et la magie du désert</p>
-            <div class="dest-tags"><span>Aventure</span><span>Camping</span><span>Étoiles</span></div>
-            <button class="dest-btn" onclick="openDestModal('sahara')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Sud-Est</span><span class="dest-rating">★ 5.0</span></div>
-      <h3 class="dest-name">Merzouga — Sahara</h3>
-      <p class="dest-desc">Les dunes dorées de l'Erg Chebbi</p>
-    </div>
-
-    <div class="dest-card" data-cat="ville" data-aos="zoom-in" data-aos-delay="100">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=80" alt="Casablanca" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Casablanca</h3>
-            <p>La métropole économique, Hassan II et Art Déco</p>
-            <div class="dest-tags"><span>Moderne</span><span>Affaires</span><span>Cuisine</span></div>
-            <button class="dest-btn" onclick="openDestModal('casablanca')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Centre-Ouest</span><span class="dest-rating">★ 4.6</span></div>
-      <h3 class="dest-name">Casablanca</h3>
-      <p class="dest-desc">La métropole cosmopolite du Maroc</p>
-    </div>
-
-    <div class="dest-card" data-cat="nature" data-aos="zoom-in" data-aos-delay="200">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1565771768700-ec8e24f4a4e3?w=700&q=80" alt="Atlas" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Haut Atlas</h3>
-            <p>Toubkal, vallées berbères et villages suspendus</p>
-            <div class="dest-tags"><span>Trekking</span><span>Ski</span><span>Village</span></div>
-            <button class="dest-btn" onclick="openDestModal('atlas')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Centre</span><span class="dest-rating">★ 4.8</span></div>
-      <h3 class="dest-name">Haut Atlas</h3>
-      <p class="dest-desc">Le toit de l'Afrique du Nord</p>
-    </div>
-
-    <div class="dest-card" data-cat="cote" data-aos="zoom-in">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1577791465485-b8d90f4d3609?w=700&q=80" alt="Essaouira" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Essaouira</h3>
-            <p>La cité des alizés — mer, surf et art</p>
-            <div class="dest-tags"><span>Surf</span><span>Art</span><span>Musique</span></div>
-            <button class="dest-btn" onclick="openDestModal('essaouira')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Côte Atlantique</span><span class="dest-rating">★ 4.7</span></div>
-      <h3 class="dest-name">Essaouira</h3>
-      <p class="dest-desc">La cité des alizés et du gnawa</p>
-    </div>
-
-    <div class="dest-card" data-cat="ville" data-aos="zoom-in" data-aos-delay="100">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1534430480872-3498386e7856?w=700&q=80" alt="Rabat" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Rabat</h3>
-            <p>La capitale royale — modernité et tradition</p>
-            <div class="dest-tags"><span>Politique</span><span>Musées</span><span>Plage</span></div>
-            <button class="dest-btn" onclick="openDestModal('rabat')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Nord-Ouest</span><span class="dest-rating">★ 4.7</span></div>
-      <h3 class="dest-name">Rabat</h3>
-      <p class="dest-desc">La capitale royale moderne</p>
-    </div>
-
-    <div class="dest-card" data-cat="desert" data-aos="zoom-in" data-aos-delay="200">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1562166963-bce7c7a8c4f5?w=700&q=80" alt="Aït Benhaddou" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Aït Benhaddou</h3>
-            <p>Ksar mythique, décor de Gladiator et Game of Thrones</p>
-            <div class="dest-tags"><span>UNESCO</span><span>Cinéma</span><span>Architecture</span></div>
-            <button class="dest-btn" onclick="openDestModal('aitbenhaddou')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-badge">UNESCO</div>
-      <div class="dest-meta"><span class="dest-region">⬤ Sud</span><span class="dest-rating">★ 4.9</span></div>
-      <h3 class="dest-name">Aït Benhaddou</h3>
-      <p class="dest-desc">Le ksar légendaire des kasbahs</p>
-    </div>
-
-    <!-- New destinations -->
-    <div class="dest-card" data-cat="ville" data-aos="zoom-in">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=700&q=80" alt="Tanger" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Tanger</h3>
-            <p>La porte de l'Afrique — carrefour de deux mers et deux continents</p>
-            <div class="dest-tags"><span>Littérature</span><span>Plage</span><span>Modernité</span></div>
-            <button class="dest-btn" onclick="openDestModal('tanger')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Nord</span><span class="dest-rating">★ 4.6</span></div>
-      <h3 class="dest-name">Tanger</h3>
-      <p class="dest-desc">Carrefour mythique entre deux mers</p>
-    </div>
-
-    <div class="dest-card" data-cat="cote" data-aos="zoom-in" data-aos-delay="100">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1547451832-5e28f0f4f7b0?w=700&q=80" alt="Agadir" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Agadir</h3>
-            <p>Soleil, plage dorée et station balnéaire moderne</p>
-            <div class="dest-tags"><span>Plage</span><span>Surf</span><span>Famille</span></div>
-            <button class="dest-btn" onclick="openDestModal('agadir')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Sud-Ouest</span><span class="dest-rating">★ 4.5</span></div>
-      <h3 class="dest-name">Agadir</h3>
-      <p class="dest-desc">La station balnéaire du Maroc</p>
-    </div>
-
-    <div class="dest-card" data-cat="ville" data-aos="zoom-in" data-aos-delay="200">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=700&q=80" alt="Meknès" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Meknès</h3>
-            <p>La ville ismaïlienne aux portes monumentales</p>
-            <div class="dest-tags"><span>Histoire</span><span>UNESCO</span><span>Architecture</span></div>
-            <button class="dest-btn" onclick="openDestModal('meknes')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-badge">UNESCO</div>
-      <div class="dest-meta"><span class="dest-region">⬤ Centre-Nord</span><span class="dest-rating">★ 4.7</span></div>
-      <h3 class="dest-name">Meknès</h3>
-      <p class="dest-desc">La ville impériale oubliée</p>
-    </div>
-
-    <div class="dest-card" data-cat="nature" data-aos="zoom-in">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1551009175-8a68da93d5f9?w=700&q=80" alt="Vallée du Dadès" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Vallée du Dadès</h3>
-            <p>Gorges spectaculaires et roses de damas</p>
-            <div class="dest-tags"><span>Nature</span><span>Roses</span><span>Kasbahs</span></div>
-            <button class="dest-btn" onclick="openDestModal('dades')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Centre-Sud</span><span class="dest-rating">★ 4.8</span></div>
-      <h3 class="dest-name">Vallée du Dadès</h3>
-      <p class="dest-desc">La vallée des mille kasbahs</p>
-    </div>
-
-    <div class="dest-card" data-cat="desert" data-aos="zoom-in" data-aos-delay="100">
-      <div class="dest-img">
-        <img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700&q=80" alt="Ouarzazate" loading="lazy" />
-        <div class="dest-overlay">
-          <div class="dest-info">
-            <h3>Ouarzazate</h3>
-            <p>Hollywood d'Afrique — studios et paysages féeriques</p>
-            <div class="dest-tags"><span>Cinéma</span><span>Kasbahs</span><span>Désert</span></div>
-            <button class="dest-btn" onclick="openDestModal('ouarzazate')">Découvrir →</button>
-          </div>
-        </div>
-      </div>
-      <div class="dest-meta"><span class="dest-region">⬤ Sud</span><span class="dest-rating">★ 4.7</span></div>
-      <h3 class="dest-name">Ouarzazate</h3>
-      <p class="dest-desc">Hollywood d'Afrique au pied du désert</p>
-    </div>
-
-  </div>
-</section>
-
-<!-- ========== CULTURE ========== -->
-<section id="culture" class="section-culture">
-  <div class="culture-bg-pattern"></div>
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Art de Vivre</div>
-    <h2 class="section-title" style="text-align:center">La <em>Culture</em> Marocaine</h2>
-    <p class="section-sub">Un kaléidoscope de traditions, de musiques, d'arts et de savoir-faire transmis de génération en génération.</p>
-
-    <div class="culture-tabs">
-      <button class="tab-btn active" data-tab="traditions">Traditions</button>
-      <button class="tab-btn" data-tab="musique">Musique</button>
-      <button class="tab-btn" data-tab="artisanat">Artisanat</button>
-      <button class="tab-btn" data-tab="fetes">Fêtes</button>
-      <button class="tab-btn" data-tab="architecture">Architecture</button>
-    </div>
-
-    <div class="tab-content active" id="tab-traditions">
-      <div class="culture-grid">
-        <div class="culture-item" data-aos="fade-up"><div class="culture-icon">🍵</div><h3>Le Thé à la Menthe</h3><p>Véritable rituel social, le thé à la menthe (atay) symbolise l'hospitalité marocaine. Versé en hauteur pour créer de la mousse, il se boit en trois verres selon la tradition.</p></div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="100"><div class="culture-icon">🧖</div><h3>Le Hammam</h3><p>Bain traditionnel à vapeur, le hammam est un lieu de purification et de sociabilité. Chaque médina possède ses hammams où hommes et femmes se retrouvent pour soin et détente.</p></div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="200"><div class="culture-icon">💒</div><h3>Mariage Traditionnel</h3><p>Célébration épique de 3 à 7 jours, le mariage marocain est un spectacle de couleurs, de musique, de henné et de costumes traditionnels comme la jabador et la takchita.</p></div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="300"><div class="culture-icon">🌙</div><h3>Ramadan</h3><p>Durant le mois sacré, le Maroc prend un visage unique — les nuits s'animent après la rupture du jeûne avec la harira et les chebakia, dans une atmosphère de communion rare.</p></div>
-        <div class="culture-item" data-aos="fade-up"><div class="culture-icon">🐪</div><h3>Moussem</h3><p>Festivals religieux et tribaux liés à un saint patron, les moussems rassemblent des milliers de pèlerins avec fantasia, musique et commerce dans une ambiance festive unique.</p></div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="100"><div class="culture-icon">🏇</div><h3>Fantasia</h3><p>Spectacle équestre où des cavaliers en tenue d'apparat chargent à pleine vitesse avant de tirer simultanément leurs fusils — une tradition guerrière devenue art de vivre.</p></div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-musique">
-      <div class="music-grid">
-        <div class="music-card" data-aos="fade-up"><div class="music-img" style="background:linear-gradient(135deg,#8B0000,#FFD700)"><span class="music-emoji">🎵</span></div><h3>Gnawa</h3><p>Musique mystique et spirituelle descendante des esclaves sub-sahariens, le Gnawa utilise le guembri et les qraqeb pour induire des états de transe lors de nuits de lila. Patrimoine UNESCO.</p><div class="music-tag">Patrimoine immatériel UNESCO</div></div>
-        <div class="music-card" data-aos="fade-up" data-aos-delay="100"><div class="music-img" style="background:linear-gradient(135deg,#1a472a,#2d8653)"><span class="music-emoji">🎸</span></div><h3>Chaabi</h3><p>Musique populaire urbaine née à Casablanca, le chaabi mêle poésie dialectale, percussions et sintir dans une ambiance festive et dansante qui rassemble toutes les générations.</p><div class="music-tag">Musique Populaire</div></div>
-        <div class="music-card" data-aos="fade-up" data-aos-delay="200"><div class="music-img" style="background:linear-gradient(135deg,#1e3a5f,#2980b9)"><span class="music-emoji">🎼</span></div><h3>Andalousie</h3><p>Héritée de l'Andalousie médiévale, la musique andalouse marocaine (al-ala) est une symphonie de maqams et de poésies classiques jouée par des orchestres dans les grandes villes impériales.</p><div class="music-tag">Musique Classique</div></div>
-        <div class="music-card" data-aos="fade-up" data-aos-delay="300"><div class="music-img" style="background:linear-gradient(135deg,#4a2040,#9b59b6)"><span class="music-emoji">🥁</span></div><h3>Amazigh</h3><p>La musique berbère ou amazighe, avec ses rythmes entraînants, sa poésie et ses danses collectives (ahidous, ahwach), est l'expression vivante de l'identité ancestrale du pays.</p><div class="music-tag">Tradition Amazighe</div></div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-artisanat">
-      <div class="craft-showcase">
-        <div class="craft-item" data-aos="fade-right"><img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=500&q=80" alt="Zellige" loading="lazy" /><div class="craft-info"><h3>Zellige</h3><p>Art du carrelage en mosaïque géométrique, le zellige marocain orne mosquées, palais et riads depuis le XIVème siècle. Chaque carreau est taillé et patiné à la main par des maâlems (maîtres artisans).</p></div></div>
-        <div class="craft-item reverse" data-aos="fade-left"><img src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=500&q=80" alt="Tanneries" loading="lazy" /><div class="craft-info"><h3>Maroquinerie & Tanneries</h3><p>Les tanneries de Fès (Chouara) sont un spectacle unique — des ouvriers trempent et colorent les peaux dans des cuves colorées, selon des techniques inchangées depuis mille ans.</p></div></div>
-        <div class="craft-item" data-aos="fade-right"><img src="https://images.unsplash.com/photo-1583394293214-5a678b3d59fb?w=500&q=80" alt="Tissage" loading="lazy" /><div class="craft-info"><h3>Tapis & Tissage</h3><p>Du tapis berbère géométrique de l'Atlas au kilim en passant par le tapis de Rabat, le tissage marocain est une forme d'art narratif où chaque motif raconte une histoire tribale.</p></div></div>
-        <div class="craft-item reverse" data-aos="fade-left"><img src="https://images.unsplash.com/photo-1567516476308-59c2b37a3b7c?w=500&q=80" alt="Poterie" loading="lazy" /><div class="craft-info"><h3>Poterie de Safi</h3><p>La ville de Safi est la capitale de la poterie marocaine. Des potiers façonnent et décorent céramiques et vaisselles avec des émaux colorés dans un style unique reconnaissable entre tous.</p></div></div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-fetes">
-      <div class="fetes-grid">
-        <div class="fete-card" data-aos="fade-up"><div class="fete-month">Janvier</div><h3>Yennayer</h3><p>Nouvel An berbère amazigh, célébré le 14 janvier avec des plats traditionnels, des contes et une communion familiale autour du foyer.</p></div>
-        <div class="fete-card" data-aos="fade-up" data-aos-delay="100"><div class="fete-month">Avril</div><h3>Festival des Roses</h3><p>À Kalaat M'Gouna dans la vallée du Dadès, un festival célèbre la récolte des roses de damas, avec cortège de fleurs, musique et élection de la reine des roses.</p></div>
-        <div class="fete-card" data-aos="fade-up" data-aos-delay="200"><div class="fete-month">Juin</div><h3>Festival Gnaoua</h3><p>Festival international d'Essaouira — pendant 3 jours, les meilleurs maâlems gnawa se mêlent aux grands noms du jazz et des musiques du monde.</p></div>
-        <div class="fete-card" data-aos="fade-up" data-aos-delay="300"><div class="fete-month">Juillet</div><h3>Moussem de Tan-Tan</h3><p>Grand rassemblement des peuples nomades du Sahara — une symphonie de couleurs, de chameaux et de traditions sahariennes unique au monde.</p></div>
-        <div class="fete-card" data-aos="fade-up"><div class="fete-month">Septembre</div><h3>Fantasia</h3><p>Nombreux tournois de tbourida ou fantasia dans tout le Maroc — des cavaliers en costume de cérémonie s'affrontent dans cet art équestre ancestral.</p></div>
-        <div class="fete-card" data-aos="fade-up" data-aos-delay="100"><div class="fete-month">Décembre</div><h3>Fête du Trône</h3><p>Célébrant l'accession au trône du Roi Mohammed VI, cette fête nationale réunit le Maroc entier dans une explosion de fierté et de festivités.</p></div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-architecture">
-      <div class="culture-grid">
-        <div class="culture-item" data-aos="fade-up">
-          <div class="culture-icon">🏰</div>
-          <h3>Le Riad</h3>
-          <p>Maison traditionnelle organisée autour d'un patio central avec fontaine et jardins, le riad est un havre de paix au cœur des médinas. Son architecture introvertie cache des intérieurs somptueux ornés de zelliges, stucs et cèdre sculpté.</p>
-        </div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="100">
-          <div class="culture-icon">🏯</div>
-          <h3>La Kasbah</h3>
-          <p>Forteresse ou résidence seigneuriale en pisé rouge, la kasbah est emblématique du Sud marocain. Ses tours à merlons et ses façades ornées de motifs géométriques en font un chef-d'œuvre de l'architecture berbère saharienne.</p>
-        </div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="200">
-          <div class="culture-icon">📚</div>
-          <h3>La Médersa</h3>
-          <p>École coranique médiévale aux décors intérieurs éblouissants, la médersa est un bijou d'architecture islamique. La Médersa Bou Inania de Fès et la Médersa Ben Youssef de Marrakech sont parmi les plus belles au monde.</p>
-        </div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="300">
-          <div class="culture-icon">🎨</div>
-          <h3>Le Zellige & le Stuc</h3>
-          <p>L'artisanat décoratif marocain atteint son apogée dans les combinaisons de zellige (mosaïque en carrelage), de stuc sculpté (plâtre ornemental) et de cèdre gravé qui ornent les mosquées, palais et riads depuis le XIIe siècle.</p>
-        </div>
-        <div class="culture-item" data-aos="fade-up">
-          <div class="culture-icon">🕌</div>
-          <h3>Les Mosquées Andalouses</h3>
-          <p>Héritées de l'Andalousie musulmane, ces mosquées aux minarets carrés ornés de zelliges polychromes et aux cours à arcades à la végétation luxuriante témoignent des échanges culturels entre l'Espagne et le Maroc médiévaux.</p>
-        </div>
-        <div class="culture-item" data-aos="fade-up" data-aos-delay="100">
-          <div class="culture-icon">🌆</div>
-          <h3>Le Ksar</h3>
-          <p>Village fortifié en pisé rouge de l'Atlas et du Sahara, le ksar (pluriel : ksour) regroupe maisons, mosquée, grenier collectif et marché derrière des murailles défensives. Aït Benhaddou en est le plus célèbre exemple.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== CUISINE ========== -->
-<section id="cuisine" class="section-cuisine">
-  <div class="cuisine-bg"><div class="cuisine-overlay"></div></div>
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Gastronomie</div>
-    <h2 class="section-title white" style="text-align:center">Saveurs du <em>Maroc</em></h2>
-    <p class="section-sub white">Une cuisine aux mille épices, classée parmi les meilleures au monde — un voyage gustatif unique.</p>
-    <div class="cuisine-carousel" id="cuisineCarousel">
-      <div class="cuisine-track" id="cuisineTrack">
-        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Plat Principal</span><h3>Tajine</h3><p>Plat mythique cuit lentement sous un couvercle conique en terre cuite — poulet aux olives et citron confit, agneau aux pruneaux, kefta aux œufs… chaque région a son tajine.</p><div class="cuisine-ingredients"><span>🫒 Olives</span><span>🍋 Citron</span><span>🧄 Ail</span><span>🌿 Coriandre</span></div></div></div>
-        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1547592166-23ac45744acd?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Plat Festif</span><h3>Couscous</h3><p>Servi traditionnellement le vendredi après la prière, le couscous marocain aux sept légumes est un monument de la cuisine familiale, symbole de générosité et de partage.</p><div class="cuisine-ingredients"><span>🥕 Carotte</span><span>🥒 Courgette</span><span>🧅 Oignon</span><span>🫘 Pois chiche</span></div></div></div>
-        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Entrée</span><h3>Pastilla</h3><p>Chef-d'œuvre de la pâtisserie salée marocaine — feuilletés croustillants de pâte warka farcis de pigeon ou de poulet, d'amandes et de cannelle, saupoudrés de sucre glace.</p><div class="cuisine-ingredients"><span>🥚 Œuf</span><span>🌿 Cannelle</span><span>🫑 Amande</span><span>🍯 Miel</span></div></div></div>
-        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Soupe</span><h3>Harira</h3><p>Soupe épaisse et parfumée aux tomates, lentilles, pois chiches et coriandre fraîche — incontournable pour rompre le jeûne du Ramadan et lors des célébrations.</p><div class="cuisine-ingredients"><span>🍅 Tomate</span><span>🫘 Lentille</span><span>🌿 Coriandre</span><span>🍋 Citron</span></div></div></div>
-        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Pâtisserie</span><h3>Cornes de Gazelle</h3><p>Gâteaux en forme de croissant fourrés de pâte d'amande parfumée à la fleur d'oranger, incontournables lors des mariages et des fêtes religieuses marocaines.</p><div class="cuisine-ingredients"><span>🫑 Amande</span><span>🌸 Fleur d'oranger</span><span>🍯 Miel</span><span>🌿 Cannelle</span></div></div></div>
-        <div class="cuisine-card"><div class="cuisine-img" style="background-image:url('https://images.unsplash.com/photo-1514190051997-0f6f39ca5cde?w=500&q=80')"></div><div class="cuisine-body"><span class="cuisine-cat">Street Food</span><h3>Msemen & Rghaïf</h3><p>Crêpes feuilletées marocaines, cuites sur une plaque chaude et dégustées au petit-déjeuner avec du beurre, du miel ou une soupe de fèves — un bonheur simple et authentique.</p><div class="cuisine-ingredients"><span>🌾 Semoule</span><span>🫒 Huile</span><span>🍯 Miel</span><span>🧈 Beurre</span></div></div></div>
-      </div>
-      <button class="carousel-btn prev" id="cuisinePrev">‹</button>
-      <button class="carousel-btn next" id="cuisineNext">›</button>
-      <div class="carousel-dots" id="cuisineDots"></div>
-    </div>
-    <div class="cuisine-spices">
-      <h3>L'Épicerie Marocaine</h3>
-      <div class="spices-grid">
-        <div class="spice"><div class="spice-color" style="background:#C85C2A"></div><span>Ras el Hanout</span></div>
-        <div class="spice"><div class="spice-color" style="background:#E8B84B"></div><span>Curcuma</span></div>
-        <div class="spice"><div class="spice-color" style="background:#8B1A1A"></div><span>Paprika</span></div>
-        <div class="spice"><div class="spice-color" style="background:#4B3832"></div><span>Cumin</span></div>
-        <div class="spice"><div class="spice-color" style="background:#5C3D1E"></div><span>Coriandre</span></div>
-        <div class="spice"><div class="spice-color" style="background:#D4890A"></div><span>Safran</span></div>
-        <div class="spice"><div class="spice-color" style="background:#8B4513"></div><span>Gingembre</span></div>
-        <div class="spice"><div class="spice-color" style="background:#3D2B1F"></div><span>Cannelle</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== HISTOIRE ========== -->
-<section id="histoire" class="section-histoire">
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Patrimoine</div>
-    <h2 class="section-title" style="text-align:center"><em>L'Histoire</em> du Maroc</h2>
-    <p class="section-sub">Trois millénaires de civilisations, d'empires et de résistance.</p>
-    <div class="timeline">
-      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>~800 av. J.-C.</span></div><div class="timeline-content"><h3>Phéniciens & Berbères</h3><p>Les Phéniciens fondent des comptoirs sur les côtes marocaines. Les Berbères (Amazighs), premiers habitants du Maroc, développent une civilisation propre avec leur langue et écriture tifinagh.</p><div class="timeline-tag">Antiquité</div></div></div>
-      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>40 apr. J.-C.</span></div><div class="timeline-content"><h3>Maurétanie Tingitane</h3><p>Intégration dans l'Empire romain sous le nom de Maurétanie Tingitane. Volubilis devient une cité romaine prospère dont les mosaïques éblouissantes sont encore visibles aujourd'hui.</p><div class="timeline-tag">Rome</div></div></div>
-      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>788</span></div><div class="timeline-content"><h3>Idrisides — Premier État</h3><p>Idris Ier fonde la première dynastique arabe et islamique du Maroc et crée Fès, qui deviendra l'une des plus grandes villes du monde islamique médiéval.</p><div class="timeline-tag">Islam</div></div></div>
-      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1040</span></div><div class="timeline-content"><h3>Empire Almoravide</h3><p>Les Almoravides, peuple nomade du Sahara, unissent le Maghreb et l'Andalousie, fondent Marrakech (1070) et édifient un empire s'étendant jusqu'en Espagne et au Mali.</p><div class="timeline-tag">Expansion</div></div></div>
-      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1147</span></div><div class="timeline-content"><h3>Almohades & Apogée</h3><p>Sous les Almohades, le Maroc connaît son âge d'or — Koutoubia, Tour Hassan, Giralda de Séville. Ibn Rushd (Averroès) et Ibn Tufayl illuminent la pensée médiévale.</p><div class="timeline-tag">Âge d'Or</div></div></div>
-      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1269</span></div><div class="timeline-content"><h3>Mérinides — Renaissance Urbaine</h3><p>La dynastie mérinide fait de Fès la capitale intellectuelle du monde islamique. Construction des plus belles médersas (Bou Inania, Attarine) et apogée de l'art marocain médiéval.</p><div class="timeline-tag">Mérinides</div></div></div>
-      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1554</span></div><div class="timeline-content"><h3>Saadiens — L'Âge du Sucre</h3><p>Les Saadiens font de Marrakech leur capitale et accumulent une richesse fabuleuse grâce au commerce de l'or sahélien et du sucre. Les Tombeaux Saadiens témoignent de leur faste incomparable.</p><div class="timeline-tag">Saadiens</div></div></div>
-      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1578</span></div><div class="timeline-content"><h3>Bataille des Trois Rois</h3><p>À Ksar el-Kébir, le Maroc saadien écrase une coalition portugaise — trois rois meurent sur le champ de bataille. Le Maroc devient la première puissance africaine à repousser une invasion coloniale.</p><div class="timeline-tag">Résistance</div></div></div>
-      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1666</span></div><div class="timeline-content"><h3>Dynastie Alaouite</h3><p>La famille royale actuelle, les Alaouites, monte sur le trône. Moulay Ismaïl fait de Meknès une capitale impériale et conclut des traités avec les puissances européennes.</p><div class="timeline-tag">Alaouite</div></div></div>
-      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1912–1956</span></div><div class="timeline-content"><h3>Protectorat & Résistance</h3><p>Sous le Protectorat franco-espagnol, le Sultan Mohammed V mène la résistance nationale. Exilé en 1953, il revient triomphalement en 1955, menant le Maroc vers l'indépendance.</p><div class="timeline-tag">Résistance</div></div></div>
-      <div class="timeline-item left" data-aos="fade-right"><div class="timeline-dot"><span>1956</span></div><div class="timeline-content"><h3>Indépendance</h3><p>Le 2 mars 1956, le Maroc recouvre son indépendance. Mohammed V devient roi, inaugurant une ère de modernisation tout en préservant les traditions ancestrales du royaume.</p><div class="timeline-tag">Indépendance</div></div></div>
-      <div class="timeline-item right" data-aos="fade-left"><div class="timeline-dot"><span>1999–Aujourd'hui</span></div><div class="timeline-content"><h3>Maroc Moderne</h3><p>Sous le règne de SM le Roi Mohammed VI, le Maroc se modernise — TGV, énergie solaire, réformes sociales, coupe du monde 2030 — tout en s'affirmant comme leader africain.</p><div class="timeline-tag">Renaissance</div></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== ÉCONOMIE & INNOVATION ========== -->
-<section id="economie" class="section-economie">
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Puissance Émergente</div>
-    <h2 class="section-title" style="text-align:center">Économie & <em>Innovation</em></h2>
-    <p class="section-sub">Le Maroc, locomotive économique de l'Afrique, conjugue ressources naturelles exceptionnelles et vision industrielle ambitieuse.</p>
-
-    <div class="eco-stats-grid" data-aos="fade-up">
-      <div class="eco-stat-card">
-        <div class="eco-stat-icon"><i class="fa-solid fa-gem"></i></div>
-        <div class="eco-stat-num">70%</div>
-        <div class="eco-stat-label">Réserves mondiales de phosphates</div>
-      </div>
-      <div class="eco-stat-card">
-        <div class="eco-stat-icon"><i class="fa-solid fa-plane"></i></div>
-        <div class="eco-stat-num">13M</div>
-        <div class="eco-stat-label">Touristes par an</div>
-      </div>
-      <div class="eco-stat-card">
-        <div class="eco-stat-icon"><i class="fa-solid fa-car"></i></div>
-        <div class="eco-stat-num">700K</div>
-        <div class="eco-stat-label">Véhicules produits/an</div>
-      </div>
-      <div class="eco-stat-card">
-        <div class="eco-stat-icon"><i class="fa-solid fa-solar-panel"></i></div>
-        <div class="eco-stat-num">52%</div>
-        <div class="eco-stat-label">Objectif énergie renouvelable 2030</div>
-      </div>
-    </div>
-
-    <div class="eco-grid">
-      <div class="eco-card" data-aos="fade-up">
-        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=500&q=80" alt="Phosphates" loading="lazy" /></div>
-        <div class="eco-card-body">
-          <span class="eco-tag"><i class="fa-solid fa-gem"></i> Ressources</span>
-          <h3>Phosphates — N°1 Mondial</h3>
-          <p>Avec 70% des réserves mondiales, le Maroc domine le marché mondial du phosphate via l'OCP Group. Cette ressource est la base des engrais alimentant l'agriculture mondiale.</p>
-        </div>
-      </div>
-      <div class="eco-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Industrie Auto" loading="lazy" /></div>
-        <div class="eco-card-body">
-          <span class="eco-tag"><i class="fa-solid fa-car"></i> Industrie</span>
-          <h3>Hub Automobile</h3>
-          <p>Renault à Tanger et Stellantis à Kénitra font du Maroc le 1er producteur automobile d'Afrique. L'écosystème automobile représente 27% des exportations industrielles.</p>
-        </div>
-      </div>
-      <div class="eco-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=500&q=80" alt="Énergie Solaire" loading="lazy" /></div>
-        <div class="eco-card-body">
-          <span class="eco-tag"><i class="fa-solid fa-solar-panel"></i> Énergie Verte</span>
-          <h3>Noor Ouarzazate</h3>
-          <p>La centrale solaire Noor est la plus grande au monde — 580 MW. Elle illustre l'ambition du Maroc d'atteindre 52% d'énergies renouvelables d'ici 2030 et d'exporter de l'électricité verte vers l'Europe.</p>
-        </div>
-      </div>
-      <div class="eco-card" data-aos="fade-up">
-        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=500&q=80" alt="TGV Al Boraq" loading="lazy" /></div>
-        <div class="eco-card-body">
-          <span class="eco-tag"><i class="fa-solid fa-train"></i> Infrastructure</span>
-          <h3>TGV Al Boraq</h3>
-          <p>Premier TGV africain reliant Casablanca à Tanger en 2h10 à 320 km/h depuis 2018. Un symbole du programme de modernisation des infrastructures du Royaume.</p>
-        </div>
-      </div>
-      <div class="eco-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=500&q=80" alt="Finance City" loading="lazy" /></div>
-        <div class="eco-card-body">
-          <span class="eco-tag"><i class="fa-solid fa-building-columns"></i> Finance</span>
-          <h3>Casablanca Finance City</h3>
-          <p>Hub financier panafricain de premier rang, CFC accueille plus de 250 entreprises multinationales et fonds d'investissement faisant du Maroc la porte d'entrée vers l'Afrique subsaharienne.</p>
-        </div>
-      </div>
-      <div class="eco-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="eco-card-img"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&q=80" alt="Startups" loading="lazy" /></div>
-        <div class="eco-card-body">
-          <span class="eco-tag"><i class="fa-solid fa-rocket"></i> Innovation</span>
-          <h3>Startups & Tech</h3>
-          <p>Le Maroc est le 3ème écosystème startup africain avec Casablanca et Rabat comme pôles tech. Le programme "Maroc Digital 2030" vise à créer 240 000 emplois dans le numérique.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="cdm-banner" data-aos="fade-up">
-      <div class="cdm-content">
-        <div class="cdm-icon">🏆</div>
-        <div>
-          <h3>Coupe du Monde 2030</h3>
-          <p>Le Maroc co-organisera la Coupe du Monde FIFA 2030 avec l'Espagne et le Portugal, avec des matchs aussi au Portugal, Espagne, Argentine, Uruguay et Paraguay. Un investissement de 4,5 milliards de dollars pour transformer les infrastructures sportives.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== NATURE & BIODIVERSITÉ ========== -->
-<section id="nature" class="section-nature">
-  <div class="nature-hero-bg"></div>
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Biodiversité</div>
-    <h2 class="section-title" style="text-align:center">Nature & <em>Écosystèmes</em></h2>
-    <p class="section-sub">Du cerisier de l'Atlas aux flamants roses de Souss-Massa, le Maroc recèle une biodiversité spectaculaire.</p>
-
-    <div class="nature-grid">
-      <div class="nature-card" data-aos="fade-up">
-        <div class="nature-img"><img src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&q=80" alt="Toubkal" loading="lazy" /></div>
-        <div class="nature-body">
-          <span class="nature-badge"><i class="fa-solid fa-mountain"></i> Parc National</span>
-          <h3>Parc du Toubkal</h3>
-          <p>Le plus ancien parc national du Maroc (1942) abrite le Jbel Toubkal, point culminant d'Afrique du Nord (4 167 m). Forêts de genévriers, aigles royaux et troupeaux de mouflons à manchettes y vivent.</p>
-        </div>
-      </div>
-      <div class="nature-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="nature-img"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&q=80" alt="Souss-Massa" loading="lazy" /></div>
-        <div class="nature-body">
-          <span class="nature-badge"><i class="fa-solid fa-feather"></i> Flamants Roses</span>
-          <h3>Parc Souss-Massa</h3>
-          <p>Sanctuaire ornithologique de renommée mondiale, il abrite des milliers de flamants roses et de mouettes d'Audouin. Les arganiers endémiques forment un écosystème unique classé réserve de biosphère UNESCO.</p>
-        </div>
-      </div>
-      <div class="nature-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="nature-img"><img src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&q=80" alt="Cèdres Ifrane" loading="lazy" /></div>
-        <div class="nature-body">
-          <span class="nature-badge"><i class="fa-solid fa-tree"></i> Forêt Millénaire</span>
-          <h3>Cèdres d'Ifrane</h3>
-          <p>La forêt de cèdres de l'Atlas, au cœur du Moyen Atlas, abrite les fameux Macaques de Barbarie — primates en danger critique. Certains cèdres ont plus de 800 ans. La ville d'Ifrane est surnommée "la Suisse du Maroc".</p>
-        </div>
-      </div>
-      <div class="nature-card" data-aos="fade-up">
-        <div class="nature-img"><img src="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=500&q=80" alt="Vallée du Draa" loading="lazy" /></div>
-        <div class="nature-body">
-          <span class="nature-badge"><i class="fa-solid fa-water"></i> Oasis</span>
-          <h3>Vallée du Draa</h3>
-          <p>La plus longue vallée d'Afrique du Nord (1 100 km) serpente du Haut Atlas jusqu'à l'Atlantique à travers des palmeraies féeriques, des ksour en pisé et des oasis verdoyantes au milieu du désert.</p>
-        </div>
-      </div>
-      <div class="nature-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="nature-img"><img src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=500&q=80" alt="Huile d'argan" loading="lazy" /></div>
-        <div class="nature-body">
-          <span class="nature-badge"><i class="fa-solid fa-seedling"></i> UNESCO</span>
-          <h3>Arganier & Huile d'Argan</h3>
-          <p>L'arganier (Argania spinosa), endémique au Maroc, pousse uniquement dans le Souss. Son huile précieuse, produite par des coopératives féminines, est classée patrimoine culturel immatériel UNESCO depuis 2014.</p>
-        </div>
-      </div>
-      <div class="nature-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="nature-img"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80" alt="Côte Atlantique" loading="lazy" /></div>
-        <div class="nature-body">
-          <span class="nature-badge"><i class="fa-solid fa-waves"></i> Côtes</span>
-          <h3>Côtes Atlantique & Méditerranée</h3>
-          <p>Le Maroc possède 3 500 km de côtes entre deux mers. La côte atlantique est un paradis pour les cétacés (dauphins, baleines) et les oiseaux migrateurs. La Méditerranée abrite des fonds marins exceptionnels.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="extinct-banner" data-aos="fade-up">
-      <i class="fa-solid fa-paw banner-icon"></i>
-      <div>
-        <h4>Lion de Barbarie — Panthera leo leo</h4>
-        <p>Le Lion de Barbarie, sous-espèce endémique du Maghreb et symbole du Maroc, a été déclaré éteint à l'état sauvage dans les années 1920. Des programmes de réintroduction à partir des spécimens captifs de la ménagerie royale de Rabat sont en cours.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== MAROC SPIRITUEL ========== -->
-<section id="spirituel" class="section-spirituel">
-  <div class="spirituel-bg-pattern"></div>
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Âme du Royaume</div>
-    <h2 class="section-title" style="text-align:center">Maroc <em>Spirituel</em></h2>
-    <p class="section-sub">Terre de foi, de tolérance et de syncrétisme — le Maroc est un carrefour de spiritualités millénaires.</p>
-
-    <div class="spirituel-grid">
-      <div class="spirituel-card featured" data-aos="fade-up">
-        <div class="spirituel-icon"><i class="fa-solid fa-star-and-crescent"></i></div>
-        <h3>Islam au Cœur du Maroc</h3>
-        <p>Le Maroc est un État musulman sunnite de rite malékite, avec le Roi comme Commandeur des Croyants (Amir al-Muminin). Les 5 piliers de l'Islam (Shahada, Salat, Zakat, Sawm, Hajj) structurent la vie quotidienne.</p>
-        <div class="piliers-grid">
-          <span>☪ Shahada</span><span>🕌 Salat</span><span>💰 Zakat</span><span>🌙 Sawm</span><span>🕋 Hajj</span>
-        </div>
-      </div>
-      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="spirituel-icon"><i class="fa-solid fa-place-of-worship"></i></div>
-        <h3>Zawiyas & Saints</h3>
-        <p>Les zawiyas (mausolées de saints) jalonnent tout le territoire. Moulay Idriss Zerhoun, ville sainte inaccessible aux non-musulmans jusqu'en 2005, abrite le tombeau d'Idris Ier, fondateur du Maroc islamique.</p>
-      </div>
-      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="spirituel-icon"><i class="fa-solid fa-star-of-david"></i></div>
-        <h3>Héritage Juif Marocain</h3>
-        <p>Le Maroc abrite l'une des plus vieilles communautés juives au monde. Les mellahs (quartiers juifs) de Fès et Marrakech, les tombeaux de saints (Rabbi Amram Ben Diwan), et les musées du judaïsme témoignent d'une coexistence millénaire.</p>
-      </div>
-      <div class="spirituel-card" data-aos="fade-up">
-        <div class="spirituel-icon"><i class="fa-solid fa-circle-nodes"></i></div>
-        <h3>Confréries Soufies</h3>
-        <p>Les tariqas soufies comme la Tijaniyya (fondée à Fès, présente dans toute l'Afrique de l'Ouest) et la Qadiriyya perpétuent une tradition mystique d'amour divin, de chants (hadra) et de méditation collective.</p>
-      </div>
-      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="spirituel-icon"><i class="fa-solid fa-tent"></i></div>
-        <h3>Moussem de Moulay Idriss</h3>
-        <p>Grand pèlerinage annuel à Moulay Idriss Zerhoun, ville sainte fondée par le premier roi islamique du Maroc. Des milliers de fidèles y convergent pour des prières, processions et fantasia dans une atmosphère de ferveur unique.</p>
-      </div>
-      <div class="spirituel-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="spirituel-icon"><i class="fa-solid fa-mosque"></i></div>
-        <h3>Mosquées Andalouses</h3>
-        <p>Les mosquées Karaouyine (859 AD — la plus ancienne université du monde), Koutoubia et Hassan II témoignent d'une architecture islamique sublime héritée de l'Andalousie et affinée au fil des siècles par les artisans marocains.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== SPORT & AVENTURE ========== -->
-<section id="sport" class="section-sport">
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Adrénaline & Performance</div>
-    <h2 class="section-title" style="text-align:center">Sport & <em>Aventure</em></h2>
-    <p class="section-sub">Des Lions de l'Atlas aux dunes de Dakhla, le Maroc est une terre de champions et d'aventuriers.</p>
-
-    <div class="sport-hero-banner" data-aos="zoom-in">
-      <div class="sport-hero-content">
-        <div class="sport-hero-badge">🏆 2022</div>
-        <h3>Lions de l'Atlas — Légende Mondiale</h3>
-        <p>En 2022 au Qatar, le Maroc réalise l'exploit historique d'atteindre les demi-finales de la Coupe du Monde, devenant la première nation africaine et arabe à accomplir cet exploit. Yassine Bounou, Sofyan Amrabat et Achraf Hakimi sont entrés dans la légende.</p>
-        <div class="sport-stats">
-          <div><strong>4ème</strong><span>Mondial 2022</span></div>
-          <div><strong>4×</strong><span>Vainqueur CHAN</span></div>
-          <div><strong>2030</strong><span>Coupe du Monde</span></div>
-        </div>
-      </div>
-      <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&q=80" alt="Football" loading="lazy" />
-    </div>
-
-    <div class="sport-grid">
-      <div class="sport-card" data-aos="fade-up">
-        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=400&q=80" alt="Surf Taghazout" loading="lazy" /></div>
-        <div class="sport-card-body">
-          <span class="sport-icon"><i class="fa-solid fa-person-surfing"></i></span>
-          <h3>Surf & Kitesurf</h3>
-          <p>Taghazout (près d'Agadir) est classé parmi les 10 meilleurs spots de surf au monde. Dakhla, dans le Sud, est la capitale mondiale du kitesurf grâce à son lagon et ses vents réguliers.</p>
-          <div class="sport-tags"><span>Taghazout</span><span>Dakhla</span><span>Essaouira</span></div>
-        </div>
-      </div>
-      <div class="sport-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&q=80" alt="Ski Oukaimeden" loading="lazy" /></div>
-        <div class="sport-card-body">
-          <span class="sport-icon"><i class="fa-solid fa-person-skiing"></i></span>
-          <h3>Ski à Oukaimeden</h3>
-          <p>À 1h de Marrakech, Oukaimeden (2 600 m) est la plus haute station de ski d'Afrique. Un paradoxe délicieux : skier au Maroc avec vue sur le désert. Saison décembre-mars.</p>
-          <div class="sport-tags"><span>Oukaimeden</span><span>Atlas</span><span>Ifrane</span></div>
-        </div>
-      </div>
-      <div class="sport-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1553969546-6f7388a7e07b?w=400&q=80" alt="Marathon des Sables" loading="lazy" /></div>
-        <div class="sport-card-body">
-          <span class="sport-icon"><i class="fa-solid fa-person-running"></i></span>
-          <h3>Marathon des Sables</h3>
-          <p>La course à pied la plus dure du monde (250 km en 6 jours dans le Sahara marocain) attire 1 000 coureurs d'élite du monde entier chaque avril. Autosuffisance alimentaire obligatoire.</p>
-          <div class="sport-tags"><span>Ouarzazate</span><span>Sahara</span><span>Extrême</span></div>
-        </div>
-      </div>
-      <div class="sport-card" data-aos="fade-up">
-        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400&q=80" alt="Golf Maroc" loading="lazy" /></div>
-        <div class="sport-card-body">
-          <span class="sport-icon"><i class="fa-solid fa-golf-ball-tee"></i></span>
-          <h3>Golf Royal</h3>
-          <p>Le Maroc compte 17 golfs royaux et de luxe, dont les mythiques parcours de Marrakech, Agadir et Rabat. Hassan II Golf Trophy est un tournoi légendaire. Le Maroc est la 1ère destination golf d'Afrique.</p>
-          <div class="sport-tags"><span>Marrakech</span><span>Agadir</span><span>Rabat</span></div>
-        </div>
-      </div>
-      <div class="sport-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&q=80" alt="Trail Atlas" loading="lazy" /></div>
-        <div class="sport-card-body">
-          <span class="sport-icon"><i class="fa-solid fa-route"></i></span>
-          <h3>Trail & Trekking Atlas</h3>
-          <p>Les sentiers du Haut Atlas offrent des trails épiques entre sommets de 4 000m, villages berbères et valées oubliées. Le GR52 relie Marrakech à l'Atlantique en 30 jours. Un paradis des trail-runners.</p>
-          <div class="sport-tags"><span>Toubkal</span><span>Vallées</span><span>Villages</span></div>
-        </div>
-      </div>
-      <div class="sport-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="sport-card-img"><img src="https://images.unsplash.com/photo-1489549132488-d00b7eee80f1?w=400&q=80" alt="Quad Désert" loading="lazy" /></div>
-        <div class="sport-card-body">
-          <span class="sport-icon"><i class="fa-solid fa-motorcycle"></i></span>
-          <h3>Quad & 4x4 Désert</h3>
-          <p>Le Sahara marocain est le terrain de jeu idéal pour les sports motorisés — quad, buggy, moto-cross et rallye 4x4. Le Rallye Maroc Challenge est une étape du championnat mondial FIA.</p>
-          <div class="sport-tags"><span>Merzouga</span><span>Zagora</span><span>Dakhla</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== SHOPPING GUIDE ========== -->
-<section id="shopping" class="section-shopping">
-  <div class="shopping-bg-pattern"></div>
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Art du Souk</div>
-    <h2 class="section-title" style="text-align:center">Guide <em>Shopping</em></h2>
-    <p class="section-sub">Des souks labyrinthiques aux coopératives équitables — comment rapporter le meilleur du Maroc.</p>
-
-    <div class="shopping-where">
-      <div class="shopping-where-card" data-aos="fade-right">
-        <h3><i class="fa-solid fa-map-pin"></i> Où Acheter</h3>
-        <div class="where-items">
-          <div class="where-item"><div class="where-icon">🏪</div><div><strong>Souks de Marrakech</strong><p>La Kissaria (tissus), souk des épices, souk des tanneurs — chaque métier a son quartier dans la médina. Marchandage de rigueur.</p></div></div>
-          <div class="where-item"><div class="where-icon">🏛️</div><div><strong>Souks de Fès</strong><p>Plus authentiques et moins touristiques que Marrakech. Souk el-Attarine pour les épices, souk en-Nejjarine pour la menuiserie.</p></div></div>
-          <div class="where-item"><div class="where-icon">🤝</div><div><strong>Coopératives à Prix Fixes</strong><p>Coopératives de femmes arganières, coopératives de tapis berbères — prix affichés, qualité garantie, commerce équitable.</p></div></div>
-          <div class="where-item"><div class="where-icon">🏬</div><div><strong>Ensemble Artisanal</strong><p>Showrooms officiels dans les grandes villes (Marrakech, Fès, Rabat) avec prix fixes et sélection de qualité — idéal si vous manquez de temps.</p></div></div>
-        </div>
-      </div>
-      <div class="shopping-what" data-aos="fade-left">
-        <h3><i class="fa-solid fa-shopping-bag"></i> Quoi Acheter</h3>
-        <div class="products-showcase">
-          <div class="product-item">
-            <div class="product-img" style="background:#c8a87a"><i class="fa-solid fa-bottle-droplet"></i></div>
-            <div class="product-info"><strong>Huile d'Argan</strong><span>30-80 MAD / 50ml</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#8B4513"><i class="fa-solid fa-tree"></i></div>
-            <div class="product-info"><strong>Bois de Thuya</strong><span>50-500 MAD</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#9b59b6"><i class="fa-solid fa-shirt"></i></div>
-            <div class="product-info"><strong>Caftan & Takchita</strong><span>200-2000 MAD</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#e67e22"><i class="fa-solid fa-shoe-prints"></i></div>
-            <div class="product-info"><strong>Babouches</strong><span>50-200 MAD</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#C9A84C"><i class="fa-solid fa-ring"></i></div>
-            <div class="product-info"><strong>Bijoux en Argent</strong><span>100-1000 MAD</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#c0392b"><i class="fa-solid fa-rug"></i></div>
-            <div class="product-info"><strong>Tapis Berbère</strong><span>500-5000 MAD</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#2c7a7b"><i class="fa-solid fa-mug-hot"></i></div>
-            <div class="product-info"><strong>Théière & Plateau</strong><span>100-600 MAD</span></div>
-          </div>
-          <div class="product-item">
-            <div class="product-img" style="background:#27ae60"><i class="fa-solid fa-leaf"></i></div>
-            <div class="product-info"><strong>Thé & Épices</strong><span>20-150 MAD</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bargaining-guide" data-aos="fade-up">
-      <h3><i class="fa-solid fa-comments-dollar"></i> L'Art du Marchandage</h3>
-      <div class="bargaining-tips">
-        <div class="btip"><span class="btip-num">01</span><div><strong>Commencez bas</strong><p>Proposez 30-40% du prix annoncé. C'est normal et attendu dans les souks.</p></div></div>
-        <div class="btip"><span class="btip-num">02</span><div><strong>Souriez toujours</strong><p>Le marchandage est un jeu social amical. Restez détendu et jovial — jamais agressif.</p></div></div>
-        <div class="btip"><span class="btip-num">03</span><div><strong>Technique de la sortie</strong><p>Si le prix ne descend pas, remerciez et commencez à partir — souvent le prix baisse instantanément.</p></div></div>
-        <div class="btip"><span class="btip-num">04</span><div><strong>Prix fixes = coopératives</strong><p>Pour éviter le stress, préférez les coopératives avec prix affichés. Qualité souvent meilleure.</p></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== QUIZ ========== -->
-<section id="quiz" class="section-quiz">
-  <div class="quiz-bg-pattern"></div>
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Testez-vous</div>
-    <h2 class="section-title" style="text-align:center">Quiz — <em>Connaissez-vous le Maroc ?</em></h2>
-    <p class="section-sub">8 questions pour tester vos connaissances sur le Royaume Chérifien.</p>
-
-    <div class="quiz-container" id="quizContainer">
-      <div class="quiz-progress-wrap">
-        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
-        <span class="quiz-progress-text" id="quizProgressText">Question 1 / 8</span>
-      </div>
-      <div class="quiz-question-wrap" id="quizQuestionWrap">
-        <!-- injected by JS -->
-      </div>
-      <div class="quiz-result" id="quizResult" style="display:none">
-        <div class="quiz-result-icon" id="quizResultIcon">🎉</div>
-        <h3 id="quizResultTitle"></h3>
-        <p id="quizResultDesc"></p>
-        <div class="quiz-score-display" id="quizScoreDisplay"></div>
-        <button class="btn-primary" onclick="restartQuiz()"><i class="fa-solid fa-rotate-right"></i> Rejouer</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== GALERIE ========== -->
-<section id="galerie" class="section-galerie">
-  <div class="section-tag" style="text-align:center">Visuels</div>
-  <h2 class="section-title" style="text-align:center">Galerie <em>Photo</em></h2>
-  <p class="section-sub">Le Maroc en images — une mosaïque de couleurs, de lumières et d'émotions.</p>
-  <div class="gallery-masonry" id="galleryGrid">
-    <div class="gallery-item tall" data-aos="zoom-in" onclick="openLightbox(0)"><img src="https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=600&q=80" alt="Jemaa el-Fna" loading="lazy" /><div class="gallery-caption">Jemaa el-Fna, Marrakech</div></div>
-    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="50" onclick="openLightbox(1)"><img src="https://images.unsplash.com/photo-1539020140153-e479b8c8e9bc?w=600&q=80" alt="Médina de Fès" loading="lazy" /><div class="gallery-caption">Médina de Fès</div></div>
-    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="100" onclick="openLightbox(2)"><img src="https://images.unsplash.com/photo-1548019979-a6e9a8c3d4c7?w=600&q=80" alt="Chefchaouen" loading="lazy" /><div class="gallery-caption">Chefchaouen la Bleue</div></div>
-    <div class="gallery-item wide" data-aos="zoom-in" data-aos-delay="150" onclick="openLightbox(3)"><img src="https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=800&q=80" alt="Dunes du Sahara" loading="lazy" /><div class="gallery-caption">Erg Chebbi, Sahara</div></div>
-    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="200" onclick="openLightbox(4)"><img src="https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=600&q=80" alt="Artisanat" loading="lazy" /><div class="gallery-caption">Artisanat de Marrakech</div></div>
-    <div class="gallery-item tall" data-aos="zoom-in" data-aos-delay="250" onclick="openLightbox(5)"><img src="https://images.unsplash.com/photo-1565771768700-ec8e24f4a4e3?w=600&q=80" alt="Atlas" loading="lazy" /><div class="gallery-caption">Haut Atlas</div></div>
-    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="300" onclick="openLightbox(6)"><img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&q=80" alt="Zellige" loading="lazy" /><div class="gallery-caption">Zellige — Art Marocain</div></div>
-    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="350" onclick="openLightbox(7)"><img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80" alt="Hassan II" loading="lazy" /><div class="gallery-caption">Mosquée Hassan II, Casablanca</div></div>
-    <div class="gallery-item wide" data-aos="zoom-in" data-aos-delay="400" onclick="openLightbox(8)"><img src="https://images.unsplash.com/photo-1577791465485-b8d90f4d3609?w=800&q=80" alt="Essaouira" loading="lazy" /><div class="gallery-caption">Port d'Essaouira</div></div>
-    <div class="gallery-item" data-aos="zoom-in" data-aos-delay="450" onclick="openLightbox(9)"><img src="https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=600&q=80" alt="Tanneries" loading="lazy" /><div class="gallery-caption">Tanneries de Fès</div></div>
-  </div>
-  <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <button class="lightbox-prev" onclick="changeLightbox(-1)">‹</button>
-    <button class="lightbox-next" onclick="changeLightbox(1)">›</button>
-    <div class="lightbox-img-wrap">
-      <img id="lightboxImg" src="" alt="" />
-      <div class="lightbox-caption" id="lightboxCaption"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== CONSEILS ========== -->
-<section id="conseils" class="section-conseils">
-  <div class="container">
-    <div class="section-tag" style="text-align:center">Guide Pratique</div>
-    <h2 class="section-title" style="text-align:center">Conseils de <em>Voyage</em></h2>
-    <div class="conseils-grid">
-      <div class="conseil-card" data-aos="fade-up"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-plane"></i></div><h3>Comment Arriver</h3></div><ul><li>Vols directs depuis Paris, Lyon, Marseille, Bordeaux vers Casablanca, Marrakech, Agadir, Fès et Tanger.</li><li>Compagnies : Royal Air Maroc, Air France, easyJet, Ryanair, Transavia.</li><li>Le ferry depuis Algésiras (Espagne) vers Tanger Med (35 min) est une option pittoresque.</li></ul></div>
-      <div class="conseil-card" data-aos="fade-up" data-aos-delay="100"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-calendar-days"></i></div><h3>Meilleure Période</h3></div><ul><li><strong>Printemps (mars-mai) :</strong> Idéal — températures douces, fleurs, pas de foule.</li><li><strong>Automne (sept-nov) :</strong> Excellent — chaleur réduite, dunes magnifiques.</li><li><strong>Hiver :</strong> Parfait pour le sud et le désert — ski à Oukaimeden en bonus.</li><li><strong>Été :</strong> Très chaud à l'intérieur, mais parfait pour les côtes.</li></ul></div>
-      <div class="conseil-card" data-aos="fade-up" data-aos-delay="200"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-car"></i></div><h3>Se Déplacer</h3></div><ul><li><strong>Train ONCF :</strong> Réseau moderne reliant les grandes villes, TGV Casablanca-Tanger.</li><li><strong>CTM / Supratours :</strong> Bus confortables entre villes.</li><li><strong>Voiture de location :</strong> Indispensable pour explorer le sud et l'Atlas.</li><li><strong>Taxis :</strong> Grand taxi entre villes, petit taxi en ville.</li></ul></div>
-      <div class="conseil-card" data-aos="fade-up" data-aos-delay="300"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-wallet"></i></div><h3>Budget & Argent</h3></div><ul><li>1 EUR ≈ 11 MAD (Dirham marocain), monnaie non convertible hors frontières.</li><li>Budget moyen : 50-100 €/jour en riad confortable.</li><li>Le marchandage est une tradition dans les souks — sourire et patience obligatoires.</li><li>Pourboires appréciés : 10-15% au restaurant, 5-20 MAD pour services.</li></ul></div>
-      <div class="conseil-card" data-aos="fade-up"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-mosque"></i></div><h3>Respecter les Coutumes</h3></div><ul><li>Tenue modeste dans les médinas — épaules et genoux couverts.</li><li>Retirer les chaussures avant d'entrer dans une mosquée ou un riad.</li><li>Demander l'autorisation avant de photographier des personnes.</li><li>Pendant le Ramadan, éviter de manger/boire en public le jour.</li></ul></div>
-      <div class="conseil-card" data-aos="fade-up" data-aos-delay="100"><div class="conseil-header"><div class="conseil-icon"><i class="fa-solid fa-kit-medical"></i></div><h3>Santé & Sécurité</h3></div><ul><li>Eau du robinet non potable — boire de l'eau en bouteille ou filtrée.</li><li>Carte européenne d'assurance maladie + assurance voyage recommandée.</li><li>Le Maroc est l'un des pays les plus sûrs d'Afrique pour les touristes.</li><li>Numéros utiles : Police 19, Gendarmerie 177, SAMU 150.</li></ul></div>
-    </div>
-    <div class="phrasebook" data-aos="fade-up">
-      <h3>Quelques Mots en Darija (Arabe Marocain)</h3>
-      <div class="phrases-grid">
-        <div class="phrase"><span class="phrase-fr">Bonjour</span><span class="phrase-ar">Salam / Mrhba</span></div>
-        <div class="phrase"><span class="phrase-fr">Merci</span><span class="phrase-ar">Shukran / Barak Allah fik</span></div>
-        <div class="phrase"><span class="phrase-fr">S'il vous plaît</span><span class="phrase-ar">Afak / 3afak</span></div>
-        <div class="phrase"><span class="phrase-fr">Combien ça coûte ?</span><span class="phrase-ar">Shhal had ?</span></div>
-        <div class="phrase"><span class="phrase-fr">C'est trop cher</span><span class="phrase-ar">Ghali bezzaf</span></div>
-        <div class="phrase"><span class="phrase-fr">Délicieux !</span><span class="phrase-ar">Bnin bezaf !</span></div>
-        <div class="phrase"><span class="phrase-fr">Où est… ?</span><span class="phrase-ar">Fayn kayn… ?</span></div>
-        <div class="phrase"><span class="phrase-fr">Au revoir</span><span class="phrase-ar">Bslama / Ma3 slama</span></div>
-        <div class="phrase"><span class="phrase-fr">Je ne comprends pas</span><span class="phrase-ar">Ma fehemtch</span></div>
-        <div class="phrase"><span class="phrase-fr">Parlez-vous français ?</span><span class="phrase-ar">Katkellem bel-fransawi ?</span></div>
-        <div class="phrase"><span class="phrase-fr">Appelez la police !</span><span class="phrase-ar">3iyet l-polisi !</span></div>
-        <div class="phrase"><span class="phrase-fr">Bienvenue !</span><span class="phrase-ar">Merhba bik !</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== METEO ========== -->
-<section class="section-meteo">
-  <div class="container">
-    <h2 class="section-title" style="text-align:center">Météo des <em>Grandes Villes</em></h2>
-    <div class="meteo-grid">
-      <div class="meteo-card"><div class="meteo-city">Marrakech</div><div class="meteo-icon">☀️</div><div class="meteo-temp">34°C</div><div class="meteo-desc">Ensoleillé</div><div class="meteo-details"><span>Humidité: 25%</span><span>Vent: 12 km/h</span></div></div>
-      <div class="meteo-card"><div class="meteo-city">Casablanca</div><div class="meteo-icon">⛅</div><div class="meteo-temp">22°C</div><div class="meteo-desc">Nuageux</div><div class="meteo-details"><span>Humidité: 70%</span><span>Vent: 18 km/h</span></div></div>
-      <div class="meteo-card"><div class="meteo-city">Fès</div><div class="meteo-icon">🌤️</div><div class="meteo-temp">28°C</div><div class="meteo-desc">Partiellement nuageux</div><div class="meteo-details"><span>Humidité: 45%</span><span>Vent: 8 km/h</span></div></div>
-      <div class="meteo-card"><div class="meteo-city">Agadir</div><div class="meteo-icon">☀️</div><div class="meteo-temp">26°C</div><div class="meteo-desc">Ensoleillé</div><div class="meteo-details"><span>Humidité: 60%</span><span>Vent: 22 km/h</span></div></div>
-      <div class="meteo-card"><div class="meteo-city">Merzouga</div><div class="meteo-icon">🔥</div><div class="meteo-temp">42°C</div><div class="meteo-desc">Chaud & Sec</div><div class="meteo-details"><span>Humidité: 10%</span><span>Vent: 5 km/h</span></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== CONTACT ========== -->
-<section id="contact" class="section-contact">
-  <div class="contact-bg-pattern"></div>
-  <div class="container">
-    <div class="contact-grid">
-      <div class="contact-info" data-aos="fade-right">
-        <div class="section-tag">Planifiez votre voyage</div>
-        <h2 class="section-title white">Votre Maroc <em>Sur Mesure</em></h2>
-        <p class="contact-lead">Laissez-nous vous aider à créer le voyage de vos rêves au Maroc — de l'itinéraire aux hébergements, nous vous accompagnons à chaque étape.</p>
-        <div class="contact-features">
-          <div class="cf-item"><span>✓</span> Itinéraires personnalisés</div>
-          <div class="cf-item"><span>✓</span> Riads & hôtels sélectionnés</div>
-          <div class="cf-item"><span>✓</span> Guides locaux certifiés</div>
-          <div class="cf-item"><span>✓</span> Expériences exclusives</div>
-          <div class="cf-item"><span>✓</span> Transferts & transport</div>
-          <div class="cf-item"><span>✓</span> Support 24/7 en voyage</div>
-        </div>
-        <div class="contact-socials">
-          <a href="#" class="social-btn" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="social-btn" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="social-btn" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-          <a href="#" class="social-btn" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-        </div>
-      </div>
-      <div class="contact-form-wrap" data-aos="fade-left">
-        <form class="contact-form" id="contactForm" onsubmit="handleSubmit(event)">
-          <h3>Demande de Devis Gratuit</h3>
-          <div class="form-row">
-            <div class="form-group"><label>Prénom</label><input type="text" placeholder="Votre prénom" required /></div>
-            <div class="form-group"><label>Nom</label><input type="text" placeholder="Votre nom" required /></div>
-          </div>
-          <div class="form-group"><label>Email</label><input type="email" placeholder="votre@email.com" required /></div>
-          <div class="form-group"><label>Destination souhaitée</label><select><option value="">Choisir une destination</option><option>Marrakech & Désert</option><option>Tour des villes impériales</option><option>Côte atlantique</option><option>Grand Tour du Maroc</option><option>Maroc sur mesure</option></select></div>
-          <div class="form-row">
-            <div class="form-group"><label>Durée</label><select><option>3-5 jours</option><option>1 semaine</option><option>2 semaines</option><option>3 semaines+</option></select></div>
-            <div class="form-group"><label>Nombre de voyageurs</label><input type="number" min="1" max="50" value="2" /></div>
-          </div>
-          <div class="form-group"><label>Message</label><textarea rows="4" placeholder="Décrivez vos envies, contraintes, intérêts…"></textarea></div>
-          <div class="form-check"><input type="checkbox" id="newsletter" /><label for="newsletter">Recevoir notre newsletter voyage Maroc</label></div>
-          <button type="submit" class="btn-primary full">Envoyer ma demande →</button>
-        </form>
-        <div class="form-success" id="formSuccess">
-          <div class="success-icon">✓</div>
-          <h3>Demande envoyée !</h3>
-          <p>Nous vous répondrons dans les 24h. Ahlan wa Sahlan !</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== FOOTER ========== -->
-<footer class="footer">
-  <div class="footer-pattern"></div>
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="footer-logo"><span class="logo-arabic">المغرب</span><span class="logo-fr">MAROC</span></div>
-        <p>Votre guide complet pour découvrir le Royaume du Maroc — un pays de légendes, de saveurs et d'hospitalité.</p>
-        <div class="footer-star">★ ★ ★ ★ ★</div>
-
-        <!-- Morocco regions map (text-based) -->
-        <div class="footer-regions-map">
-          <div class="regions-title">Régions du Maroc</div>
-          <div class="regions-grid">
-            <span class="region-tag">🏙️ Casablanca-Settat</span>
-            <span class="region-tag">🌿 Souss-Massa</span>
-            <span class="region-tag">🏔️ Drâa-Tafilalet</span>
-            <span class="region-tag">🏛️ Fès-Meknès</span>
-            <span class="region-tag">🌊 Rabat-Salé-Kénitra</span>
-            <span class="region-tag">🏰 Marrakech-Safi</span>
-            <span class="region-tag">⛵ Tanger-Tétouan</span>
-            <span class="region-tag">🌵 Guelmim-Oued Noun</span>
-            <span class="region-tag">🦅 L'Oriental</span>
-            <span class="region-tag">🌊 Laâyoune-Sakia</span>
-            <span class="region-tag">🏜️ Dakhla-Oued Eddahab</span>
-            <span class="region-tag">🫐 Béni Mellal-Khénifra</span>
-          </div>
-        </div>
-      </div>
-      <div class="footer-col">
-        <h4>Destinations</h4>
-        <ul>
-          <li><a href="#destinations">Marrakech</a></li>
-          <li><a href="#destinations">Fès</a></li>
-          <li><a href="#destinations">Chefchaouen</a></li>
-          <li><a href="#destinations">Sahara — Merzouga</a></li>
-          <li><a href="#destinations">Casablanca</a></li>
-          <li><a href="#destinations">Tanger</a></li>
-          <li><a href="#destinations">Essaouira</a></li>
-          <li><a href="#destinations">Ouarzazate</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Découvrir</h4>
-        <ul>
-          <li><a href="#culture">Culture & Traditions</a></li>
-          <li><a href="#cuisine">Gastronomie</a></li>
-          <li><a href="#histoire">Histoire</a></li>
-          <li><a href="#economie">Économie</a></li>
-          <li><a href="#nature">Nature & Biodiversité</a></li>
-          <li><a href="#sport">Sport & Aventure</a></li>
-          <li><a href="#spirituel">Maroc Spirituel</a></li>
-          <li><a href="#shopping">Guide Shopping</a></li>
-          <li><a href="#quiz">Quiz Maroc</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Infos Pratiques</h4>
-        <ul>
-          <li>Visa : Non requis (UE, Canada…)</li>
-          <li>Monnaie : Dirham Marocain</li>
-          <li>Fuseau : UTC+1 (GMT+1)</li>
-          <li>Religion : Islam (Sunni)</li>
-          <li>Urgences : 15 (SAMU), 19 (Police)</li>
-          <li>Indicatif : +212</li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2025 Maroc — Royaume d'Or & de Lumière. Fait avec ❤️ pour le Maroc.</p>
-      <div class="footer-flag">🇲🇦</div>
-    </div>
-  </div>
-</footer>
-
-<!-- ========== DESTINATION MODAL ========== -->
-<div class="modal" id="destModal">
-  <div class="modal-overlay" onclick="closeDestModal()"></div>
-  <div class="modal-content">
-    <button class="modal-close" onclick="closeDestModal()">✕</button>
-    <div id="modalBody"></div>
   </div>
 </div>
 
-<!-- Back to top -->
-<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-  <i class="fa-solid fa-chevron-up"></i>
-</button>
-
-<!-- Reading time badge -->
-<div class="reading-badge" id="readingBadge">
-  <i class="fa-solid fa-book-open"></i>
-  <span id="readingTime">0 min</span>
+<!-- Prévisions -->
+<div class="forecast-panel">
+  <div class="card">
+    <h3>Prévisions 5 jours</h3>
+    <div class="days" id="days"></div>
+  </div>
+  <div class="card">
+    <div class="chart-head">
+      <h3 style="margin:0">Évolution · 48 h</h3>
+      <div class="chart-tabs" id="chartTabs" role="tablist">
+        <button data-v="temp" class="active">Température</button>
+        <button data-v="pres">Pression</button>
+        <button data-v="wind">Vent</button>
+        <button data-v="precip">Précip.</button>
+        <button data-v="rh">Humidité</button>
+      </div>
+    </div>
+    <canvas id="chart" aria-hidden="true"></canvas>
+    <div class="hint-row"><span id="chMin">—</span><span id="chHover"></span><span id="chMax">—</span></div>
+  </div>
 </div>
 
-<script src="assets/js/script.js"></script>
+<!-- Données professionnelles -->
+<div class="card pro-panel">
+  <div class="pro-head">
+    <h3 style="margin:0">Données d'observation</h3>
+    <span id="proStatus"></span>
+  </div>
+  <div class="pro-grid" id="proGrid"></div>
+  <div class="pro-foot" id="proFoot"></div>
+</div>
+
+<!-- Qualité de l'air -->
+<div class="card pro-panel">
+  <div class="pro-head">
+    <h3 style="margin:0">Qualité de l'air</h3>
+    <span id="airStatus"></span>
+  </div>
+  <div class="pro-grid" id="airBody"></div>
+  <div class="pro-foot" id="airFoot"></div>
+</div>
+
+<!-- Outils -->
+<div class="toolbar">
+  <button class="btn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Réglages</button>
+  <button class="btn" id="btnRefresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Actualiser</button>
+  <button class="btn" id="btnUnit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 11-4 0V4a2 2 0 014 0z"/></svg>°C / °F</button>
+</div>
+
+<!-- Réglages -->
+<div class="overlay" id="overlay">
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Réglages">
+    <div class="panel-head">
+      <button class="panel-close" id="btnCloseTop" type="button" aria-label="Fermer et revenir à l'application" title="Fermer">✕</button>
+      <h2>Réglages</h2>
+    </div>
+    <p class="muted">Configurez la station. Les préférences sont enregistrées sur cet appareil.</p>
+    <p class="hint" style="margin-bottom:14px">💡 Gérez vos villes directement sur l'écran principal : tapez dans « Ajouter une ville », cliquez une puce pour basculer, ✕ pour supprimer.</p>
+    <div class="field">
+      <label>Thème</label>
+      <div class="seg-toggle" id="themeToggle"><button data-th="auto" class="active">Auto</button><button data-th="dark">Sombre</button><button data-th="light">Clair</button><button data-th="contrast">Contraste</button></div>
+    </div>
+    <div class="field">
+      <label>Unité de température</label>
+      <div class="seg-toggle" id="unitToggle"><button data-unit="C" class="active">Celsius °C</button><button data-unit="F">Fahrenheit °F</button></div>
+    </div>
+    <div class="field">
+      <label>Format de l'heure</label>
+      <div class="seg-toggle" id="clockToggle"><button data-clk="24" class="active">24 h</button><button data-clk="12">12 h</button></div>
+    </div>
+    <div class="field">
+      <label>Fuseau de l'horloge</label>
+      <div class="seg-toggle" id="tzToggle"><button data-tz="local" class="active">Heure locale (ville)</button><button data-tz="utc">UTC / Zulu</button></div>
+    </div>
+    <div class="field">
+      <label>Modèle de prévision</label>
+      <div class="seg-toggle" id="modelToggle" style="flex-wrap:wrap">
+        <button data-m="best_match" class="active">Auto</button><button data-m="ecmwf_ifs025">ECMWF</button><button data-m="gfs_seamless">GFS</button><button data-m="icon_seamless">ICON</button><button data-m="meteofrance_seamless">AROME</button>
+      </div>
+      <p class="hint">ICON et AROME sont des modèles régionaux (Europe principalement).</p>
+    </div>
+    <div class="field">
+      <label>Unité de pression</label>
+      <div class="seg-toggle" id="presToggle"><button data-p="hPa" class="active">hPa</button><button data-p="inHg">inHg</button><button data-p="mmHg">mmHg</button></div>
+    </div>
+    <div class="field">
+      <label>Unité de vent</label>
+      <div class="seg-toggle" id="windToggle"><button data-w="kmh" class="active">km/h</button><button data-w="ms">m/s</button><button data-w="kt">kt</button><button data-w="mph">mph</button></div>
+    </div>
+    <div class="switch-row"><span>Cycle automatique des canaux (CH1→CH3)</span><label class="switch"><input type="checkbox" id="cycleChan" checked><span class="slider"></span></label></div>
+    <div class="switch-row"><span>Capteur intérieur simulé (réaliste)</span><label class="switch"><input type="checkbox" id="simInside" checked><span class="slider"></span></label></div>
+    <div class="field" id="manualInside" style="display:none">
+      <label>Valeurs intérieures manuelles</label>
+      <div class="search-row"><input type="number" id="inTempManual" step="0.1" placeholder="Temp °C" /><input type="number" id="inHumManual" step="1" placeholder="Hum %" /></div>
+    </div>
+    <div class="panel-actions"><button class="btn" id="btnClose">Fermer</button><button class="btn primary" id="btnApply">Appliquer</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   STATION MÉTÉO PRO — version dynamique (vanilla JS, 0 dépendance obligatoire)
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+
+const DEFAULTS = {
+  unit:'C', unitP:'hPa', unitW:'kmh', clock:'24', tzMode:'local', model:'best_match',
+  chartVar:'temp', theme:'auto', simInside:true, cycleChan:true,
+  inTempManualC:26.5, inHumManual:59,
+  city:{ name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
+  cities:[
+    { name:'Paris', code:'PAR', lat:48.8566, lon:2.3522, country:'France' },
+    { name:'Casablanca', code:'CAS', lat:33.5731, lon:-7.5898, country:'Maroc' }
+  ]
+};
+let prefs = loadPrefs();
+function loadPrefs(){
+  let p;
+  try{ const r=localStorage.getItem('wxstation'); p = r?Object.assign({},DEFAULTS,JSON.parse(r)):structuredClone(DEFAULTS); }
+  catch(e){ p = structuredClone(DEFAULTS); }
+  // Migration / cohérence de la liste de villes
+  if(!Array.isArray(p.cities) || !p.cities.length){ p.cities = [p.city || DEFAULTS.city]; }
+  if(!p.city) p.city = p.cities[0];
+  if(!p.cities.some(c=>sameCity(c,p.city))) p.cities.unshift(p.city);
+  return p;
+}
+function savePrefs(){ try{ localStorage.setItem('wxstation', JSON.stringify(prefs)); }catch(e){} }
+
+/* ---------- Thème (auto / sombre / clair / contraste) ---------- */
+function resolveTheme(){ const t=prefs.theme||'auto';
+  if(t==='auto') return (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  return t; }
+function applyTheme(){ const r=resolveTheme();
+  document.documentElement.setAttribute('data-theme', r);
+  const mc={dark:'#0b1220',light:'#eef3f9',contrast:'#000000'}[r]||'#0b1220';
+  const m=document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute('content',mc); }
+
+let wx = {
+  live:false, stale:false,
+  outTempC:36.8, outHum:23, code:80,
+  sunrise:'5:48', sunset:'21:56',
+  pressure:1015, pressureHistory:[1011,1012,1012,1013,1013,1014,1014,1015,1015,1015,1016,1015],
+  inTempC:26.5, inHum:59,
+  prevOutTempC:36.6, prevInTempC:26.4,
+  // Variables professionnelles (extérieur)
+  apparentC:38, dewpointC:10, windKmh:12, windDir:230, gustKmh:24,
+  uv:7, precip:0, precipProb:10, cloud:40, visibility:24140, surfaceP:1009,
+  obsTime:null, elevation:null, tz:'auto', utcOffset:null,
+  daily:[],   // {date, code, tmax, tmin, uvMax, precipSum, precipProb, windMax}
+  hourly:[],  // {t:Date, temp}
+  series:null,// {time:[Date], temp:[], pres:[], wind:[], precip:[], rh:[]} sur 48 h
+  air:{aqi:null,pm25:null,pm10:null,no2:null,o3:null,so2:null,co:null,pollen:null,pollenName:'',time:null,live:false,stale:false}
+};
+let channel = 0; // 0=CH1 (réel/extérieur dérivé), 1=CH2, 2=CH3
+
+/* ---------- Horloge & date ---------- */
+const JOURS=['DIMANCHE','LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI'];
+const JOURS_C=['DIM','LUN','MAR','MER','JEU','VEN','SAM'];
+const MOIS=['JANV','FEVR','MARS','AVRIL','MAI','JUIN','JUIL','AOUT','SEPT','OCTO','NOVE','DECE'];
+function pad(n){ return String(n).padStart(2,'0'); }
+/* Décalage horaire approché d'après la longitude (repli hors-ligne / instantané) */
+function cityOffsetSec(lon){ return Math.max(-12,Math.min(14,Math.round((+lon||0)/15)))*3600; }
+function fmtOffset(sec){ const sign=sec<0?'-':'+'; const a=Math.abs(sec)/3600; const hh=Math.floor(a); const mm=Math.round((a-hh)*60); return 'UTC'+sign+hh+(mm?':'+pad(mm):''); }
+/* Instant affiché : UTC, ou heure locale de la VILLE (offset exact de l'API, sinon approché) */
+function displayNow(){
+  const utcMs=Date.now()+new Date().getTimezoneOffset()*60000;
+  if(prefs.tzMode==='utc') return {ms:utcMs, suf:'UTC'};
+  const off=(wx.utcOffset!=null?wx.utcOffset:cityOffsetSec(prefs.city&&prefs.city.lon));
+  return {ms:utcMs+off*1000, suf:fmtOffset(off)};
+}
+function tick(){
+  const {ms,suf}=displayNow(); const dt=new Date(ms);
+  let h=dt.getUTCHours(); const m=dt.getUTCMinutes(), s=dt.getUTCSeconds();
+  if(prefs.clock==='12'){ const ap=h>=12?'PM':'AM'; let h12=h%12||12; $('clkHM').textContent=`${pad(h12)}:${pad(m)}`; $('clkS').textContent=`${pad(s)} ${ap}${suf?' '+suf:''}`; }
+  else{ $('clkHM').textContent=`${pad(h)}:${pad(m)}`; $('clkS').textContent=pad(s)+(suf?' '+suf:''); }
+  $('dateDM').textContent=`${pad(dt.getUTCDate())}/${MOIS[dt.getUTCMonth()]}`;
+  $('dateDow').textContent=JOURS[dt.getUTCDay()];
+  updateTide(dt);
+}
+
+/* ---------- Lune ---------- */
+const MOON_NAMES=['NOUVELLE','PREM.CROISS','PREM.QUART','GIBB.CROISS','PLEINE','GIBB.DECR','DERN.QUART','DERN.CROISS'];
+function moonPhase(date){ const ref=Date.UTC(2000,0,6,18,14); const days=(date.getTime()-ref)/86400000; const syn=29.53058867; let p=(days%syn)/syn; if(p<0)p+=1; return {idx:Math.round(p*8)%8, frac:p}; }
+function moonSVG(idx){ const lit=[0,.25,.5,.75,1,.75,.5,.25][idx]; const off=(1-lit)*14*(idx<=4?-1:1);
+  return `<svg width="22" height="22" viewBox="0 0 24 24"><clipPath id="mc"><circle cx="12" cy="12" r="10"/></clipPath>
+    <g clip-path="url(#mc)"><circle cx="12" cy="12" r="10" fill="#fdf3c7"/>
+    <ellipse cx="${12+off}" cy="12" rx="10" ry="10" fill="#13314f" opacity="${lit>=1?0:1}"/>${idx===0?'<circle cx="12" cy="12" r="10" fill="#13314f"/>':''}</g></svg>`; }
+function updateMoon(d){ const{idx}=moonPhase(d); $('moonIcon').innerHTML=moonSVG(idx); $('moonName').textContent=MOON_NAMES[idx]; }
+function updateTide(now){ const ht=now.getUTCHours()+now.getUTCMinutes()/60; $('tide').textContent=((ht%12.42)/12.42)<0.5?'HAUTE':'BASSE'; }
+
+/* ---------- Catégories météo ---------- */
+function wxCat(code){
+  return {
+    clear: code===0||code===1,
+    cloudy:[2,3,45,48].includes(code),
+    rain:[51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code),
+    snow:[71,73,75,77,85,86].includes(code),
+    storm:[95,96,99].includes(code)
+  };
+}
+function wmoToInfo(code){
+  const sun='<g class="an-sun"><circle cx="12" cy="12" r="5" fill="none" stroke="#ffd27d" stroke-width="2"/><g stroke="#ffd27d" stroke-width="2"><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4 4l2 2M18 18l2 2M20 4l-2 2M6 18l-2 2"/></g></g>';
+  const cloud='<g class="an-cloud"><path d="M7 18a4 4 0 010-8 5 5 0 019.5-1.5A3.5 3.5 0 0117 18z" fill="none" stroke="#9fe6ff" stroke-width="2"/></g>';
+  const rain='<g class="an-rain" stroke="#56d3ff" stroke-width="2"><line x1="8" y1="19" x2="8" y2="22"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="16" y1="19" x2="16" y2="22"/></g>';
+  const snow='<g stroke="#cfeeff" stroke-width="2"><path d="M8 20h.01M12 21h.01M16 20h.01"/></g>';
+  const bolt='<path class="an-bolt" d="M11 18l-2 4 5-1-1 3" fill="none" stroke="#ffd27d" stroke-width="2"/>';
+  const fog='<g class="an-cloud" stroke="#9fe6ff" stroke-width="2"><path d="M4 16h16M4 19h16M6 13h12"/></g>';
+  let label='Ensoleillé', body=`<g transform="translate(0,-1)">${sun}</g>`;
+  if(code===0)label='Ciel clair';
+  else if([1,2].includes(code)){label='Peu nuageux';body=`<g transform="translate(-5,-4) scale(.8)">${sun}</g><g transform="translate(4,4)">${cloud}</g>`;}
+  else if(code===3){label='Couvert';body=cloud;}
+  else if([45,48].includes(code)){label='Brouillard';body=cloud+fog;}
+  else if([51,53,55,56,57].includes(code)){label='Bruine';body=cloud+rain;}
+  else if([61,63,65,66,67,80,81,82].includes(code)){label='Averses';body=`<g transform="translate(-4,-4) scale(.7)">${sun}</g>`+cloud+rain;}
+  else if([71,73,75,77,85,86].includes(code)){label='Neige';body=cloud+snow;}
+  else if([95,96,99].includes(code)){label='Orage';body=cloud+bolt;}
+  return {label, svg:`<svg width="84" height="84" viewBox="0 0 24 24">${body}</svg>`};
+}
+function miniIcon(code){
+  const c=wxCat(code);
+  if(c.storm) return '<svg viewBox="0 0 24 24" fill="none"><path d="M7 16a4 4 0 010-8 5 5 0 019.5-1.5A3.5 3.5 0 0117 16z" stroke="#9fe6ff" stroke-width="1.6"/><path d="M11 16l-2 4 5-1-1 3" stroke="#ffd27d" stroke-width="1.6"/></svg>';
+  if(c.snow) return '<svg viewBox="0 0 24 24" fill="none"><path d="M7 16a4 4 0 010-8 5 5 0 019.5-1.5A3.5 3.5 0 0117 16z" stroke="#9fe6ff" stroke-width="1.6"/><g stroke="#cfeeff" stroke-width="1.6"><path d="M8 19h.01M12 20h.01M16 19h.01"/></g></svg>';
+  if(c.rain) return '<svg viewBox="0 0 24 24" fill="none"><path d="M7 15a4 4 0 010-8 5 5 0 019.5-1.5A3.5 3.5 0 0117 15z" stroke="#9fe6ff" stroke-width="1.6"/><g stroke="#56d3ff" stroke-width="1.6"><path d="M8 18v2M12 18v3M16 18v2"/></g></svg>';
+  if(c.cloudy) return '<svg viewBox="0 0 24 24" fill="none"><path d="M7 17a4 4 0 010-8 5 5 0 019.5-1.5A3.5 3.5 0 0117 17z" stroke="#9fe6ff" stroke-width="1.6"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="#ffd27d" stroke-width="1.8"/><g stroke="#ffd27d" stroke-width="1.8"><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></g></svg>';
+}
+function comfortSVG(hum){
+  let face,color;
+  if(hum>=40&&hum<=60){color='#7dffb0';face='<path d="M8 14a4 4 0 008 0" fill="none" stroke="'+color+'" stroke-width="2"/>';}
+  else if((hum>=30&&hum<40)||(hum>60&&hum<=70)){color='#ffd27d';face='<path d="M8 14h8" stroke="'+color+'" stroke-width="2"/>';}
+  else{color='#ff9b9b';face='<path d="M8 15a4 4 0 018 0" fill="none" stroke="'+color+'" stroke-width="2"/>';}
+  return `<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="${color}" stroke-width="1.6"/><circle cx="9" cy="10" r="1.2" fill="${color}"/><circle cx="15" cy="10" r="1.2" fill="${color}"/>${face}</svg>`;
+}
+
+/* ---------- Chiffres animés (tween) ---------- */
+function tweenNum(el, target, decimals){
+  if(!isFinite(target)) return;
+  const prev = el.__cur;
+  if(prev===undefined){ el.__cur=target; el.textContent=decimals?target.toFixed(decimals):String(Math.round(target)); return; }
+  if(Math.abs(prev-target)<0.05){ el.__cur=target; return; }
+  const start=prev, t0=performance.now(), dur=650;
+  el.__cur=target;
+  (function step(now){
+    const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3);
+    const v=start+(target-start)*e;
+    el.textContent=decimals?v.toFixed(decimals):String(Math.round(v));
+    if(k<1) requestAnimationFrame(step);
+  })(t0);
+}
+function flash(seg){ seg.classList.remove('flash'); void seg.offsetWidth; seg.classList.add('flash'); }
+function bump(arrowEl){ arrowEl.classList.remove('bump'); void arrowEl.offsetWidth; arrowEl.classList.add('bump'); }
+
+/* ---------- Conversions & météorologie ---------- */
+function cToDisplay(c){ return prefs.unit==='F'?(c*9/5+32):c; }
+function unitLabel(){ return prefs.unit==='F'?'°F':'°C'; }
+function tempStr(c,dec){ if(c==null||!isFinite(c)) return '—'; const v=cToDisplay(c); return (dec?v.toFixed(dec):Math.round(v))+unitLabel(); }
+
+// Pression : base hPa
+function pConv(hpa){ if(prefs.unitP==='inHg') return hpa*0.0295299830714; if(prefs.unitP==='mmHg') return hpa*0.750061682704; return hpa; }
+function pDecimals(){ return prefs.unitP==='inHg'?2 : prefs.unitP==='mmHg'?1 : 0; }
+function pUnit(){ return prefs.unitP; }
+function pStr(hpa){ if(hpa==null||!isFinite(hpa)) return '—'; return pConv(hpa).toFixed(pDecimals()); }
+
+// Vent : base km/h
+function wConv(kmh){ if(prefs.unitW==='ms') return kmh/3.6; if(prefs.unitW==='kt') return kmh/1.852; if(prefs.unitW==='mph') return kmh/1.609344; return kmh; }
+function wUnit(){ return ({kmh:'km/h',ms:'m/s',kt:'kt',mph:'mph'})[prefs.unitW]; }
+function wStr(kmh){ if(kmh==null||!isFinite(kmh)) return '—'; const v=wConv(kmh); return (v<10?v.toFixed(1):Math.round(v))+''; }
+
+function beaufort(kmh){
+  const t=[1,6,12,20,29,39,50,62,75,89,103,118];
+  let b=0; for(let i=0;i<t.length;i++){ if(kmh>=t[i]) b=i+1; }
+  const names=['Calme','Très légère brise','Légère brise','Petite brise','Jolie brise','Bonne brise','Vent frais','Grand frais','Coup de vent','Fort coup de vent','Tempête','Violente tempête','Ouragan'];
+  return {force:b, name:names[b]};
+}
+const DIRS16=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+function compass(deg){ if(deg==null||!isFinite(deg)) return '—'; return DIRS16[Math.round((deg%360)/22.5)%16]; }
+function uvRisk(uv){ if(uv==null) return {t:'—',c:'#9fb6d6'}; if(uv<3) return {t:'Faible',c:'#7dffb0'}; if(uv<6) return {t:'Modéré',c:'#ffd27d'}; if(uv<8) return {t:'Élevé',c:'#ff9b6b'}; if(uv<11) return {t:'Très élevé',c:'#ff6b6b'}; return {t:'Extrême',c:'#d98cff'}; }
+
+// Point de rosée de secours (Magnus) si l'API ne le fournit pas
+function dewPoint(tC,rh){ if(tC==null||rh==null) return null; const a=17.27,b=237.7; const g=(a*tC)/(b+tC)+Math.log(rh/100); return (b*g)/(a-g); }
+// Tendance barométrique sur 3 h (hPa MSL)
+function pressureTendency(){
+  const h=wx.pressureHistory; if(!h||h.length<4) return {delta:0,word:'Stable',arrow:'→',cls:'flat'};
+  const delta=h[h.length-1]-h[h.length-4];
+  let word='Stable',arrow='→',cls='flat';
+  if(delta>=0.5){ arrow='↑'; cls='up'; word=delta>=2?'Hausse rapide':'En hausse'; }
+  else if(delta<=-0.5){ arrow='↓'; cls='down'; word=delta<=-2?'Baisse rapide':'En baisse'; }
+  return {delta,word,arrow,cls};
+}
+function timeAgo(d){ if(!d) return ''; const s=Math.round((Date.now()-d.getTime())/1000);
+  if(s<60) return "à l'instant"; const m=Math.round(s/60); if(m<60) return `il y a ${m} min`; const hh=Math.round(m/60); return `il y a ${hh} h`; }
+function arrow(curr,prev){ const d=curr-prev; if(d>0.15)return{ch:'↑',cls:'up'}; if(d<-0.15)return{ch:'↓',cls:'down'}; return{ch:'→',cls:'flat'}; }
+function setArrow(el,a){ if(el.textContent!==a.ch) bump(el); el.textContent=a.ch; el.className='trend-arrow '+a.cls; }
+
+function renderBaro(){
+  const wrap=$('baro'); const hist=wx.pressureHistory;
+  const min=Math.min(...hist)-2, max=Math.max(...hist)+2;
+  if(wrap.children.length!==hist.length){ wrap.innerHTML=''; hist.forEach(()=>wrap.appendChild(Object.assign(document.createElement('div'),{className:'bar'}))); }
+  hist.forEach((p,i)=>{ const h=8+((p-min)/(max-min||1))*34; const b=wrap.children[i]; b.style.height=h+'px'; b.title=pStr(p)+' '+pUnit()+' MSL'; });
+}
+function renderTrend(){ const t=pressureTendency();
+  $('trendText').textContent = t.cls==='up'?'Amélioration ☀' : t.cls==='down'?'Dégradation ☂' : 'Stable —'; }
+
+let _lastCode=-1, _lastMoon=-1, _lastComfort=null;
+function render(){
+  // OUT
+  tweenNum($('outTemp'), cToDisplay(wx.outTempC), 1);
+  tweenNum($('outHum'), wx.outHum, 0);
+  $('outUnit').textContent=unitLabel();
+  setArrow($('outTrend'), arrow(wx.outTempC, wx.prevOutTempC));
+  // IN (selon canal)
+  const ch=channelValues();
+  $('chBadge').textContent='C'+(channel+1);
+  tweenNum($('inTemp'), cToDisplay(ch.t), 1);
+  tweenNum($('inHum'), ch.h, 0);
+  $('inUnit').textContent=unitLabel();
+  setArrow($('inTrend'), arrow(ch.t, wx.prevInTempC));
+  const cKey=Math.round(ch.h); if(cKey!==_lastComfort){ $('comfort').innerHTML=comfortSVG(ch.h); _lastComfort=cKey; }
+  // météo centre — icône reconstruite uniquement si le code météo change
+  if(wx.code!==_lastCode){ $('wxIcon').innerHTML=wmoToInfo(wx.code).svg; _lastCode=wx.code; }
+  fitCityName($('cityName'), prefs.city.name);
+  $('sunrise').textContent=wx.sunrise; $('sunset').textContent=wx.sunset;
+  // baromètre (pression au niveau de la mer — référence professionnelle)
+  $('pressure').textContent=pStr(wx.pressure);
+  $('pressUnit').textContent=pUnit()+' MSL';
+  renderBaro(); renderTrend();
+  // badge statut
+  const badge=$('modeBadge');
+  badge.classList.toggle('live', wx.live);
+  $('modeText').textContent=(wx.live?'En direct':(wx.stale?'Hors-ligne':'Démo'))+' · '+prefs.city.name;
+  // lune — reconstruite uniquement au changement de phase
+  const mi=moonPhase(new Date()).idx; if(mi!==_lastMoon){ updateMoon(new Date()); _lastMoon=mi; }
+  renderForecast();
+  renderPro();
+  renderVigilance();
+  // Résumé textuel pour lecteurs d'écran
+  const sr=$('srSummary');
+  if(sr) sr.textContent=`Conditions à ${prefs.city.name}. Extérieur ${Math.round(cToDisplay(wx.outTempC))} ${unitLabel()}, `
+    +`humidité ${Math.round(wx.outHum)} pour cent, vent ${Math.round(wConv(wx.windKmh))} ${wUnit()} de ${compass(wx.windDir)}, `
+    +`pression ${pStr(wx.pressure)} ${pUnit()}. `
+    +(wx.live?'Données en direct.':wx.stale?'Dernière observation, hors-ligne.':'Mode démonstration.');
+}
+
+/* Canaux capteurs : CH1 = intérieur réel/simulé ; CH2/CH3 = décalages */
+function channelValues(){
+  const base={t:wx.inTempC, h:wx.inHum};
+  if(channel===1) return {t:base.t-3.2, h:Math.min(99,base.h+8)};   // CH2 (autre pièce)
+  if(channel===2) return {t:base.t+1.6, h:Math.max(5,base.h-12)};  // CH3
+  return base;
+}
+
+/* ---------- Prévisions 5 jours + courbe horaire ---------- */
+let _fcKey='';
+function renderForecast(){
+  const days=(wx.daily.length?wx.daily:synthDaily()).slice(0,5);
+  // Ne reconstruit (et ré-anime) les cartes que si les données changent
+  const key=prefs.unit+'|'+days.map(d=>d.date+','+d.code+','+Math.round(d.tmax)+','+Math.round(d.tmin)).join(';');
+  if(key!==_fcKey){
+    _fcKey=key;
+    const box=$('days'); box.innerHTML='';
+    days.forEach((d,i)=>{
+      const el=document.createElement('div'); el.className='day'; el.style.animationDelay=(i*70)+'ms';
+      const dow = JOURS_C[new Date(d.date).getDay()] || ['LUN','MAR','MER','JEU','VEN'][i];
+      el.innerHTML=`<span class="dn">${i===0?"Auj.":dow}</span><span class="ic">${miniIcon(d.code)}</span>
+        <span class="tmax">${Math.round(cToDisplay(d.tmax))}°</span><span class="tmin">${Math.round(cToDisplay(d.tmin))}°</span>`;
+      box.appendChild(el);
+    });
+  }
+  Chart.draw();
+}
+
+/* ---------- Panneau professionnel ---------- */
+const MODEL_LABEL={best_match:'Auto (meilleur modèle)', ecmwf_ifs025:'ECMWF IFS', gfs_seamless:'NOAA GFS', icon_seamless:'DWD ICON', meteofrance_seamless:'Météo-France AROME/ARPEGE'};
+const INFO={
+  'Ressenti':'Température ressentie par le corps, intégrant le vent (refroidissement éolien) et l’humidité (humidex).',
+  'Point de rosée':'Température à laquelle l’air doit refroidir pour saturer (rosée, brouillard). Plus il est élevé, plus l’air est humide et lourd.',
+  'Vent':'Vitesse moyenne du vent à 10 m et secteur d’où il souffle ; force indiquée sur l’échelle de Beaufort.',
+  'Rafales':'Pointe de vent maximale instantanée mesurée sur la période.',
+  'Pression MSL':'Pression atmosphérique ramenée au niveau de la mer (comparable d’un lieu à l’autre). La tendance sur 3 h indique l’évolution du temps.',
+  'Indice UV':'Intensité du rayonnement ultraviolet : 0–2 faible, 3–5 modéré, 6–7 élevé, 8–10 très élevé, 11+ extrême. Protection dès 6.',
+  'Précipitations':'Cumul de précipitations (équivalent en eau) et probabilité associée.',
+  'Couverture nuageuse':'Fraction du ciel couverte par les nuages, de 0 % (dégagé) à 100 % (couvert).',
+  'Visibilité':'Distance horizontale maximale à laquelle on distingue un objet ; < 1 km = brouillard.',
+  'Humidité relative':'Part de vapeur d’eau dans l’air par rapport au maximum possible à cette température.',
+  'Indice AQI (Europe)':'Indice européen de qualité de l’air (0 bon → 100+ extrême), calculé à partir des PM2.5, PM10, NO₂ et O₃.'
+};
+function infoBtn(label){ return INFO[label]? ` <button class="info" type="button" aria-label="Définition : ${label}" data-def="${INFO[label].replace(/"/g,'&quot;')}">ⓘ</button>` : ''; }
+function cloudWord(c){ if(c<10)return'Ciel dégagé'; if(c<40)return'Peu nuageux'; if(c<70)return'Partiellement couvert'; if(c<90)return'Très nuageux'; return'Couvert'; }
+function visWord(km){ if(km==null)return''; if(km<1)return'Brouillard'; if(km<4)return'Médiocre'; if(km<10)return'Modérée'; return'Bonne'; }
+function compassSVG(deg){
+  return `<svg class="compass" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="none" stroke="#27405f" stroke-width="1.5"/>
+    <text x="20" y="9" fill="#6f87a6" font-size="7" text-anchor="middle">N</text>
+    <g transform="rotate(${Math.round(deg)} 20 20)"><path d="M20 6 L24 22 L20 18 L16 22 Z" fill="#ff6b6b"/><path d="M20 34 L24 18 L20 22 L16 18 Z" fill="#9fb6d6"/></g>
+  </svg>`;
+}
+let _proKey='';
+function renderPro(){
+  const grid=$('proGrid'); if(!grid) return;
+  const bf=beaufort(wx.windKmh), uvr=uvRisk(wx.uv), tend=pressureTendency();
+  const visKm = wx.visibility!=null ? wx.visibility/1000 : null;
+  const key=[prefs.unit,prefs.unitP,prefs.unitW,Math.round(wx.apparentC),Math.round(wx.dewpointC),Math.round(wx.windKmh),
+    Math.round(wx.windDir),Math.round(wx.gustKmh),Math.round(wx.pressure*10),Math.round(wx.uv),(wx.precip||0).toFixed(1),
+    Math.round(wx.precipProb||0),Math.round(wx.cloud),Math.round(wx.visibility),Math.round(wx.outHum),wx.live,wx.stale,
+    prefs.model, wx.obsTime?wx.obsTime.getTime():0].join('|');
+  if(key!==_proKey){
+    _proKey=key;
+    const tiles=[
+      {l:'Ressenti', v:tempStr(wx.apparentC,0), s:'température apparente'},
+      {l:'Point de rosée', v:tempStr(wx.dewpointC,0), s:'humidité '+Math.round(wx.outHum)+'%'},
+      {l:'Vent', v:wStr(wx.windKmh)+'<small> '+wUnit()+'</small>', s:'de '+compass(wx.windDir)+' · '+Math.round(wx.windDir)+'° · F'+bf.force+' '+bf.name, compass:wx.windDir},
+      {l:'Rafales', v:wStr(wx.gustKmh)+'<small> '+wUnit()+'</small>', s:'pointe maximale'},
+      {l:'Pression MSL', v:pStr(wx.pressure)+'<small> '+pUnit()+'</small>', s:tend.arrow+' '+tend.word+' ('+(tend.delta>=0?'+':'')+tend.delta.toFixed(1)+' hPa/3h)'},
+      {l:'Indice UV', v:Math.round(wx.uv), s:uvr.t, color:uvr.c, alert:wx.uv>=8},
+      {l:'Précipitations', v:(wx.precip||0).toFixed(1)+'<small> mm</small>', s:'probabilité '+Math.round(wx.precipProb||0)+'%'},
+      {l:'Couverture nuageuse', v:Math.round(wx.cloud)+'<small> %</small>', s:cloudWord(wx.cloud)},
+      {l:'Visibilité', v:(visKm!=null?(visKm>=10?Math.round(visKm):visKm.toFixed(1)):'—')+'<small> km</small>', s:visWord(visKm)},
+      {l:'Humidité relative', v:Math.round(wx.outHum)+'<small> %</small>', s:'extérieure'}
+    ];
+    grid.innerHTML=tiles.map(t=>`<div class="tile${t.alert?' alert':''}">
+      ${t.compass!=null?compassSVG(t.compass):''}
+      <div class="tl">${t.l}${infoBtn(t.l)}</div>
+      <div class="tv"${t.color?` style="color:${t.color}"`:''}>${t.v}</div>
+      <div class="ts">${t.s}</div></div>`).join('');
+    const parts=['<span><b>Source</b> Open-Meteo</span>',
+      '<span><b>Modèle</b> '+(MODEL_LABEL[prefs.model]||prefs.model)+'</span>',
+      '<span><b>Type</b> prévision modèle (interpolée, non observation station)</span>'];
+    if(wx.elevation!=null) parts.push('<span><b>Altitude</b> '+Math.round(wx.elevation)+' m</span>');
+    parts.push('<span><b>Position</b> '+(+prefs.city.lat).toFixed(3)+'°, '+(+prefs.city.lon).toFixed(3)+'°</span>');
+    if(wx.obsTime) parts.push('<span><b>Observation</b> '+pad2(wx.obsTime.getHours())+':'+pad2(wx.obsTime.getMinutes())+' ('+timeAgo(wx.obsTime)+')</span>');
+    $('proFoot').innerHTML=parts.join('');
+    $('proStatus').innerHTML = wx.live?'<span class="live-tag">● EN DIRECT</span>' : wx.stale?'<span class="stale-tag">⚠ DERNIÈRE OBS. · hors-ligne</span>' : '<span class="stale-tag">MODE DÉMO</span>';
+  }
+}
+function synthDaily(){
+  const base=wx.outTempC, out=[]; const codes=[wx.code,3,61,2,0];
+  for(let i=0;i<5;i++){ const tmax=base+(Math.sin(i)*2)+ (i? (Math.random()*3-1):0); out.push({date:new Date(Date.now()+i*86400000).toISOString(), code:codes[i%codes.length], tmax:tmax, tmin:tmax-7}); }
+  return out;
+}
+function synthSeries(){
+  const now=new Date(), time=[], temp=[], pres=[], wind=[], precip=[], rh=[];
+  for(let i=0;i<48;i++){ const t=new Date(now.getTime()+i*3600000); const hr=t.getHours();
+    time.push(t);
+    temp.push(wx.outTempC - 4 + 5*Math.sin((hr-9)/24*2*Math.PI));
+    pres.push(wx.pressure + 3*Math.sin(i/8));
+    wind.push(clamp(wx.windKmh + 8*Math.sin(i/5) + (Math.random()*3-1.5),0,90));
+    precip.push(Math.max(0, (wx.code>=51? (Math.sin(i/3)>0.6?Math.random()*2:0):0)));
+    rh.push(clamp(wx.outHum + 10*Math.sin(i/6+1),5,99));
+  }
+  return {time,temp,pres,wind,precip,rh};
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+const DOW3=['dim','lun','mar','mer','jeu','ven','sam'];
+
+/* ---------- Graphe 48 h multi-variables (interactif) ---------- */
+const Chart=(function(){
+  const cv=$('chart');
+  let geom=null, hoverI=-1;
+  const VARS={
+    temp:{label:'Température', color:'#56d3ff', fill:'rgba(86,211,255,', conv:c=>cToDisplay(c), unit:()=>unitLabel(), dec:1},
+    pres:{label:'Pression MSL', color:'#7dffb0', fill:'rgba(125,255,176,', conv:p=>pConv(p), unit:()=>pUnit(), dec:()=>pDecimals()},
+    wind:{label:'Vent', color:'#ffd27d', fill:'rgba(255,210,125,', conv:w=>wConv(w), unit:()=>wUnit(), dec:0},
+    precip:{label:'Précipitations', color:'#8fb6ff', fill:'rgba(143,182,255,', conv:v=>v, unit:()=>'mm', dec:1, bars:true},
+    rh:{label:'Humidité', color:'#9fe6ff', fill:'rgba(159,230,255,', conv:v=>v, unit:()=>'%', dec:0}
+  };
+  function series(){ return (wx.series&&wx.series.time&&wx.series.time.length>1)?wx.series:synthSeries(); }
+  function dec(V){ return typeof V.dec==='function'?V.dec():V.dec; }
+  function draw(){
+    if(!cv) return;
+    const V=VARS[prefs.chartVar]||VARS.temp, s=series();
+    const vals=(s[prefs.chartVar]||[]).map(v=>(v==null?null:V.conv(v)));
+    const fin=vals.filter(v=>v!=null&&isFinite(v));
+    if(fin.length<2) return;
+    const W=Math.round(cv.clientWidth||320), H=160, padL=8, padR=8, padT=12, padB=22;
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,W,H);
+    let min=Math.min(...fin), max=Math.max(...fin); if(V.bars) min=0; if(min===max) max=min+1;
+    const x=i=>padL+i*(W-padL-padR)/(vals.length-1);
+    const y=v=>H-padB-((v-min)/((max-min)||1))*(H-padT-padB);
+    g.strokeStyle='rgba(255,255,255,.06)'; g.lineWidth=1;
+    for(let k=0;k<=3;k++){ const yy=padT+k*(H-padT-padB)/3; g.beginPath(); g.moveTo(padL,yy); g.lineTo(W-padR,yy); g.stroke(); }
+    g.fillStyle='#7f97b6'; g.font='10px Segoe UI'; g.textAlign='center';
+    s.time.forEach((t,i)=>{ if(i%6===0){ g.fillText((i===0?'auj':DOW3[t.getDay()])+' '+pad2(t.getHours())+'h', x(i), H-6); } });
+    if(V.bars){
+      const bw=Math.max(2,(W-padL-padR)/vals.length-1);
+      vals.forEach((v,i)=>{ if(v==null) return; const yy=y(v); g.fillStyle=V.fill+'.85)'; g.fillRect(x(i)-bw/2, yy, bw, (H-padB)-yy); });
+    }else{
+      const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,V.fill+'.32)'); grad.addColorStop(1,V.fill+'0)');
+      g.beginPath(); let st=false;
+      vals.forEach((v,i)=>{ if(v==null) return; const px=x(i),py=y(v); if(!st){ g.moveTo(px,H-padB); g.lineTo(px,py); st=true;} else g.lineTo(px,py); });
+      g.lineTo(x(vals.length-1),H-padB); g.closePath(); g.fillStyle=grad; g.fill();
+      g.beginPath(); st=false;
+      vals.forEach((v,i)=>{ if(v==null) return; const px=x(i),py=y(v); if(!st){ g.moveTo(px,py); st=true;} else g.lineTo(px,py); });
+      g.strokeStyle=V.color; g.lineWidth=2; g.shadowColor=V.fill+'.6)'; g.shadowBlur=8; g.stroke(); g.shadowBlur=0;
+    }
+    if(hoverI>=0 && hoverI<vals.length && vals[hoverI]!=null){
+      const px=x(hoverI), py=y(vals[hoverI]);
+      g.strokeStyle='rgba(255,255,255,.25)'; g.beginPath(); g.moveTo(px,padT); g.lineTo(px,H-padB); g.stroke();
+      g.fillStyle=V.color; g.beginPath(); g.arc(px,py,3.5,0,7); g.fill();
+    }
+    geom={x, vals, W, padL, padR, n:vals.length};
+    const d=dec(V);
+    if(hoverI>=0 && vals[hoverI]!=null){ const t=s.time[hoverI];
+      $('chHover').textContent=(hoverI===0?'auj.':DOW3[t.getDay()])+' '+pad2(t.getHours())+'h · '+vals[hoverI].toFixed(d)+' '+V.unit(); }
+    else $('chHover').textContent='min '+min.toFixed(d)+' · max '+max.toFixed(d)+' '+V.unit();
+    $('chMin').textContent=V.label; $('chMax').textContent=V.unit();
+  }
+  function onMove(ev){
+    if(!geom) return; const rect=cv.getBoundingClientRect();
+    const cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
+    const step=(geom.W-geom.padL-geom.padR)/(geom.n-1);
+    const i=Math.round((cx-geom.padL)/step);
+    if(i<0||i>=geom.n) return;
+    if(i!==hoverI){ hoverI=i; requestAnimationFrame(draw); }
+  }
+  function leave(){ if(hoverI!==-1){ hoverI=-1; draw(); } }
+  function setVar(v){ if(!VARS[v]) return; prefs.chartVar=v; savePrefs(); hoverI=-1;
+    document.querySelectorAll('#chartTabs button').forEach(b=>b.classList.toggle('active', b.dataset.v===v)); draw(); }
+  return {draw, onMove, leave, setVar};
+})();
+
+/* ---------- Qualité de l'air (Open-Meteo Air-Quality, sans clé) ---------- */
+function numN(v){ return (typeof v==='number'&&isFinite(v))?v:null; }
+function aqiCat(a){
+  if(a==null) return {t:'—',c:'#9fb6d6'};
+  if(a<=20) return {t:'Bon',c:'#7dffb0'};
+  if(a<=40) return {t:'Moyen',c:'#b8e986'};
+  if(a<=60) return {t:'Dégradé',c:'#ffd27d'};
+  if(a<=80) return {t:'Mauvais',c:'#ff9b6b'};
+  if(a<=100) return {t:'Très mauvais',c:'#ff6b6b'};
+  return {t:'Extrême',c:'#d98cff'};
+}
+function pollenCat(v){ if(v==null) return {t:'—',c:'#9fb6d6'}; if(v<10) return {t:'Faible',c:'#7dffb0'}; if(v<50) return {t:'Modéré',c:'#ffd27d'}; if(v<100) return {t:'Élevé',c:'#ff9b6b'}; return {t:'Très élevé',c:'#ff6b6b'}; }
+function airCacheKey(c){ return 'aircache_'+(+c.lat).toFixed(2)+'_'+(+c.lon).toFixed(2); }
+function airCacheStore(c,d){ try{ localStorage.setItem(airCacheKey(c),JSON.stringify({t:Date.now(),d})); }catch(e){} }
+function airCacheLoad(c){ try{ const r=localStorage.getItem(airCacheKey(c)); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function applyAir(d){
+  const c=d.current||{}, a=wx.air;
+  a.aqi=numN(c.european_aqi); a.pm25=numN(c.pm2_5); a.pm10=numN(c.pm10);
+  a.no2=numN(c.nitrogen_dioxide); a.o3=numN(c.ozone); a.so2=numN(c.sulphur_dioxide); a.co=numN(c.carbon_monoxide);
+  a.time=c.time?new Date(c.time):new Date();
+  const H=d.hourly||{};
+  if(H.time){ let i=H.time.findIndex(t=>new Date(t)>=new Date()); if(i<0)i=H.time.length-1; if(i>0)i--;
+    const types={Bouleau:H.birch_pollen,Graminées:H.grass_pollen,Ambroisie:H.ragweed_pollen,Aulne:H.alder_pollen};
+    let best=null,bn=''; for(const k in types){ const arr=types[k]; const v=arr&&arr[i]; if(v!=null&&(best==null||v>best)){ best=v; bn=k; } }
+    a.pollen=best; a.pollenName=bn;
+  }
+}
+function airDemo(){ const a=wx.air; a.aqi=34;a.pm25=9;a.pm10=15;a.no2=20;a.o3=62;a.so2=2;a.co=210;a.pollen=12;a.pollenName='Graminées';a.time=new Date(); }
+let _airReq=0;
+async function fetchAir(){
+  const myId=++_airReq, city=prefs.city;
+  const ctrl=new AbortController(), to=setTimeout(()=>ctrl.abort(),9000);
+  const url=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${city.lat}&longitude=${city.lon}`
+    +`&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,carbon_monoxide`
+    +`&hourly=birch_pollen,grass_pollen,ragweed_pollen,alder_pollen&timezone=auto&forecast_days=1`;
+  try{
+    const res=await fetch(url,{signal:ctrl.signal}); clearTimeout(to);
+    if(!res.ok) throw new Error('http'); const d=await res.json();
+    if(myId!==_airReq) return;
+    applyAir(d); airCacheStore(city,d); wx.air.live=true; wx.air.stale=false;
+  }catch(e){ clearTimeout(to); if(myId!==_airReq) return;
+    const c=airCacheLoad(city); if(c){ applyAir(c.d); wx.air.live=false; wx.air.stale=true; if(c.t) wx.air.time=new Date(c.t); }
+    else { wx.air.live=false; wx.air.stale=false; airDemo(); } }
+  renderAir();
+}
+let _airKey='';
+function renderAir(){
+  const body=$('airBody'), st=$('airStatus'), foot=$('airFoot'), a=wx.air;
+  const key=[a.aqi,a.pm25,a.pm10,a.no2,a.o3,a.pollen,a.live,a.stale,a.time?a.time.getTime():0].join('|');
+  if(key===_airKey) return; _airKey=key;
+  const cat=aqiCat(a.aqi);
+  const tiles=[];
+  tiles.push(`<div class="tile" style="border-color:${cat.c}66"><div class="tl">Indice AQI (Europe)${infoBtn('Indice AQI (Europe)')}</div><div class="tv" style="color:${cat.c}">${a.aqi!=null?Math.round(a.aqi):'—'}</div><div class="ts">${cat.t}</div></div>`);
+  const pol=(l,v)=>`<div class="tile"><div class="tl">${l}</div><div class="tv">${v!=null?Math.round(v):'—'}<small> µg/m³</small></div></div>`;
+  tiles.push(pol('PM2.5',a.pm25)); tiles.push(pol('PM10',a.pm10)); tiles.push(pol('NO₂',a.no2)); tiles.push(pol('O₃',a.o3));
+  if(a.pollen!=null){ const pc=pollenCat(a.pollen); tiles.push(`<div class="tile"><div class="tl">Pollens${a.pollenName?' · '+a.pollenName:''}</div><div class="tv" style="color:${pc.c}">${pc.t}</div><div class="ts">${Math.round(a.pollen)} grains/m³</div></div>`); }
+  body.innerHTML=tiles.join('');
+  st.innerHTML = a.live?'<span class="live-tag">● EN DIRECT</span>' : a.stale?'<span class="stale-tag">⚠ hors-ligne</span>' : (a.aqi==null?'<span class="stale-tag">Mesure en cours…</span>':'<span class="stale-tag">DÉMO</span>');
+  foot.innerHTML = a.aqi!=null ? '<span><b>Source</b> Open-Meteo / CAMS · échelle AQI européenne (0 bon → 100+ extrême)'+(a.time?' · '+pad2(a.time.getHours())+':'+pad2(a.time.getMinutes()):'')+'</span>' : '';
+  renderVigilance(); // un AQI dégradé peut déclencher une alerte
+}
+
+/* ---------- Vigilance (veille seuils, dérivée des prévisions) ---------- */
+function computeVigilance(){
+  const out=[], add=(level,ic,txt)=>out.push({level,ic,txt});
+  const d0=wx.daily&&wx.daily[0];
+  const tmax=d0?d0.tmax:wx.outTempC, tmin=d0?d0.tmin:wx.outTempC;
+  let maxWind=wx.windKmh, maxGust=wx.gustKmh, maxP1=0, sumP=0;
+  const s=wx.series;
+  if(s&&s.time){ const N=Math.min(24,s.time.length);
+    for(let i=0;i<N;i++){ maxWind=Math.max(maxWind,s.wind[i]||0); maxP1=Math.max(maxP1,s.precip[i]||0); sumP+=s.precip[i]||0; } }
+  const uvMax=Math.max(wx.uv||0, (d0&&d0.uvMax)||0);
+  if(tmax>=40) add('rouge','🔥','Canicule extrême — '+Math.round(cToDisplay(tmax))+unitLabel());
+  else if(tmax>=35) add('orange','🌡️','Forte chaleur — '+Math.round(cToDisplay(tmax))+unitLabel());
+  if(tmin<=-10) add('rouge','❄️','Grand froid — '+Math.round(cToDisplay(tmin))+unitLabel());
+  else if(tmin<=0) add('jaune','🧊','Risque de gel — '+Math.round(cToDisplay(tmin))+unitLabel());
+  if(maxGust>=120||maxWind>=90) add('rouge','💨','Vent violent — rafales '+Math.round(wConv(maxGust))+' '+wUnit());
+  else if(maxGust>=90||maxWind>=70) add('orange','💨','Vent fort — rafales '+Math.round(wConv(maxGust))+' '+wUnit());
+  else if(maxGust>=70) add('jaune','💨','Vent sensible — rafales '+Math.round(wConv(maxGust))+' '+wUnit());
+  if(maxP1>=15||sumP>=50) add('rouge','🌊','Pluies intenses — '+maxP1.toFixed(1)+' mm/h');
+  else if(maxP1>=8||sumP>=30) add('orange','🌧️','Fortes pluies — '+maxP1.toFixed(1)+' mm/h');
+  if((wx.daily||[]).slice(0,2).some(x=>[95,96,99].includes(x.code)) || [95,96,99].includes(wx.code)) add('orange','⛈️','Orages prévus');
+  if(uvMax>=11) add('rouge','🟣','UV extrême — indice '+Math.round(uvMax));
+  else if(uvMax>=8) add('orange','🟠','UV très élevé — indice '+Math.round(uvMax));
+  if(wx.air && wx.air.aqi!=null){
+    if(wx.air.aqi>100) add('rouge','😷','Qualité de l’air extrêmement mauvaise — AQI '+Math.round(wx.air.aqi));
+    else if(wx.air.aqi>80) add('orange','😷','Qualité de l’air très mauvaise — AQI '+Math.round(wx.air.aqi));
+  }
+  const rank={rouge:0,orange:1,jaune:2};
+  return out.sort((a,b)=>rank[a.level]-rank[b.level]);
+}
+let _vigKey='';
+function renderVigilance(){
+  const box=$('vigilance'); const items=computeVigilance();
+  const key=items.map(i=>i.level+i.txt).join('|');
+  if(key===_vigKey) return; _vigKey=key;
+  if(!items.length){ box.hidden=true; box.innerHTML=''; return; }
+  box.hidden=false;
+  box.innerHTML='<div style="font-size:10px;letter-spacing:1px;color:#8fa3bd;text-transform:uppercase">Veille seuils · dérivée des prévisions (24 h)</div>'
+    +items.map(i=>`<div class="vig-item vig-${i.level}"><span class="ic">${i.ic}</span><span>${i.txt}</span><span class="lvl">${i.level}</span></div>`).join('');
+}
+
+/* ---------- Fetch météo (Open-Meteo) ---------- */
+function withTimeout(p,ms){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]); }
+let _reqId=0;            // jeton anti-collision pour requêtes concurrentes
+async function fetchWeather(){
+  const myId=++_reqId;
+  const city=prefs.city, {lat,lon}=city;
+  const ctrl=new AbortController();
+  const to=setTimeout(()=>ctrl.abort(), 9000);
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    +`&current=temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,precipitation,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m`
+    +`&hourly=temperature_2m,pressure_msl,wind_speed_10m,precipitation,relative_humidity_2m,uv_index,visibility,precipitation_probability`
+    +`&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max`
+    +`&models=${prefs.model||'best_match'}&timezone=auto&forecast_days=6&past_days=1`;
+  try{
+    const res=await fetch(url,{signal:ctrl.signal}); clearTimeout(to);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    if(myId!==_reqId) return;          // une requête plus récente a déjà pris le relais
+    applyWeather(d);
+    cacheStore(city,d);
+    wx.live=true; wx.stale=false;
+  }catch(e){
+    clearTimeout(to);
+    if(myId!==_reqId) return;
+    const cached=cacheLoad(city);      // repli sur la dernière observation connue
+    if(cached){ applyWeather(cached.d); wx.live=false; wx.stale=true; if(cached.t) wx.obsTime=new Date(cached.t); }
+    else { wx.live=false; wx.stale=false; jitterDemo(); }
+  }
+  if(prefs.simInside) simulateInside(); else manualInside();
+  render();
+  fetchAir();   // qualité de l'air (requête indépendante, non bloquante)
+}
+function applyWeather(d){
+  const c=d.current||{};
+  wx.prevOutTempC=wx.outTempC;
+  wx.outTempC=num(c.temperature_2m,wx.outTempC);
+  wx.outHum=num(c.relative_humidity_2m,wx.outHum);
+  wx.apparentC=num(c.apparent_temperature,wx.apparentC);
+  wx.dewpointC=num(c.dew_point_2m, dewPoint(wx.outTempC,wx.outHum));
+  wx.precip=num(c.precipitation,wx.precip);
+  wx.code=num(c.weather_code,wx.code);
+  wx.cloud=num(c.cloud_cover,wx.cloud);
+  wx.pressure=num(c.pressure_msl,wx.pressure);
+  wx.surfaceP=num(c.surface_pressure,wx.surfaceP);
+  wx.windKmh=num(c.wind_speed_10m,wx.windKmh);
+  wx.windDir=num(c.wind_direction_10m,wx.windDir);
+  wx.gustKmh=num(c.wind_gusts_10m,wx.gustKmh);
+  wx.obsTime=c.time?new Date(c.time):new Date();
+  wx.elevation=num(d.elevation,wx.elevation);
+  wx.tz=d.timezone||wx.tz;
+  wx.utcOffset=num(d.utc_offset_seconds, wx.utcOffset);
+  const H=d.hourly||{};
+  if(H.pressure_msl){ const a=H.pressure_msl.filter(v=>v!=null); if(a.length>=4) wx.pressureHistory=a.slice(-12).map(v=>Math.round(v*10)/10); }
+  if(H.time){
+    let idx=H.time.findIndex(t=>new Date(t)>=new Date()); if(idx<0) idx=H.time.length-1; if(idx>0) idx--;
+    const at=arr=>(arr&&arr[idx]!=null)?arr[idx]:null;
+    wx.uv=num(at(H.uv_index),wx.uv);
+    wx.visibility=num(at(H.visibility),wx.visibility);
+    wx.precipProb=num(at(H.precipitation_probability),wx.precipProb);
+  }
+  if(H.temperature_2m && H.time){
+    let s=H.time.findIndex(t=>new Date(t)>=new Date()); if(s<0)s=0;
+    const n=Math.min(48, H.time.length-s);
+    const sl=arr=>arr?arr.slice(s,s+n).map(v=>(v==null?null:+v)):[];
+    wx.series={ time:H.time.slice(s,s+n).map(t=>new Date(t)),
+      temp:sl(H.temperature_2m), pres:sl(H.pressure_msl), wind:sl(H.wind_speed_10m),
+      precip:sl(H.precipitation), rh:sl(H.relative_humidity_2m) };
+  }
+  const D=d.daily||{};
+  if(D.time){
+    const today=new Date(new Date().toDateString());
+    wx.daily=D.time.map((t,i)=>({date:t,code:D.weather_code[i],tmax:D.temperature_2m_max[i],tmin:D.temperature_2m_min[i],
+      uvMax:D.uv_index_max?.[i],precipSum:D.precipitation_sum?.[i],precipProb:D.precipitation_probability_max?.[i],windMax:D.wind_speed_10m_max?.[i]}))
+      .filter(x=>new Date(x.date)>=today);
+    if(D.sunrise){ const si=wx.daily.length?D.time.indexOf(wx.daily[0].date):0; const k=si<0?0:si; wx.sunrise=toHM(D.sunrise[k]); wx.sunset=toHM(D.sunset[k]); }
+  }
+}
+function num(v,fb){ return (typeof v==='number'&&isFinite(v))?v:fb; }
+function toHM(iso){ const t=(iso||'').split('T')[1]||''; const [h,m]=t.split(':'); return `${parseInt(h,10)}:${m}`; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+/* Cache de la dernière observation par ville (résilience hors-ligne) */
+function cacheKey(city){ return 'wxcache_'+(+city.lat).toFixed(2)+'_'+(+city.lon).toFixed(2); }
+function cacheStore(city,d){ try{ localStorage.setItem(cacheKey(city),JSON.stringify({t:Date.now(),d})); }catch(e){} }
+function cacheLoad(city){ try{ const r=localStorage.getItem(cacheKey(city)); if(!r) return null; const o=JSON.parse(r); return {d:o.d,t:o.t}; }catch(e){ return null; } }
+function jitterDemo(){
+  wx.prevOutTempC=wx.outTempC;
+  wx.outTempC+=(Math.random()-0.5)*0.4;
+  wx.outHum=clamp(wx.outHum+(Math.random()-0.5)*2,5,99);
+  wx.pressure=clamp(wx.pressure+(Math.random()-0.5)*0.6,980,1040);
+  wx.surfaceP=wx.pressure-6;
+  wx.pressureHistory=wx.pressureHistory.slice(1).concat(Math.round(wx.pressure*10)/10);
+  wx.apparentC=wx.outTempC+(wx.outHum>60?1.5:-1.2);
+  wx.dewpointC=dewPoint(wx.outTempC,wx.outHum);
+  wx.windKmh=clamp(wx.windKmh+(Math.random()-0.5)*3,0,80);
+  wx.windDir=(wx.windDir+(Math.random()-0.5)*20+360)%360;
+  wx.gustKmh=wx.windKmh+5+Math.random()*10;
+  wx.uv=clamp(wx.uv+(Math.random()-0.5),0,11);
+  wx.cloud=clamp(wx.cloud+(Math.random()-0.5)*8,0,100);
+  wx.visibility=clamp(wx.visibility+(Math.random()-0.5)*2000,200,40000);
+  wx.obsTime=new Date();
+  wx.daily=synthDaily(); wx.series=synthSeries();
+}
+function simulateInside(){ wx.prevInTempC=wx.inTempC; wx.inTempC=clamp(wx.inTempC+(Math.random()-0.5)*0.2,16,32); wx.inHum=clamp(wx.inHum+(Math.random()-0.5)*1.2,25,80); }
+function manualInside(){ wx.prevInTempC=wx.inTempC; wx.inTempC=num(prefs.inTempManualC,wx.inTempC); wx.inHum=num(prefs.inHumManual,wx.inHum); }
+
+/* ============================================================
+   GESTION DES VILLES (ajout / suppression / bascule + autocomplétion)
+   ============================================================ */
+function norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+function cityCode(name){ return (String(name).replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,3)||'CTY').toUpperCase(); }
+function sameCity(a,b){ if(!a||!b) return false; return Math.abs(a.lat-b.lat)<0.05 && Math.abs(a.lon-b.lon)<0.05; }
+
+/* Liste de secours hors-ligne (grandes villes mondiales) */
+const CITIES_FALLBACK=[
+  {name:'Paris',country:'France',lat:48.8566,lon:2.3522},{name:'Marseille',country:'France',lat:43.2965,lon:5.3698},
+  {name:'Lyon',country:'France',lat:45.7640,lon:4.8357},{name:'Toulouse',country:'France',lat:43.6047,lon:1.4442},
+  {name:'Nice',country:'France',lat:43.7102,lon:7.2620},{name:'Bordeaux',country:'France',lat:44.8378,lon:-0.5792},
+  {name:'Casablanca',country:'Maroc',lat:33.5731,lon:-7.5898},{name:'Rabat',country:'Maroc',lat:34.0209,lon:-6.8416},
+  {name:'Marrakech',country:'Maroc',lat:31.6295,lon:-7.9811},{name:'Tanger',country:'Maroc',lat:35.7595,lon:-5.8340},
+  {name:'Fès',country:'Maroc',lat:34.0181,lon:-5.0078},{name:'Agadir',country:'Maroc',lat:30.4278,lon:-9.5981},
+  {name:'Londres',country:'Royaume-Uni',lat:51.5072,lon:-0.1276},{name:'Madrid',country:'Espagne',lat:40.4168,lon:-3.7038},
+  {name:'Barcelone',country:'Espagne',lat:41.3851,lon:2.1734},{name:'Rome',country:'Italie',lat:41.9028,lon:12.4964},
+  {name:'Berlin',country:'Allemagne',lat:52.5200,lon:13.4050},{name:'Amsterdam',country:'Pays-Bas',lat:52.3676,lon:4.9041},
+  {name:'Bruxelles',country:'Belgique',lat:50.8503,lon:4.3517},{name:'Genève',country:'Suisse',lat:46.2044,lon:6.1432},
+  {name:'Lisbonne',country:'Portugal',lat:38.7223,lon:-9.1393},{name:'Vienne',country:'Autriche',lat:48.2082,lon:16.3738},
+  {name:'Athènes',country:'Grèce',lat:37.9838,lon:23.7275},{name:'Istanbul',country:'Turquie',lat:41.0082,lon:28.9784},
+  {name:'Moscou',country:'Russie',lat:55.7558,lon:37.6173},{name:'Le Caire',country:'Égypte',lat:30.0444,lon:31.2357},
+  {name:'Dubaï',country:'Émirats',lat:25.2048,lon:55.2708},{name:'Alger',country:'Algérie',lat:36.7538,lon:3.0588},
+  {name:'Tunis',country:'Tunisie',lat:36.8065,lon:10.1815},{name:'Dakar',country:'Sénégal',lat:14.7167,lon:-17.4677},
+  {name:'New York',country:'États-Unis',lat:40.7128,lon:-74.0060},{name:'Los Angeles',country:'États-Unis',lat:34.0522,lon:-118.2437},
+  {name:'Montréal',country:'Canada',lat:45.5019,lon:-73.5674},{name:'Mexico',country:'Mexique',lat:19.4326,lon:-99.1332},
+  {name:'São Paulo',country:'Brésil',lat:-23.5505,lon:-46.6333},{name:'Buenos Aires',country:'Argentine',lat:-34.6037,lon:-58.3816},
+  {name:'Tokyo',country:'Japon',lat:35.6762,lon:139.6503},{name:'Pékin',country:'Chine',lat:39.9042,lon:116.4074},
+  {name:'Shanghai',country:'Chine',lat:31.2304,lon:121.4737},{name:'Séoul',country:'Corée du Sud',lat:37.5665,lon:126.9780},
+  {name:'Singapour',country:'Singapour',lat:1.3521,lon:103.8198},{name:'Bangkok',country:'Thaïlande',lat:13.7563,lon:100.5018},
+  {name:'Mumbai',country:'Inde',lat:19.0760,lon:72.8777},{name:'Sydney',country:'Australie',lat:-33.8688,lon:151.2093}
+];
+
+function mkCity(r){ return { name:r.name, code:cityCode(r.name), lat:r.latitude??r.lat, lon:r.longitude??r.lon,
+  country:r.country||'', admin:r.admin1||'' }; }
+
+/* Affiche le nom complet de la ville sur l'écran (taille auto selon longueur) */
+function fitCityName(el, name){
+  const n=String(name||'').toUpperCase();
+  el.textContent=n;
+  const L=n.length;
+  el.style.fontSize = (L<=6?18 : L<=9?15 : L<=13?12 : 10) + 'px';
+}
+
+function setActiveCity(c){
+  prefs.city=c; savePrefs(); renderCityChips();
+  wx.utcOffset=cityOffsetSec(c.lon);  // heure de la nouvelle ville tout de suite (affinée par l'API)
+  render();          // mise à jour instantanée du nom à l'écran
+  tick();            // recale l'horloge sur le fuseau de la ville sans attendre
+  fetchWeather();    // puis rafraîchissement météo + offset exact
+}
+
+function addCity(c, activate){
+  const exists = prefs.cities.find(x=>sameCity(x,c));
+  if(exists){ if(activate) setActiveCity(exists); else renderCityChips(); return; }
+  prefs.cities.push(c);
+  savePrefs();
+  if(activate) setActiveCity(c); else renderCityChips();
+}
+
+function removeCity(idx){
+  if(prefs.cities.length<=1) return;          // toujours garder au moins une ville
+  const removed = prefs.cities.splice(idx,1)[0];
+  if(sameCity(removed, prefs.city)){           // on supprimait la ville active
+    prefs.city = prefs.cities[Math.max(0,idx-1)] || prefs.cities[0];
+    savePrefs(); renderCityChips(); fetchWeather();
+  }else{ savePrefs(); renderCityChips(); }
+}
+
+function renderCityChips(){
+  const box=$('cityChips'); box.innerHTML='';
+  prefs.cities.forEach((c,i)=>{
+    const active=sameCity(c,prefs.city);
+    const chip=document.createElement('div');
+    chip.className='city-chip'+(active?' active':'');
+    const sel=document.createElement('button'); sel.type='button'; sel.className='nm';
+    sel.textContent=c.name;
+    sel.title=[c.name,c.admin,c.country].filter(Boolean).join(' · ');
+    sel.setAttribute('aria-label','Afficher la météo de '+c.name+(active?' (ville sélectionnée)':''));
+    if(active) sel.setAttribute('aria-current','true');
+    sel.addEventListener('click',()=>setActiveCity(c));
+    chip.appendChild(sel);
+    if(prefs.cities.length>1){
+      const rm=document.createElement('button'); rm.type='button'; rm.className='rm';
+      rm.textContent='✕'; rm.setAttribute('aria-label','Supprimer la ville '+c.name);
+      rm.addEventListener('click',ev=>{ ev.stopPropagation(); removeCity(i); });
+      chip.appendChild(rm);
+    }
+    box.appendChild(chip);
+  });
+}
+
+/* ----- Autocomplétion ----- */
+let acTimer=null, acSel=-1, acItems=[];
+function openAC(){ $('cityAC').classList.add('open'); }
+function closeAC(){ $('cityAC').classList.remove('open'); acSel=-1; }
+function localFilter(q){ const n=norm(q); return CITIES_FALLBACK.filter(c=>norm(c.name).includes(n)||norm(c.country).includes(n)).slice(0,8).map(mkCity); }
+
+async function acSearch(q){
+  // 1) Affichage instantané des correspondances locales (marche même hors-ligne / réseau lent)
+  const local = localFilter(q);
+  openAC();
+  if(local.length) renderAC(local); else $('cityAC').innerHTML='<div class="empty">Recherche…</div>';
+  // 2) Enrichissement avec les résultats mondiaux Open-Meteo dès qu'ils arrivent
+  try{
+    const res=await withTimeout(fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=fr`),6000);
+    if(res.ok){
+      const d=await res.json();
+      if(d && d.results && d.results.length){ renderAC(d.results.map(mkCity)); return; }
+    }
+  }catch(e){ /* réseau indisponible : on conserve les résultats locaux */ }
+  if(!local.length) renderAC([]);   // aucun résultat local ni distant
+}
+function renderAC(results){
+  const box=$('cityAC'); acItems=results; acSel=-1; box.innerHTML='';
+  if(!results.length){ box.innerHTML='<div class="empty">Aucune ville trouvée. Vérifiez l’orthographe.</div>'; return; }
+  results.forEach((c,i)=>{
+    const el=document.createElement('div'); el.className='item'; el.dataset.i=i;
+    el.innerHTML=`${c.name}<small>${[c.admin,c.country].filter(Boolean).join(' · ')||'—'}</small>`;
+    // pointerdown couvre souris + tactile + stylet ; preventDefault évite la perte de focus
+    el.addEventListener('pointerdown',ev=>{ ev.preventDefault(); pickAC(i); });
+    box.appendChild(el);
+  });
+}
+function pickAC(i){ const c=acItems[i]; if(!c) return; $('cityQuick').value=''; closeAC(); addCity(c,true); }
+function moveAC(dir){
+  if(!acItems.length) return;
+  acSel=(acSel+dir+acItems.length)%acItems.length;
+  $('cityAC').querySelectorAll('.item').forEach((el,j)=>el.classList.toggle('sel',j===acSel));
+}
+
+/* ---------- Panneau ---------- */
+function openPanel(){
+  $('inTempManual').value=prefs.inTempManualC; $('inHumManual').value=prefs.inHumManual;
+  $('simInside').checked=prefs.simInside; $('cycleChan').checked=prefs.cycleChan;
+  $('manualInside').style.display=prefs.simInside?'none':'block';
+  setToggle('themeToggle',prefs.theme,'data-th');
+  setToggle('tzToggle',prefs.tzMode,'data-tz'); setToggle('modelToggle',prefs.model,'data-m');
+  setToggle('unitToggle',prefs.unit,'data-unit'); setToggle('clockToggle',prefs.clock,'data-clk');
+  setToggle('presToggle',prefs.unitP,'data-p'); setToggle('windToggle',prefs.unitW,'data-w');
+  $('overlay').classList.add('open');
+}
+function closePanel(){ $('overlay').classList.remove('open'); }
+function setToggle(g,val,attr){ document.querySelectorAll(`#${g} button`).forEach(b=>{ const on=b.getAttribute(attr)===val; b.classList.toggle('active',on); b.setAttribute('aria-pressed',on?'true':'false'); }); }
+function wireToggle(g,attr,cb){ document.querySelectorAll(`#${g} button`).forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll(`#${g} button`).forEach(x=>{x.classList.remove('active');x.setAttribute('aria-pressed','false');}); b.classList.add('active'); b.setAttribute('aria-pressed','true'); cb(b.getAttribute(attr)); })); }
+
+/* ============================================================
+   FOND ANIMÉ JOUR/NUIT + MÉTÉO (canvas)
+   ============================================================ */
+const Sky=(function(){
+  const cv=$('sky'); const g=cv.getContext('2d');
+  let W=0,H=0,dpr=1, stars=[], drops=[], flakes=[], clouds=[], last=performance.now(), running=true;
+  function resize(){ dpr=Math.min(window.devicePixelRatio||1,2); W=window.innerWidth; H=window.innerHeight;
+    cv.width=W*dpr; cv.height=H*dpr; g.setTransform(dpr,0,0,dpr,0,0);
+    stars=Array.from({length:90},()=>({x:Math.random()*W,y:Math.random()*H*0.7,r:Math.random()*1.3+0.3,p:Math.random()*Math.PI*2}));
+    clouds=Array.from({length:5},(_, i)=>({x:Math.random()*W,y:40+Math.random()*H*0.35,s:0.4+Math.random()*0.5,v:6+Math.random()*10}));
+  }
+  function hourDec(){ const n=new Date(); return n.getHours()+n.getMinutes()/60+n.getSeconds()/3600; }
+  function parseHM(s){ const [h,m]=String(s).split(':'); return (parseInt(h,10)||0)+(parseInt(m,10)||0)/60; }
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function mix(c1,c2,t){ return c1.map((v,i)=>Math.round(lerp(v,c2[i],t))); }
+  function rgb(a){ return `rgb(${a[0]},${a[1]},${a[2]})`; }
+  // palettes [top, bottom]
+  const NIGHT=[[6,10,26],[10,18,40]], DAWN=[[40,52,96],[230,140,90]], DAY=[[58,140,210],[150,200,235]], DUSK=[[44,40,90],[230,110,80]];
+  function skyColors(h,sr,ss){
+    // transitions douces autour du lever/coucher
+    if(h<sr-1||h>ss+1) return NIGHT;
+    if(h<sr+1){ const t=clamp((h-(sr-1))/2,0,1); return [mix(NIGHT[0],DAWN[0],t),mix(NIGHT[1],DAWN[1],t)]; }
+    if(h<sr+2.5){ const t=clamp((h-(sr+1))/1.5,0,1); return [mix(DAWN[0],DAY[0],t),mix(DAWN[1],DAY[1],t)]; }
+    if(h<ss-1.5){ return DAY; }
+    if(h<ss){ const t=clamp((h-(ss-1.5))/1.5,0,1); return [mix(DAY[0],DUSK[0],t),mix(DAY[1],DUSK[1],t)]; }
+    const t=clamp((h-ss)/1,0,1); return [mix(DUSK[0],NIGHT[0],t),mix(DUSK[1],NIGHT[1],t)];
+  }
+  function nightness(h,sr,ss){ if(h<=sr||h>=ss) return 1; const edge=Math.min(h-sr,ss-h); return clamp(1-edge/1.2,0,1); }
+  function frame(now){
+    if(!running){ return; }
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    const h=hourDec(), sr=parseHM(wx.sunrise), ss=parseHM(wx.sunset);
+    const cols=skyColors(h,sr,ss), night=nightness(h,sr,ss), cat=wxCat(wx.code);
+    // ciel
+    const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,rgb(cols[0])); grad.addColorStop(1,rgb(cols[1]));
+    g.fillStyle=grad; g.fillRect(0,0,W,H);
+    // étoiles
+    if(night>0.05 && !cat.cloudy && !cat.rain && !cat.snow && !cat.storm){
+      stars.forEach(s=>{ s.p+=dt*2; const a=night*(0.4+0.6*Math.abs(Math.sin(s.p)));
+        g.globalAlpha=a; g.fillStyle='#dfe9ff'; g.beginPath(); g.arc(s.x,s.y,s.r,0,7); g.fill(); });
+      g.globalAlpha=1;
+    }
+    // soleil ou lune sur trajectoire
+    if(h>sr && h<ss){
+      const t=(h-sr)/((ss-sr)||1), x=t*W, y=H*0.78-Math.sin(t*Math.PI)*H*0.6;
+      const r=26; const sg=g.createRadialGradient(x,y,2,x,y,r*2.2);
+      sg.addColorStop(0,'rgba(255,238,170,.95)'); sg.addColorStop(1,'rgba(255,210,120,0)');
+      g.fillStyle=sg; g.beginPath(); g.arc(x,y,r*2.2,0,7); g.fill();
+      g.fillStyle='#ffe6a0'; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    }else{
+      // lune : de ss à sr (lendemain)
+      let span=(24-ss)+sr; let pos=(h>=ss)?(h-ss):(24-ss+h); const t=clamp(pos/(span||1),0,1);
+      const x=t*W, y=H*0.78-Math.sin(t*Math.PI)*H*0.55, r=18;
+      g.fillStyle='rgba(230,238,255,.9)'; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+      const {idx}=moonPhase(new Date()); const off=(1-[0,.25,.5,.75,1,.75,.5,.25][idx])*r*(idx<=4?-1:1);
+      g.fillStyle=rgb(cols[0]); g.globalAlpha=idx===0?1:0.92; g.beginPath(); g.arc(x+off,y,r,0,7); g.fill(); g.globalAlpha=1;
+    }
+    // nuages
+    if(cat.cloudy||cat.rain||cat.snow||cat.storm){
+      clouds.forEach(c=>{ c.x+=c.v*dt; if(c.x>W+120) c.x=-120;
+        g.fillStyle=`rgba(225,232,245,${0.10+0.10*(1-night)})`; cloudShape(c.x,c.y,80*c.s); });
+    }
+    // pluie
+    if(cat.rain||cat.storm){
+      while(drops.length<140) drops.push({x:Math.random()*W,y:Math.random()*H,l:10+Math.random()*12,v:420+Math.random()*220});
+      g.strokeStyle='rgba(150,200,255,.45)'; g.lineWidth=1.3; g.beginPath();
+      drops.forEach(d=>{ g.moveTo(d.x,d.y); g.lineTo(d.x-2,d.y+d.l); d.y+=d.v*dt; d.x-=8*dt; if(d.y>H){ d.y=-d.l; d.x=Math.random()*W; } });
+      g.stroke();
+    } else drops.length=0;
+    // neige
+    if(cat.snow){
+      while(flakes.length<90) flakes.push({x:Math.random()*W,y:Math.random()*H,r:1.5+Math.random()*2.5,v:40+Math.random()*40,p:Math.random()*7});
+      g.fillStyle='rgba(255,255,255,.8)';
+      flakes.forEach(f=>{ f.y+=f.v*dt; f.p+=dt; f.x+=Math.sin(f.p)*12*dt; if(f.y>H){ f.y=-5; f.x=Math.random()*W; }
+        g.beginPath(); g.arc(f.x,f.y,f.r,0,7); g.fill(); });
+    } else flakes.length=0;
+    // éclair
+    if(cat.storm && Math.random()<0.004){ g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(0,0,W,H); }
+    requestAnimationFrame(frame);
+  }
+  function cloudShape(x,y,s){ g.beginPath(); g.arc(x,y,s*0.5,0,7); g.arc(x+s*0.5,y+s*0.1,s*0.4,0,7); g.arc(x-s*0.5,y+s*0.12,s*0.38,0,7); g.arc(x+s*0.15,y-s*0.18,s*0.42,0,7); g.fill(); }
+  function start(){ resize(); window.addEventListener('resize',resize);
+    document.addEventListener('visibilitychange',()=>{ running=!document.hidden; if(running){ last=performance.now(); requestAnimationFrame(frame); } });
+    requestAnimationFrame(frame); }
+  return {start};
+})();
+
+/* ============================================================
+   EXPORT (CSV / image) + INFOBULLES
+   ============================================================ */
+function slug(s){ return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_|_$/g,'').toLowerCase()||'ville'; }
+function r1(v){ return (v==null||!isFinite(v))?'':Math.round(v*10)/10; }
+function csvCell(v){ const s=String(v==null?'':v); return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+function download(content, filename, type){
+  const blob=(content instanceof Blob)?content:new Blob([type.indexOf('csv')>=0?'﻿'+content:content],{type});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function exportCSV(){
+  const c=prefs.city, a=wx.air, R=[];
+  R.push(['Station Météo Pro — export']);
+  R.push(['Ville', c.name, c.country||'']);
+  R.push(['Position (lat, lon)', c.lat, c.lon]);
+  if(wx.elevation!=null) R.push(['Altitude (m)', Math.round(wx.elevation)]);
+  R.push(['Modèle', MODEL_LABEL[prefs.model]||prefs.model]);
+  R.push(['Observation', wx.obsTime?wx.obsTime.toISOString():'']);
+  R.push(['Type','Prévision modèle (interpolée, non observation station)']);
+  R.push([]);
+  R.push(['Variable','Valeur','Unité']);
+  R.push(['Température', r1(wx.outTempC),'°C']);
+  R.push(['Ressenti', r1(wx.apparentC),'°C']);
+  R.push(['Point de rosée', r1(wx.dewpointC),'°C']);
+  R.push(['Humidité relative', Math.round(wx.outHum),'%']);
+  R.push(['Pression MSL', r1(wx.pressure),'hPa']);
+  R.push(['Tendance 3 h', r1(pressureTendency().delta),'hPa/3h']);
+  R.push(['Vent', r1(wx.windKmh),'km/h']);
+  R.push(['Direction', Math.round(wx.windDir),'° ('+compass(wx.windDir)+')']);
+  R.push(['Rafales', r1(wx.gustKmh),'km/h']);
+  R.push(['Indice UV', r1(wx.uv),'']);
+  R.push(['Précipitations', r1(wx.precip),'mm']);
+  R.push(['Couverture nuageuse', Math.round(wx.cloud),'%']);
+  R.push(['Visibilité', Math.round(wx.visibility),'m']);
+  if(a.aqi!=null){ R.push(['AQI (Europe)', Math.round(a.aqi),'']); R.push(['PM2.5', r1(a.pm25),'µg/m³']); R.push(['PM10', r1(a.pm10),'µg/m³']); R.push(['NO2', r1(a.no2),'µg/m³']); R.push(['O3', r1(a.o3),'µg/m³']); }
+  R.push([]);
+  R.push(['Prévisions horaires (48 h)']);
+  R.push(['Heure ISO','Température °C','Pression hPa','Vent km/h','Précip mm','Humidité %']);
+  const s=wx.series; if(s&&s.time) s.time.forEach((t,i)=>R.push([t.toISOString(), r1(s.temp[i]), r1(s.pres[i]), r1(s.wind[i]), r1(s.precip[i]), r1(s.rh[i])]));
+  R.push([]);
+  R.push(['Prévisions quotidiennes']);
+  R.push(['Date','Tmin °C','Tmax °C','Code WMO','UV max','Précip mm','Vent max km/h']);
+  (wx.daily||[]).forEach(d=>R.push([d.date, r1(d.tmin), r1(d.tmax), d.code, r1(d.uvMax), r1(d.precipSum), r1(d.windMax)]));
+  download(R.map(row=>row.map(csvCell).join(';')).join('\r\n'), 'meteo_'+slug(c.name)+'.csv', 'text/csv;charset=utf-8');
+}
+function exportPNG(){
+  const W=1000,H=600,dpr=2, cv=document.createElement('canvas'); cv.width=W*dpr; cv.height=H*dpr;
+  const g=cv.getContext('2d'); g.scale(dpr,dpr);
+  const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,'#123e69'); grad.addColorStop(1,'#07203a'); g.fillStyle=grad; g.fillRect(0,0,W,H);
+  g.fillStyle='#56d3ff'; g.font='700 22px Segoe UI, Arial'; g.fillText('STATION MÉTÉO PRO', 40, 50);
+  g.fillStyle='#cfe6ff'; g.font='600 30px Segoe UI, Arial'; g.fillText(prefs.city.name, 40, 92);
+  const {ms,suf}=displayNow(), dt=new Date(ms);
+  g.fillStyle='#9fb6d6'; g.font='14px Segoe UI, Arial';
+  g.fillText(pad(dt.getUTCDate())+'/'+MOIS[dt.getUTCMonth()]+'  '+pad(dt.getUTCHours())+':'+pad(dt.getUTCMinutes())+(suf?' '+suf:'')+'  ·  '+(MODEL_LABEL[prefs.model]||prefs.model), 40, 118);
+  g.fillStyle='#eaf3ff'; g.font='700 92px Segoe UI, Arial'; g.fillText(Math.round(cToDisplay(wx.outTempC))+unitLabel(), 40, 218);
+  g.fillStyle='#9fe6ff'; g.font='600 22px Segoe UI, Arial'; g.fillText(wmoToInfo(wx.code).label, 44, 252);
+  const tend=pressureTendency(), bf=beaufort(wx.windKmh), uvr=uvRisk(wx.uv);
+  const items=[
+    ['Ressenti', Math.round(cToDisplay(wx.apparentC))+unitLabel()],
+    ['Humidité', Math.round(wx.outHum)+' %'],
+    ['Point de rosée', Math.round(cToDisplay(wx.dewpointC))+unitLabel()],
+    ['Vent', wStr(wx.windKmh)+' '+wUnit()+' '+compass(wx.windDir)+' (F'+bf.force+')'],
+    ['Rafales', wStr(wx.gustKmh)+' '+wUnit()],
+    ['Pression MSL', pStr(wx.pressure)+' '+pUnit()+' '+tend.arrow],
+    ['Indice UV', Math.round(wx.uv)+' · '+uvr.t],
+    ['Précipitations', (wx.precip||0).toFixed(1)+' mm ('+Math.round(wx.precipProb||0)+'%)'],
+    ['Couverture nuageuse', Math.round(wx.cloud)+' %'],
+    ['Visibilité', (wx.visibility!=null?Math.round(wx.visibility/1000):'—')+' km'],
+    ['Qualité air (AQI)', wx.air.aqi!=null?Math.round(wx.air.aqi)+' · '+aqiCat(wx.air.aqi).t:'—'],
+    ['Lever / Coucher', wx.sunrise+' / '+wx.sunset]
+  ];
+  const gx0=40, gy0=312, gcw=(W-80)/3;
+  items.forEach((it,i)=>{ const cx=gx0+(i%3)*gcw, cy=gy0+Math.floor(i/3)*70;
+    g.fillStyle='#8fb3d8'; g.font='12px Segoe UI, Arial'; g.fillText(it[0].toUpperCase(), cx, cy);
+    g.fillStyle='#eaf3ff'; g.font='700 20px Segoe UI, Arial'; g.fillText(it[1], cx, cy+26); });
+  g.fillStyle='#7f97b6'; g.font='12px Segoe UI, Arial';
+  g.fillText('Source : Open-Meteo'+(wx.elevation!=null?'  ·  Altitude '+Math.round(wx.elevation)+' m':'')+'  ·  '+(+prefs.city.lat).toFixed(3)+'°, '+(+prefs.city.lon).toFixed(3)+'°  ·  Prévision modèle (interpolée)', 40, H-26);
+  cv.toBlob(b=>{ if(b) download(b,'meteo_'+slug(prefs.city.name)+'.png','image/png'); },'image/png');
+}
+function setupTooltips(){
+  const tip=$('tooltip');
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('.info');
+    if(b){ e.stopPropagation(); tip.textContent=b.getAttribute('data-def')||''; tip.style.display='block';
+      const r=b.getBoundingClientRect();
+      const x=Math.max(8, Math.min(r.left, window.innerWidth-tip.offsetWidth-10));
+      let y=r.bottom+6; if(y+tip.offsetHeight>window.innerHeight-8) y=Math.max(8, r.top-tip.offsetHeight-6);
+      tip.style.left=x+'px'; tip.style.top=y+'px'; return; }
+    if(!e.target.closest('#tooltip')) tip.style.display='none';
+  });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') tip.style.display='none'; });
+  window.addEventListener('scroll',()=>{ tip.style.display='none'; }, true);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init(){
+  applyTheme();
+  if(window.matchMedia){ try{ matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{ if((prefs.theme||'auto')==='auto') applyTheme(); }); }catch(e){} }
+  wireToggle('unitToggle','data-unit',v=>{ prefs.unit=v; savePrefs(); render(); });
+  wireToggle('clockToggle','data-clk',v=>{ prefs.clock=v; savePrefs(); tick(); });
+  wireToggle('presToggle','data-p',v=>{ prefs.unitP=v; savePrefs(); render(); });
+  wireToggle('windToggle','data-w',v=>{ prefs.unitW=v; savePrefs(); render(); });
+  wireToggle('themeToggle','data-th',v=>{ prefs.theme=v; savePrefs(); applyTheme(); });
+  wireToggle('tzToggle','data-tz',v=>{ prefs.tzMode=v; savePrefs(); tick(); });
+  wireToggle('modelToggle','data-m',v=>{ prefs.model=v; savePrefs(); fetchWeather(); });
+  $('simInside').addEventListener('change',e=>{ $('manualInside').style.display=e.target.checked?'none':'block'; });
+  $('btnSettings').addEventListener('click',openPanel);
+  $('btnClose').addEventListener('click',closePanel);
+  $('btnCloseTop').addEventListener('click',closePanel);
+  $('overlay').addEventListener('click',e=>{ if(e.target.id==='overlay') closePanel(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePanel(); });
+  $('btnApply').addEventListener('click',()=>{
+    prefs.simInside=$('simInside').checked; prefs.cycleChan=$('cycleChan').checked;
+    prefs.inTempManualC=parseFloat($('inTempManual').value)||DEFAULTS.inTempManualC;
+    prefs.inHumManual=parseFloat($('inHumManual').value)||DEFAULTS.inHumManual;
+    savePrefs(); closePanel(); fetchWeather();
+  });
+  // Recherche de ville avec autocomplétion
+  const cq=$('cityQuick');
+  cq.addEventListener('input',e=>{ clearTimeout(acTimer); const q=e.target.value.trim();
+    if(q.length<2){ closeAC(); return; } acTimer=setTimeout(()=>acSearch(q),280); });
+  cq.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); moveAC(1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); moveAC(-1); }
+    else if(e.key==='Enter'){ e.preventDefault(); pickAC(acSel>=0?acSel:0); }
+    else if(e.key==='Escape'){ closeAC(); }
+  });
+  cq.addEventListener('focus',()=>{ const q=cq.value.trim(); if(q.length>=2 && acItems.length) openAC(); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('.city-search')) closeAC(); });
+  renderCityChips();
+
+  $('btnRefresh').addEventListener('click',fetchWeather);
+  $('btnUnit').addEventListener('click',()=>{ prefs.unit=prefs.unit==='C'?'F':'C'; savePrefs(); render(); });
+  setupTooltips();
+  // badge canal : bouton accessible pour changer de canal
+  $('chBadge').addEventListener('click',()=>{ channel=(channel+1)%3; render(); });
+  // graphe 48 h : onglets de variable + survol
+  document.querySelectorAll('#chartTabs button').forEach(b=>b.addEventListener('click',()=>Chart.setVar(b.dataset.v)));
+  setToggle('chartTabs', prefs.chartVar, 'data-v');
+  const chc=$('chart');
+  chc.addEventListener('pointermove', Chart.onMove);
+  chc.addEventListener('pointerleave', Chart.leave);
+
+  tick(); setInterval(tick,1000);
+  render(); renderAir(); fetchWeather();
+  Sky.start();
+
+  setInterval(fetchWeather,5*60*1000);
+  setInterval(()=>{ if(prefs.simInside){ simulateInside(); } render(); },30*1000);
+  // cycle des canaux toutes les 8 s
+  setInterval(()=>{ if(prefs.cycleChan){ channel=(channel+1)%3; render(); } },8000);
+  // redessiner le graphe au redimensionnement
+  window.addEventListener('resize',()=>Chart.draw());
+
+  // PWA : enregistrement du service worker (installation via le menu du navigateur)
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  }
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
 </body>
 </html>
