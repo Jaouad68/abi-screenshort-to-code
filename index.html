@@ -407,7 +407,6 @@ h1.app-title{font-weight:700;letter-spacing:.5px;font-size:clamp(18px,3vw,26px);
 <div class="toolbar">
   <button class="btn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Réglages</button>
   <button class="btn" id="btnRefresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Actualiser</button>
-  <button class="btn" id="btnGeo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Ma position</button>
   <button class="btn" id="btnUnit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 11-4 0V4a2 2 0 014 0z"/></svg>°C / °F</button>
 </div>
 
@@ -1086,48 +1085,6 @@ function moveAC(dir){
   $('cityAC').querySelectorAll('.item').forEach((el,j)=>el.classList.toggle('sel',j===acSel));
 }
 
-async function useGeolocation(){
-  const btn=$('btnGeo');
-  if(!('geolocation' in navigator)){ alert('La géolocalisation n’est pas supportée par ce navigateur.'); return; }
-  if(!window.isSecureContext && location.protocol!=='file:'){
-    alert('La géolocalisation nécessite une connexion sécurisée (https://). Ouvrez l’application via son lien https (ou GitHub Pages).'); return;
-  }
-  // Détecte un blocage explicite pour donner un message utile
-  if(navigator.permissions && navigator.permissions.query){
-    try{ const st=await navigator.permissions.query({name:'geolocation'});
-      if(st.state==='denied'){ alert('La localisation est bloquée pour ce site. Autorisez-la via l’icône 🔒/⚙️ de la barre d’adresse, puis réessayez.'); return; }
-    }catch(e){}
-  }
-  const old=btn.innerHTML;
-  let settled=false;
-  const reset=()=>{ btn.disabled=false; btn.innerHTML=old; };
-  btn.disabled=true; btn.innerHTML='⏳ Localisation…';
-  // Watchdog : certains navigateurs/webviews n'appellent jamais de callback
-  const watchdog=setTimeout(()=>{ if(settled) return; settled=true; reset();
-    alert('La localisation ne répond pas. Vérifiez que l’autorisation de localisation est activée pour ce site, puis réessayez.'); }, 13000);
-  const onOk=async pos=>{
-    if(settled) return; settled=true; clearTimeout(watchdog);
-    const lat=pos.coords.latitude, lon=pos.coords.longitude;
-    let name='Ma position', country='', admin='';
-    try{
-      const res=await withTimeout(fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=fr`),6000);
-      const d=await res.json();
-      name=d.city||d.locality||d.principalSubdivision||d.countryName||'Ma position';
-      admin=d.principalSubdivision||''; country=d.countryName||'';
-    }catch(e){ /* repli : nom générique */ }
-    reset();
-    addCity({ name, code:cityCode(name), lat, lon, country, admin }, true);
-  };
-  const onErr=err=>{
-    if(settled) return; settled=true; clearTimeout(watchdog); reset();
-    alert({1:'Autorisation refusée. Activez la localisation pour ce site dans les réglages du navigateur.',
-           2:'Position momentanément indisponible. Réessayez.',
-           3:'Délai de localisation dépassé. Réessayez.'}[err && err.code] || 'Localisation impossible.');
-  };
-  try{ navigator.geolocation.getCurrentPosition(onOk,onErr,{ enableHighAccuracy:true, timeout:12000, maximumAge:60000 }); }
-  catch(e){ if(!settled){ settled=true; clearTimeout(watchdog); reset(); alert('Localisation impossible : '+(e&&e.message||e)); } }
-}
-
 /* ---------- Panneau ---------- */
 function openPanel(){
   $('inTempManual').value=prefs.inTempManualC; $('inHumManual').value=prefs.inHumManual;
@@ -1262,7 +1219,6 @@ function init(){
   renderCityChips();
 
   $('btnRefresh').addEventListener('click',fetchWeather);
-  $('btnGeo').addEventListener('click',useGeolocation);
   $('btnUnit').addEventListener('click',()=>{ prefs.unit=prefs.unit==='C'?'F':'C'; savePrefs(); render(); });
   // permettre de cliquer le badge canal pour changer de canal
   $('chBadge').style.cursor='pointer';
