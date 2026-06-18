@@ -473,6 +473,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   <div class="pro-foot" id="proFoot"></div>
 </div>
 
+<!-- Qualité de l'air -->
+<div class="card pro-panel">
+  <div class="pro-head">
+    <h3 style="margin:0">Qualité de l'air</h3>
+    <span id="airStatus"></span>
+  </div>
+  <div class="pro-grid" id="airBody"></div>
+  <div class="pro-foot" id="airFoot"></div>
+</div>
+
 <!-- Outils -->
 <div class="toolbar">
   <button class="btn" id="btnSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Réglages</button>
@@ -579,7 +589,8 @@ let wx = {
   obsTime:null, elevation:null, tz:'auto', utcOffset:null,
   daily:[],   // {date, code, tmax, tmin, uvMax, precipSum, precipProb, windMax}
   hourly:[],  // {t:Date, temp}
-  series:null // {time:[Date], temp:[], pres:[], wind:[], precip:[], rh:[]} sur 48 h
+  series:null,// {time:[Date], temp:[], pres:[], wind:[], precip:[], rh:[]} sur 48 h
+  air:{aqi:null,pm25:null,pm10:null,no2:null,o3:null,so2:null,co:null,pollen:null,pollenName:'',time:null,live:false,stale:false}
 };
 let channel = 0; // 0=CH1 (réel/extérieur dérivé), 1=CH2, 2=CH3
 
@@ -933,6 +944,68 @@ const Chart=(function(){
   return {draw, onMove, leave, setVar};
 })();
 
+/* ---------- Qualité de l'air (Open-Meteo Air-Quality, sans clé) ---------- */
+function numN(v){ return (typeof v==='number'&&isFinite(v))?v:null; }
+function aqiCat(a){
+  if(a==null) return {t:'—',c:'#9fb6d6'};
+  if(a<=20) return {t:'Bon',c:'#7dffb0'};
+  if(a<=40) return {t:'Moyen',c:'#b8e986'};
+  if(a<=60) return {t:'Dégradé',c:'#ffd27d'};
+  if(a<=80) return {t:'Mauvais',c:'#ff9b6b'};
+  if(a<=100) return {t:'Très mauvais',c:'#ff6b6b'};
+  return {t:'Extrême',c:'#d98cff'};
+}
+function pollenCat(v){ if(v==null) return {t:'—',c:'#9fb6d6'}; if(v<10) return {t:'Faible',c:'#7dffb0'}; if(v<50) return {t:'Modéré',c:'#ffd27d'}; if(v<100) return {t:'Élevé',c:'#ff9b6b'}; return {t:'Très élevé',c:'#ff6b6b'}; }
+function airCacheKey(c){ return 'aircache_'+(+c.lat).toFixed(2)+'_'+(+c.lon).toFixed(2); }
+function airCacheStore(c,d){ try{ localStorage.setItem(airCacheKey(c),JSON.stringify({t:Date.now(),d})); }catch(e){} }
+function airCacheLoad(c){ try{ const r=localStorage.getItem(airCacheKey(c)); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function applyAir(d){
+  const c=d.current||{}, a=wx.air;
+  a.aqi=numN(c.european_aqi); a.pm25=numN(c.pm2_5); a.pm10=numN(c.pm10);
+  a.no2=numN(c.nitrogen_dioxide); a.o3=numN(c.ozone); a.so2=numN(c.sulphur_dioxide); a.co=numN(c.carbon_monoxide);
+  a.time=c.time?new Date(c.time):new Date();
+  const H=d.hourly||{};
+  if(H.time){ let i=H.time.findIndex(t=>new Date(t)>=new Date()); if(i<0)i=H.time.length-1; if(i>0)i--;
+    const types={Bouleau:H.birch_pollen,Graminées:H.grass_pollen,Ambroisie:H.ragweed_pollen,Aulne:H.alder_pollen};
+    let best=null,bn=''; for(const k in types){ const arr=types[k]; const v=arr&&arr[i]; if(v!=null&&(best==null||v>best)){ best=v; bn=k; } }
+    a.pollen=best; a.pollenName=bn;
+  }
+}
+function airDemo(){ const a=wx.air; a.aqi=34;a.pm25=9;a.pm10=15;a.no2=20;a.o3=62;a.so2=2;a.co=210;a.pollen=12;a.pollenName='Graminées';a.time=new Date(); }
+let _airReq=0;
+async function fetchAir(){
+  const myId=++_airReq, city=prefs.city;
+  const ctrl=new AbortController(), to=setTimeout(()=>ctrl.abort(),9000);
+  const url=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${city.lat}&longitude=${city.lon}`
+    +`&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,carbon_monoxide`
+    +`&hourly=birch_pollen,grass_pollen,ragweed_pollen,alder_pollen&timezone=auto&forecast_days=1`;
+  try{
+    const res=await fetch(url,{signal:ctrl.signal}); clearTimeout(to);
+    if(!res.ok) throw new Error('http'); const d=await res.json();
+    if(myId!==_airReq) return;
+    applyAir(d); airCacheStore(city,d); wx.air.live=true; wx.air.stale=false;
+  }catch(e){ clearTimeout(to); if(myId!==_airReq) return;
+    const c=airCacheLoad(city); if(c){ applyAir(c.d); wx.air.live=false; wx.air.stale=true; if(c.t) wx.air.time=new Date(c.t); }
+    else { wx.air.live=false; wx.air.stale=false; airDemo(); } }
+  renderAir();
+}
+let _airKey='';
+function renderAir(){
+  const body=$('airBody'), st=$('airStatus'), foot=$('airFoot'), a=wx.air;
+  const key=[a.aqi,a.pm25,a.pm10,a.no2,a.o3,a.pollen,a.live,a.stale,a.time?a.time.getTime():0].join('|');
+  if(key===_airKey) return; _airKey=key;
+  const cat=aqiCat(a.aqi);
+  const tiles=[];
+  tiles.push(`<div class="tile" style="border-color:${cat.c}66"><div class="tl">Indice AQI (Europe)</div><div class="tv" style="color:${cat.c}">${a.aqi!=null?Math.round(a.aqi):'—'}</div><div class="ts">${cat.t}</div></div>`);
+  const pol=(l,v)=>`<div class="tile"><div class="tl">${l}</div><div class="tv">${v!=null?Math.round(v):'—'}<small> µg/m³</small></div></div>`;
+  tiles.push(pol('PM2.5',a.pm25)); tiles.push(pol('PM10',a.pm10)); tiles.push(pol('NO₂',a.no2)); tiles.push(pol('O₃',a.o3));
+  if(a.pollen!=null){ const pc=pollenCat(a.pollen); tiles.push(`<div class="tile"><div class="tl">Pollens${a.pollenName?' · '+a.pollenName:''}</div><div class="tv" style="color:${pc.c}">${pc.t}</div><div class="ts">${Math.round(a.pollen)} grains/m³</div></div>`); }
+  body.innerHTML=tiles.join('');
+  st.innerHTML = a.live?'<span class="live-tag">● EN DIRECT</span>' : a.stale?'<span class="stale-tag">⚠ hors-ligne</span>' : (a.aqi==null?'<span class="stale-tag">Mesure en cours…</span>':'<span class="stale-tag">DÉMO</span>');
+  foot.innerHTML = a.aqi!=null ? '<span><b>Source</b> Open-Meteo / CAMS · échelle AQI européenne (0 bon → 100+ extrême)'+(a.time?' · '+pad2(a.time.getHours())+':'+pad2(a.time.getMinutes()):'')+'</span>' : '';
+  renderVigilance(); // un AQI dégradé peut déclencher une alerte
+}
+
 /* ---------- Vigilance (veille seuils, dérivée des prévisions) ---------- */
 function computeVigilance(){
   const out=[], add=(level,ic,txt)=>out.push({level,ic,txt});
@@ -955,6 +1028,10 @@ function computeVigilance(){
   if((wx.daily||[]).slice(0,2).some(x=>[95,96,99].includes(x.code)) || [95,96,99].includes(wx.code)) add('orange','⛈️','Orages prévus');
   if(uvMax>=11) add('rouge','🟣','UV extrême — indice '+Math.round(uvMax));
   else if(uvMax>=8) add('orange','🟠','UV très élevé — indice '+Math.round(uvMax));
+  if(wx.air && wx.air.aqi!=null){
+    if(wx.air.aqi>100) add('rouge','😷','Qualité de l’air extrêmement mauvaise — AQI '+Math.round(wx.air.aqi));
+    else if(wx.air.aqi>80) add('orange','😷','Qualité de l’air très mauvaise — AQI '+Math.round(wx.air.aqi));
+  }
   const rank={rouge:0,orange:1,jaune:2};
   return out.sort((a,b)=>rank[a.level]-rank[b.level]);
 }
@@ -999,6 +1076,7 @@ async function fetchWeather(){
   }
   if(prefs.simInside) simulateInside(); else manualInside();
   render();
+  fetchAir();   // qualité de l'air (requête indépendante, non bloquante)
 }
 function applyWeather(d){
   const c=d.current||{};
@@ -1354,7 +1432,7 @@ function init(){
   chc.addEventListener('pointerleave', Chart.leave);
 
   tick(); setInterval(tick,1000);
-  render(); fetchWeather();
+  render(); renderAir(); fetchWeather();
   Sky.start();
 
   setInterval(fetchWeather,5*60*1000);
