@@ -1087,10 +1087,31 @@ function moveAC(dir){
 }
 
 function useGeolocation(){
-  if(!navigator.geolocation){ alert('Géolocalisation non supportée.'); return; }
-  navigator.geolocation.getCurrentPosition(
-    p=>{ addCity({name:'Ma position',code:'GPS',lat:p.coords.latitude,lon:p.coords.longitude,country:''}, true); },
-    ()=>alert('Position refusée ou indisponible.'), {timeout:8000});
+  const btn=$('btnGeo');
+  if(!navigator.geolocation){ alert('La géolocalisation n’est pas supportée par ce navigateur.'); return; }
+  if(!window.isSecureContext && location.protocol!=='file:'){
+    alert('La géolocalisation nécessite une connexion sécurisée (https://). Utilisez le lien https de l’application.'); return;
+  }
+  const old=btn.innerHTML, done=()=>{ btn.disabled=false; btn.innerHTML=old; };
+  btn.disabled=true; btn.innerHTML='⏳ Localisation…';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=pos.coords.latitude, lon=pos.coords.longitude;
+    let name='Ma position', country='', admin='';
+    try{ // géocodage inverse (BigDataCloud, sans clé) pour obtenir le vrai nom du lieu
+      const res=await withTimeout(fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=fr`),6000);
+      const d=await res.json();
+      name=d.city||d.locality||d.principalSubdivision||d.countryName||'Ma position';
+      admin=d.principalSubdivision||''; country=d.countryName||'';
+    }catch(e){ /* repli : nom générique */ }
+    done();
+    addCity({ name, code:cityCode(name), lat, lon, country, admin }, true);
+  }, err=>{
+    done();
+    const msg={1:'Autorisation refusée. Activez la localisation pour ce site dans les réglages du navigateur.',
+               2:'Position momentanément indisponible. Réessayez.',
+               3:'Délai de localisation dépassé. Réessayez.'}[err && err.code] || 'Localisation impossible.';
+    alert(msg);
+  }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
 }
 
 /* ---------- Panneau ---------- */
