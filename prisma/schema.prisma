@@ -1,0 +1,221 @@
+// Resto Pilot HACCP — modèle de données (cf. §8 du cahier des charges).
+//
+// Principes d'intégrité réglementaire :
+//  - Tous les enregistrements d'autocontrôle portent un horodatage SERVEUR
+//    (createdAt = now() côté base) et sont attribués à un utilisateur.
+//  - Les enregistrements validés sont INVIOLABLES : l'application n'expose
+//    aucune mise à jour/suppression de ces lignes. Une "correction" est une
+//    nouvelle entrée tracée (cf. champ correctionDe* / annule).
+//
+// En développement : SQLite (zéro configuration).
+// En production : remplacer provider par "postgresql" (base managée UE).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------ //
+//  Organisation & utilisateurs
+// ------------------------------------------------------------------ //
+
+model Etablissement {
+  id        String   @id @default(cuid())
+  nom       String
+  adresse   String?
+  siret     String?
+  createdAt DateTime @default(now())
+
+  utilisateurs    Utilisateur[]
+  equipements     Equipement[]
+  tachesNettoyage TacheNettoyage[]
+  receptions      Reception[]
+  produitsOuverts ProduitOuvert[]
+  nonConformites  NonConformite[]
+  rappels         Rappel[]
+}
+
+// Valeurs (validées côté application) : "GERANT" | "EMPLOYE"
+model Utilisateur {
+  id              String        @id @default(cuid())
+  nom             String
+  email           String        @unique
+  passwordHash    String
+  role            String        @default("EMPLOYE")
+  actif           Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId String
+
+  relevesTemperature ReleveTemperature[]
+  validations        ValidationNettoyage[]
+  receptions         Reception[]
+  produitsOuverts    ProduitOuvert[]
+  nonConformites     NonConformite[]
+
+  @@index([etablissementId])
+}
+
+// ------------------------------------------------------------------ //
+//  Module 1 — Relevés de température
+// ------------------------------------------------------------------ //
+
+// type (validé côté application) :
+//   "FRIGO_POSITIF" | "CONGELATEUR" | "VITRINE" | "MAINTIEN_CHAUD"
+model Equipement {
+  id              String         @id @default(cuid())
+  nom             String
+  type            String
+  tempMin         Float
+  tempMax         Float
+  actif           Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  etablissement   Etablissement  @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId String
+
+  releves ReleveTemperature[]
+
+  @@index([etablissementId])
+}
+
+model ReleveTemperature {
+  id            String      @id @default(cuid())
+  valeur        Float
+  conforme      Boolean // calculé à l'enregistrement (tempMin <= valeur <= tempMax)
+  commentaire   String?
+  createdAt     DateTime    @default(now()) // horodatage serveur — inviolable
+  equipement    Equipement  @relation(fields: [equipementId], references: [id], onDelete: Cascade)
+  equipementId  String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  utilisateurId String
+
+  // Lien éventuel vers une non-conformité déclenchée par ce relevé hors plage.
+  nonConformite NonConformite?
+
+  @@index([equipementId, createdAt])
+}
+
+// ------------------------------------------------------------------ //
+//  Module 2 — Plan de nettoyage
+// ------------------------------------------------------------------ //
+
+// frequence (validée côté application) :
+//   "QUOTIDIENNE" | "HEBDOMADAIRE" | "MENSUELLE"
+model TacheNettoyage {
+  id              String        @id @default(cuid())
+  libelle         String
+  zone            String
+  frequence       String        @default("QUOTIDIENNE")
+  actif           Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId String
+
+  validations ValidationNettoyage[]
+
+  @@index([etablissementId])
+}
+
+model ValidationNettoyage {
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now()) // horodatage serveur (= signature)
+  tache         TacheNettoyage @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  tacheId       String
+  utilisateur   Utilisateur    @relation(fields: [utilisateurId], references: [id])
+  utilisateurId String
+
+  @@index([tacheId, createdAt])
+}
+
+// ------------------------------------------------------------------ //
+//  Module 3 — Contrôle à réception
+// ------------------------------------------------------------------ //
+
+model Reception {
+  id              String        @id @default(cuid())
+  fournisseur     String
+  produit         String
+  temperature     Float?
+  numeroLot       String?
+  conforme        Boolean
+  photoData       String? // data URL (MVP) — en prod : stockage objet UE
+  createdAt       DateTime      @default(now())
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId String
+  utilisateur     Utilisateur   @relation(fields: [utilisateurId], references: [id])
+  utilisateurId   String
+
+  nonConformite NonConformite?
+
+  @@index([etablissementId, createdAt])
+}
+
+// ------------------------------------------------------------------ //
+//  Module 4 — Traçabilité / étiquetage DLC secondaire
+// ------------------------------------------------------------------ //
+
+// statut (validé côté application) : "OUVERT" | "CONSOMME" | "JETE"
+model ProduitOuvert {
+  id              String        @id @default(cuid())
+  nom             String
+  dateOuverture   DateTime      @default(now())
+  dureeJours      Int           @default(3)
+  dlcSecondaire   DateTime
+  statut          String        @default("OUVERT")
+  clotureAt       DateTime?
+  createdAt       DateTime      @default(now())
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId String
+  utilisateur     Utilisateur   @relation(fields: [utilisateurId], references: [id])
+  utilisateurId   String
+
+  @@index([etablissementId, statut])
+}
+
+// ------------------------------------------------------------------ //
+//  Module 5 — Non-conformités & actions correctives
+// ------------------------------------------------------------------ //
+
+// statut (validé côté application) : "OUVERT" | "RESOLU"
+model NonConformite {
+  id               String        @id @default(cuid())
+  type             String
+  description      String
+  photoData        String?
+  actionCorrective String?
+  responsable      String?
+  statut           String        @default("OUVERT")
+  createdAt        DateTime      @default(now())
+  resolvedAt       DateTime?
+  etablissement    Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId  String
+  utilisateur      Utilisateur   @relation(fields: [utilisateurId], references: [id])
+  utilisateurId    String
+
+  // Origine éventuelle (relevé hors plage / réception non conforme).
+  releve         ReleveTemperature? @relation(fields: [releveId], references: [id])
+  releveId       String?            @unique
+  reception      Reception?         @relation(fields: [receptionId], references: [id])
+  receptionId    String?            @unique
+
+  @@index([etablissementId, statut])
+}
+
+// ------------------------------------------------------------------ //
+//  Rappels de relevés (matin / soir)
+// ------------------------------------------------------------------ //
+
+model Rappel {
+  id              String        @id @default(cuid())
+  libelle         String
+  heure           String // "HH:MM"
+  actif           Boolean       @default(true)
+  etablissement   Etablissement @relation(fields: [etablissementId], references: [id], onDelete: Cascade)
+  etablissementId String
+
+  @@index([etablissementId])
+}
