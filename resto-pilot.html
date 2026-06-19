@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Resto Pilot — le copilote IA des gérants de restaurant. Tableau de bord intelligent, prévisions d'affluence, gestion des stocks, planning et analyse de rentabilité." />
+  <meta name="theme-color" content="#16241F" />
+  <title>Resto Pilot — Le copilote IA de votre restaurant</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+/* ============================================================
+   RESTO PILOT — Design System
+   Copilote IA pour la gestion de restaurant
+   ============================================================ */
+
+:root {
+  /* Surfaces & background */
+  --bg:            #F4F1EC;
+  --bg-soft:       #FBFAF7;
+  --surface:       #FFFFFF;
+  --surface-2:     #F7F4EF;
+
+  /* Brand — anthracite / vert profond */
+  --ink:           #18211F;
+  --ink-2:         #20302B;
+  --sidebar:       #16241F;
+  --sidebar-2:     #1D2F28;
+
+  /* Accent chaud — terracotta + ambre */
+  --accent:        #D9743F;
+  --accent-soft:   #F3E0D4;
+  --accent-deep:   #B85A2C;
+  --amber:         #E8A53D;
+  --amber-soft:    #FBEDD2;
+
+  /* Sémantique */
+  --green:         #2E9E6B;
+  --green-soft:    #DFF1E8;
+  --red:           #D94A3D;
+  --red-soft:      #FBE1DE;
+  --blue:          #3E7CB1;
+  --blue-soft:     #E1ECF5;
+
+  /* Texte */
+  --text:          #1C2826;
+  --text-2:        #5C6B68;
+  --text-3:        #93A09C;
+  --on-dark:       #EAF1EE;
+  --on-dark-2:     #9FB3AC;
+
+  /* Lignes & ombres */
+  --line:          #E7E1D8;
+  --line-2:        #EEEAE2;
+  --shadow-sm:     0 1px 2px rgba(24,33,31,.05), 0 1px 3px rgba(24,33,31,.04);
+  --shadow:        0 4px 16px rgba(24,33,31,.06), 0 1px 4px rgba(24,33,31,.04);
+  --shadow-lg:     0 18px 50px rgba(24,33,31,.14);
+
+  /* Rayons */
+  --r-sm: 10px;
+  --r:    16px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+
+  --sidebar-w: 264px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--accent-soft); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d8d0c4; border-radius: 999px; border: 3px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #c4baaa; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app { display: flex; min-height: 100vh; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  width: var(--sidebar-w);
+  background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-2) 100%);
+  color: var(--on-dark);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 60;
+  padding: 22px 16px;
+  transition: transform .32s cubic-bezier(.4,0,.2,1);
+}
+
+.brand { display: flex; align-items: center; gap: 12px; padding: 6px 10px 22px; }
+.brand-mark {
+  width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--amber) 100%);
+  display: grid; place-items: center; color: #fff; font-size: 20px;
+  box-shadow: 0 6px 16px rgba(217,116,63,.4);
+}
+.brand-name { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; color: #fff; line-height: 1; }
+.brand-sub { font-size: 11px; color: var(--on-dark-2); letter-spacing: .04em; margin-top: 3px; }
+
+.nav-group-label {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .12em;
+  color: var(--on-dark-2); padding: 16px 12px 8px; font-weight: 600;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 13px;
+  width: 100%; padding: 11px 13px; border-radius: 12px;
+  color: var(--on-dark-2); font-size: 14px; font-weight: 500;
+  transition: all .18s ease; position: relative; text-align: left;
+}
+.nav-item i { width: 20px; text-align: center; font-size: 15px; }
+.nav-item:hover { background: rgba(255,255,255,.06); color: var(--on-dark); }
+.nav-item.active {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -16px; top: 50%; transform: translateY(-50%);
+  width: 4px; height: 22px; border-radius: 0 4px 4px 0;
+  background: linear-gradient(var(--accent), var(--amber));
+}
+.nav-badge {
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  background: var(--accent); color: #fff;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  display: grid; place-items: center;
+}
+.nav-badge.amber { background: var(--amber); color: #3a2a08; }
+
+.sidebar-foot { margin-top: auto; padding-top: 14px; }
+.user-card {
+  display: flex; align-items: center; gap: 11px; padding: 11px;
+  background: rgba(255,255,255,.05); border-radius: 14px;
+}
+.avatar {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  background: linear-gradient(135deg, #4a6b5f, #2c4339);
+  display: grid; place-items: center; color: #fff; font-weight: 600; font-size: 14px;
+}
+.user-name { font-size: 13.5px; font-weight: 600; color: #fff; }
+.user-role { font-size: 11.5px; color: var(--on-dark-2); }
+
+/* ---------- Main ---------- */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+}
+
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 30px;
+  background: rgba(244,241,236,.82);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar h1 { font-size: 23px; }
+.topbar-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+.topbar-spacer { flex: 1; }
+
+.burger {
+  display: none; width: 42px; height: 42px; border-radius: 12px;
+  background: var(--surface); box-shadow: var(--shadow-sm); color: var(--ink);
+  font-size: 18px;
+}
+
+.searchbox {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 9px 16px; width: 280px;
+  color: var(--text-3); box-shadow: var(--shadow-sm);
+}
+.searchbox input { border: none; outline: none; background: none; font-size: 13.5px; color: var(--text); width: 100%; }
+
+.icon-btn {
+  width: 42px; height: 42px; border-radius: 13px; position: relative;
+  background: var(--surface); box-shadow: var(--shadow-sm);
+  color: var(--ink-2); font-size: 16px; display: grid; place-items: center;
+  transition: transform .15s;
+}
+.icon-btn:hover { transform: translateY(-1px); }
+.icon-btn .dot {
+  position: absolute; top: 9px; right: 10px; width: 8px; height: 8px;
+  background: var(--accent); border-radius: 50%; border: 2px solid var(--surface);
+}
+
+.content { padding: 26px 30px 60px; }
+
+/* ============================================================
+   PRIMITIVES
+   ============================================================ */
+.page { display: none; animation: fade .4s ease; }
+.page.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px);} to {opacity:1; transform:none;} }
+
+.grid { display: grid; gap: 18px; }
+.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+
+.card {
+  background: var(--surface); border-radius: var(--r);
+  box-shadow: var(--shadow); border: 1px solid var(--line-2);
+  padding: 20px;
+}
+.card-pad-lg { padding: 24px; }
+
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
+.card-title { font-size: 16px; font-family: 'Fraunces', serif; font-weight: 600; color: var(--ink); }
+.card-desc { font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
+
+.section-title { font-size: 19px; margin: 30px 0 14px; display: flex; align-items: center; gap: 10px; }
+.section-title:first-child { margin-top: 0; }
+
+/* Chips & segmented */
+.seg { display: inline-flex; background: var(--surface-2); border-radius: var(--r-pill); padding: 4px; gap: 2px; }
+.seg button {
+  padding: 6px 14px; border-radius: var(--r-pill); font-size: 12.5px; font-weight: 600;
+  color: var(--text-2); transition: all .18s;
+}
+.seg button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: var(--r-pill);
+  line-height: 1;
+}
+.badge i { font-size: 9px; }
+.badge.green { background: var(--green-soft); color: #1d7a4f; }
+.badge.red   { background: var(--red-soft); color: #b3362b; }
+.badge.amber { background: var(--amber-soft); color: #9a6c10; }
+.badge.blue  { background: var(--blue-soft); color: #2c5d87; }
+.badge.gray  { background: var(--surface-2); color: var(--text-2); }
+.badge.accent{ background: var(--accent-soft); color: var(--accent-deep); }
+
+.dot-status { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot-status.green { background: var(--green); }
+.dot-status.amber { background: var(--amber); }
+.dot-status.red { background: var(--red); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 18px; border-radius: 12px; font-size: 13.5px; font-weight: 600;
+  transition: all .18s; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 16px rgba(217,116,63,.28); }
+.btn-primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-dark:hover { background: var(--ink-2); }
+.btn-ghost { background: var(--surface-2); color: var(--ink-2); }
+.btn-ghost:hover { background: var(--line); }
+.btn-sm { padding: 7px 13px; font-size: 12.5px; border-radius: 10px; }
+.btn-block { width: 100%; }
+
+/* ============================================================
+   KPI CARDS
+   ============================================================ */
+.kpi {
+  background: var(--surface); border-radius: var(--r);
+  box-shadow: var(--shadow); border: 1px solid var(--line-2);
+  padding: 18px 18px 16px; position: relative; overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.kpi:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kpi-ico {
+  width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 16px;
+}
+.kpi-ico.a { background: var(--accent-soft); color: var(--accent-deep); }
+.kpi-ico.b { background: var(--green-soft); color: #1d7a4f; }
+.kpi-ico.c { background: var(--amber-soft); color: #9a6c10; }
+.kpi-ico.d { background: var(--blue-soft); color: #2c5d87; }
+.kpi-ico.e { background: #ECE6F5; color: #6b4ea0; }
+.kpi-ico.f { background: var(--red-soft); color: #b3362b; }
+
+.kpi-label { font-size: 12.5px; color: var(--text-2); font-weight: 500; }
+.kpi-value { font-size: 27px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; margin: 3px 0 6px; font-family: 'Fraunces', serif; }
+.kpi-value small { font-size: 15px; color: var(--text-3); font-weight: 500; }
+.kpi-trend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-trend .vs { color: var(--text-3); font-weight: 500; margin-left: 3px; }
+
+/* sparkline */
+.spark { position: absolute; right: 0; bottom: 0; width: 90px; height: 38px; opacity: .55; }
+
+/* progress ring (food cost / remplissage) */
+.ring-wrap { display: flex; align-items: center; gap: 14px; }
+.ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+.ring svg { transform: rotate(-90deg); }
+.ring-txt { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; font-weight: 700; color: var(--ink); }
+
+/* ============================================================
+   CHARTS
+   ============================================================ */
+.chart-wrap { width: 100%; }
+.bars { display: flex; align-items: flex-end; gap: 10px; height: 180px; padding-top: 10px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+.bar-stack { width: 100%; max-width: 38px; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; height: 100%; }
+.bar {
+  width: 100%; border-radius: 7px 7px 4px 4px; transition: height .6s cubic-bezier(.4,0,.2,1);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
+  position: relative; min-height: 4px;
+}
+.bar.prev { background: linear-gradient(180deg, #E7DFD4, #d8cfc0); border-radius: 7px 7px 4px 4px; }
+.bar-label { font-size: 11.5px; color: var(--text-2); font-weight: 500; }
+.bar-col:hover .bar { filter: brightness(1.06); }
+
+.legend { display: flex; gap: 18px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-2); }
+.legend-swatch { width: 11px; height: 11px; border-radius: 4px; }
+
+/* line chart */
+.linechart { width: 100%; height: 200px; display: block; overflow: visible; }
+.lc-grid line { stroke: var(--line); stroke-width: 1; }
+.lc-axis { font-size: 11px; fill: var(--text-3); }
+.lc-area { opacity: .14; }
+.lc-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.lc-dot { stroke: #fff; stroke-width: 2; }
+
+/* ============================================================
+   LISTS / TABLES
+   ============================================================ */
+.list { display: flex; flex-direction: column; }
+.list-row {
+  display: flex; align-items: center; gap: 13px; padding: 13px 4px;
+  border-bottom: 1px solid var(--line-2);
+}
+.list-row:last-child { border-bottom: none; }
+.list-ico {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 16px;
+  background: var(--surface-2); color: var(--ink-2);
+}
+.list-main { flex: 1; min-width: 0; }
+.list-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.list-sub { font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
+.list-end { text-align: right; flex-shrink: 0; }
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-3); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line);
+}
+tbody td { padding: 13px 12px; font-size: 13.5px; border-bottom: 1px solid var(--line-2); color: var(--text); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .15s; }
+tbody tr:hover { background: var(--surface-2); }
+.t-num { font-variant-numeric: tabular-nums; font-weight: 600; }
+.t-name { font-weight: 600; color: var(--ink); }
+
+/* mini meter / progress bar */
+.meter { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; width: 100%; }
+.meter > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); transition: width .6s ease; }
+.meter.green > span { background: var(--green); }
+.meter.amber > span { background: var(--amber); }
+.meter.red > span { background: var(--red); }
+
+/* ============================================================
+   ALERTS
+   ============================================================ */
+.alert {
+  display: flex; gap: 13px; padding: 14px; border-radius: var(--r-sm);
+  border: 1px solid var(--line-2); background: var(--bg-soft); margin-bottom: 10px;
+  position: relative;
+}
+.alert:last-child { margin-bottom: 0; }
+.alert-ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; font-size: 15px; }
+.alert.high   { border-left: 4px solid var(--red); }
+.alert.high .alert-ico { background: var(--red-soft); color: #b3362b; }
+.alert.medium { border-left: 4px solid var(--amber); }
+.alert.medium .alert-ico { background: var(--amber-soft); color: #9a6c10; }
+.alert.info   { border-left: 4px solid var(--blue); }
+.alert.info .alert-ico { background: var(--blue-soft); color: #2c5d87; }
+.alert-main { flex: 1; min-width: 0; }
+.alert-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.alert-text { font-size: 12.5px; color: var(--text-2); margin-top: 2px; }
+.alert-time { font-size: 11px; color: var(--text-3); margin-top: 5px; }
+.alert-action { font-size: 12.5px; font-weight: 600; color: var(--accent-deep); align-self: center; white-space: nowrap; }
+
+/* weather strip */
+.weather-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.wcell {
+  flex: 1; min-width: 96px; text-align: center; padding: 14px 8px;
+  border-radius: var(--r-sm); border: 1px solid var(--line-2); background: var(--bg-soft);
+}
+.wcell.peak { background: linear-gradient(180deg, var(--accent-soft), #fff); border-color: var(--accent); }
+.wcell .wd { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.wcell .wi { font-size: 22px; margin: 6px 0; }
+.wcell .wt { font-size: 13px; font-weight: 700; color: var(--ink); }
+.wcell .wc { font-size: 12.5px; font-weight: 700; margin-top: 6px; }
+
+/* ============================================================
+   AI ASSISTANT
+   ============================================================ */
+.chat-shell { display: flex; flex-direction: column; height: calc(100vh - 200px); min-height: 520px; }
+.chat-stream { flex: 1; overflow-y: auto; padding: 8px 4px 8px 0; display: flex; flex-direction: column; gap: 16px; }
+.msg { display: flex; gap: 12px; max-width: 86%; animation: fade .35s ease; }
+.msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.msg-av { width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-size: 15px; }
+.msg.ai .msg-av { background: linear-gradient(135deg, var(--accent), var(--amber)); }
+.msg.user .msg-av { background: var(--ink); }
+.bubble {
+  padding: 13px 16px; border-radius: 16px; font-size: 14px; line-height: 1.55;
+  box-shadow: var(--shadow-sm);
+}
+.msg.ai .bubble { background: var(--surface); border: 1px solid var(--line-2); border-top-left-radius: 5px; }
+.msg.user .bubble { background: var(--ink); color: #fff; border-top-right-radius: 5px; }
+.bubble strong { color: var(--accent-deep); }
+.msg.user .bubble strong { color: var(--amber); }
+.bubble .mini-card {
+  margin-top: 11px; padding: 12px; background: var(--bg-soft); border-radius: 11px;
+  border: 1px solid var(--line-2);
+}
+.bubble ul { margin: 8px 0 2px; padding-left: 18px; }
+.bubble li { margin: 4px 0; }
+.bubble .kv { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+.bubble .kv:last-child { border-bottom: none; }
+.bubble .kv b { color: var(--ink); }
+
+.typing { display: inline-flex; gap: 4px; align-items: center; padding: 4px 0; }
+.typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); animation: bounce 1.2s infinite; }
+.typing span:nth-child(2){ animation-delay: .2s; } .typing span:nth-child(3){ animation-delay: .4s; }
+@keyframes bounce { 0%,60%,100%{ transform: translateY(0); opacity:.4;} 30%{ transform: translateY(-6px); opacity:1;} }
+
+.suggestions { display: flex; gap: 9px; flex-wrap: wrap; margin: 14px 0 12px; }
+.chip-suggest {
+  padding: 9px 15px; border-radius: var(--r-pill); font-size: 13px; font-weight: 500;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink-2);
+  transition: all .18s;
+}
+.chip-suggest:hover { border-color: var(--accent); color: var(--accent-deep); background: var(--accent-soft); }
+
+.composer { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.composer input {
+  flex: 1; padding: 14px 18px; border-radius: var(--r-pill); border: 1px solid var(--line);
+  background: var(--surface); font-size: 14px; outline: none; box-shadow: var(--shadow-sm);
+}
+.composer input:focus { border-color: var(--accent); }
+.composer .send { width: 48px; height: 48px; border-radius: 14px; background: var(--accent); color: #fff; font-size: 17px; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(217,116,63,.3); transition: transform .15s; }
+.composer .send:hover { transform: translateY(-1px); }
+
+/* AI inline widget (dashboard) */
+.ai-promo {
+  background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 60%, #2a4339 100%);
+  color: var(--on-dark); border-radius: var(--r); padding: 22px; position: relative; overflow: hidden;
+}
+.ai-promo::after {
+  content: ''; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(217,116,63,.35), transparent 70%);
+}
+.ai-promo h3 { color: #fff; font-size: 17px; }
+.ai-promo p { font-size: 13px; color: var(--on-dark-2); margin: 7px 0 16px; position: relative; }
+
+/* ============================================================
+   MISC
+   ============================================================ */
+.stat-inline { display: flex; align-items: baseline; gap: 8px; }
+.stat-inline .big { font-size: 24px; font-weight: 700; font-family: 'Fraunces',serif; color: var(--ink); }
+.muted { color: var(--text-2); }
+.tiny { font-size: 12px; }
+.center { text-align: center; }
+.flex { display: flex; }
+.between { display: flex; align-items: center; justify-content: space-between; }
+.gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
+.mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; } .mb-12 { margin-bottom: 12px; }
+.w-100 { width: 100%; }
+
+.donut-legend { display: flex; flex-direction: column; gap: 10px; }
+.donut-legend .li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+.donut-legend .sw { width: 11px; height: 11px; border-radius: 4px; flex-shrink: 0; }
+.donut-legend .pct { margin-left: auto; font-weight: 700; color: var(--ink); }
+
+.staff-grid { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 6px; align-items: center; }
+.staff-slot { padding: 8px 6px; border-radius: 9px; text-align: center; font-size: 12px; font-weight: 600; }
+.staff-time { font-size: 12px; color: var(--text-2); font-weight: 600; }
+.staff-name { font-size: 11.5px; }
+
+.review-card { padding: 16px; border-radius: var(--r-sm); border: 1px solid var(--line-2); background: var(--bg-soft); }
+.stars { color: var(--amber); font-size: 13px; letter-spacing: 1px; }
+.source-pill { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+.source-pill.google { background: #E8F0FE; color: #1a73e8; }
+.source-pill.tripadvisor { background: #E3F2E8; color: #00875A; }
+.source-pill.thefork { background: #FBE9E7; color: #cc4124; }
+
+.empty-pad { padding: 28px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: #fff; padding: 13px 22px; border-radius: 14px;
+  box-shadow: var(--shadow-lg); font-size: 13.5px; font-weight: 500; z-index: 200;
+  opacity: 0; transition: all .3s; display: flex; align-items: center; gap: 10px; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast i { color: var(--green); }
+
+/* overlay for mobile sidebar */
+.overlay {
+  position: fixed; inset: 0; background: rgba(20,28,26,.45); z-index: 55;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.overlay.show { opacity: 1; pointer-events: auto; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1180px) {
+  .cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .span-3 { grid-column: span 2; }
+}
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .main { margin-left: 0; }
+  .burger { display: grid; }
+  .searchbox { display: none; }
+  .content { padding: 20px 16px 50px; }
+  .topbar { padding: 14px 16px; }
+}
+@media (max-width: 680px) {
+  .cols-4, .cols-3, .cols-2 { grid-template-columns: 1fr; }
+  .span-2, .span-3 { grid-column: span 1; }
+  .staff-grid { grid-template-columns: 70px repeat(5, 1fr); font-size: 10px; }
+  .topbar h1 { font-size: 19px; }
+  .msg { max-width: 96%; }
+}
+
+  </style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>" />
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><i class="fas fa-utensils"></i></div>
+      <div>
+        <div class="brand-name">Resto Pilot</div>
+        <div class="brand-sub">La Table d'Olivier</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-group-label">Pilotage</div>
+      <button class="nav-item" data-nav="dashboard"><i class="fas fa-gauge-high"></i> Tableau de bord</button>
+      <button class="nav-item" data-nav="assistant"><i class="fas fa-robot"></i> Assistant IA <span class="nav-badge amber">IA</span></button>
+
+      <div class="nav-group-label">Opérations</div>
+      <button class="nav-item" data-nav="forecast"><i class="fas fa-cloud-sun-rain"></i> Prévision &amp; affluence</button>
+      <button class="nav-item" data-nav="stock"><i class="fas fa-box-open"></i> Stocks &amp; gaspillage <span class="nav-badge">7</span></button>
+      <button class="nav-item" data-nav="staff"><i class="fas fa-users-gear"></i> Planning du personnel</button>
+
+      <div class="nav-group-label">Performance</div>
+      <button class="nav-item" data-nav="menu"><i class="fas fa-book-open"></i> Carte &amp; rentabilité</button>
+      <button class="nav-item" data-nav="reviews"><i class="fas fa-star-half-stroke"></i> Clients &amp; avis</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="user-card">
+        <div class="avatar">OM</div>
+        <div style="flex:1;min-width:0">
+          <div class="user-name">Olivier Maurin</div>
+          <div class="user-role">Gérant · propriétaire</div>
+        </div>
+        <i class="fas fa-chevron-right" style="color:var(--on-dark-2);font-size:12px"></i>
+      </div>
+    </div>
+  </aside>
+
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="burger" id="burger"><i class="fas fa-bars"></i></button>
+      <div>
+        <h1 id="pageTitle">Tableau de bord</h1>
+        <div class="topbar-sub" id="pageSub">Vue d'ensemble en temps réel</div>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="searchbox">
+        <i class="fas fa-magnifying-glass"></i>
+        <input placeholder="Rechercher un plat, un stock, un avis…" />
+      </div>
+      <button class="icon-btn" data-toast="3 nouvelles notifications"><i class="fas fa-bell"></i><span class="dot"></span></button>
+      <button class="btn btn-primary btn-sm" id="askAi"><i class="fas fa-wand-magic-sparkles"></i> Demander à l'IA</button>
+    </header>
+
+    <main class="content" id="content"><!-- injecté par app.js --></main>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   RESTO PILOT — Données fictives réalistes
+   Restaurant « La Table d'Olivier » — bistrot français, 64 couverts
+   ============================================================ */
+window.RP = {
+  restaurant: {
+    name: "La Table d'Olivier",
+    type: "Bistrot français · 64 couverts",
+    city: "Lyon 2ᵉ",
+  },
+
+  /* ---------- KPIs du jour ---------- */
+  kpis: {
+    ca:        { value: 4280, prev: 3910, unit: "€" },
+    ticket:    { value: 38.5, prev: 36.2, unit: "€" },
+    foodcost:  { value: 29.4, target: 30, prev: 31.8, unit: "%" },
+    marge:     { value: 68.2, prev: 66.5, unit: "%" },
+    couverts:  { value: 111, prev: 108, unit: "" },
+    remplissage:{ value: 87, prev: 79, unit: "%" },
+  },
+
+  /* ---------- CA semaine (réel vs prévu) ---------- */
+  caWeek: {
+    labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    real:   [2980, 3240, 3110, 3680, 4280, 5120, 4650],
+    prev:   [3050, 3180, 3200, 3550, 4100, 5400, 4900],
+  },
+  caMonth: {
+    labels: ["S1", "S2", "S3", "S4"],
+    real:   [21800, 23400, 22100, 27050],
+    prev:   [22000, 22500, 23000, 26500],
+  },
+
+  /* ---------- Répartition CA par service ---------- */
+  caSplit: [
+    { label: "Service du soir", value: 58, color: "#D9743F" },
+    { label: "Déjeuner",        value: 31, color: "#E8A53D" },
+    { label: "À emporter",      value: 11, color: "#2E9E6B" },
+  ],
+
+  /* ---------- Alertes intelligentes ---------- */
+  alerts: [
+    { level: "high",   icon: "fa-triangle-exclamation", title: "Rupture imminente — Saumon frais",
+      text: "Stock à 2,1 kg. Vendredi soir prévu à +24 % d'affluence. Commande conseillée avant 16 h.",
+      time: "Il y a 12 min", action: "Commander" },
+    { level: "high",   icon: "fa-temperature-three-quarters", title: "Food cost « Burgers » en hausse",
+      text: "Le coût matière du Burger Signature atteint 38 % (cible 32 %). Hausse du prix du bœuf détectée.",
+      time: "Il y a 1 h", action: "Analyser" },
+    { level: "medium", icon: "fa-cloud-sun-rain", title: "Pic d'affluence prévu samedi",
+      text: "Beau temps + match au Groupama Stadium. Affluence estimée +31 %. Prévoir un renfort en salle.",
+      time: "Il y a 2 h", action: "Voir planning" },
+    { level: "medium", icon: "fa-hourglass-half", title: "Surstock — Crème fraîche",
+      text: "1,8 kg proche de la DLC (J+2). Suggestion : plat du jour « Gratin dauphinois » pour écouler.",
+      time: "Il y a 3 h", action: "Suggérer" },
+    { level: "info",   icon: "fa-star", title: "Nouvel avis Google — 5 ★",
+      text: "« Service impeccable et magret parfait. » Une réponse personnalisée est prête à être envoyée.",
+      time: "Il y a 4 h", action: "Répondre" },
+  ],
+
+  /* ---------- Plats les plus vendus aujourd'hui ---------- */
+  topDishes: [
+    { name: "Magret de canard, miel & thym", sold: 23, price: 24.5, trend: +12 },
+    { name: "Burger Signature maison",        sold: 19, price: 18.0, trend: +4 },
+    { name: "Risotto crémeux aux cèpes",      sold: 17, price: 19.5, trend: -3 },
+    { name: "Tartare de bœuf au couteau",     sold: 14, price: 21.0, trend: +8 },
+    { name: "Filet de daurade, écrasé citron",sold: 11, price: 23.0, trend: +1 },
+  ],
+
+  /* ============================================================
+     PRÉVISION & AFFLUENCE
+     ============================================================ */
+  forecast: {
+    days: [
+      { day: "Jeu", date: "19/06", icon: "☀️", temp: 27, cond: "Ensoleillé", level: "Normal", covers: 96,  pct: 0,  peak: false, color: "var(--text-2)" },
+      { day: "Ven", date: "20/06", icon: "🌤️", temp: 26, cond: "Éclaircies", level: "Élevé", covers: 124, pct: 24, peak: true,  color: "var(--accent-deep)" },
+      { day: "Sam", date: "21/06", icon: "☀️", temp: 29, cond: "Ensoleillé", level: "Très élevé", covers: 142, pct: 31, peak: true, color: "var(--red)" },
+      { day: "Dim", date: "22/06", icon: "⛅", temp: 24, cond: "Nuageux",   level: "Élevé", covers: 118, pct: 18, peak: true,  color: "var(--accent-deep)" },
+      { day: "Lun", date: "23/06", icon: "🌧️", temp: 19, cond: "Pluie",     level: "Faible", covers: 58,  pct: -22, peak: false, color: "var(--blue)" },
+    ],
+    slots: {
+      labels: ["12h", "13h", "14h", "19h", "20h", "21h", "22h"],
+      covers: [22, 38, 16, 28, 46, 41, 19],
+    },
+    drivers: [
+      { icon: "fa-cloud-sun", label: "Météo", text: "Beau temps week-end", impact: "+14 %", positive: true },
+      { icon: "fa-futbol",    label: "Événement", text: "Match OL · Sam 21 h", impact: "+11 %", positive: true },
+      { icon: "fa-calendar-week", label: "Historique", text: "Tendance même période", impact: "+6 %", positive: true },
+      { icon: "fa-cloud-rain", label: "Météo", text: "Pluie annoncée lundi", impact: "-22 %", positive: false },
+    ],
+    prep: [
+      { name: "Magret de canard", qty: "32 portions", note: "+8 vs normal", level: "amber" },
+      { name: "Pâte à burger (steaks)", qty: "26 pièces", note: "Affluence ↑", level: "amber" },
+      { name: "Base risotto / cèpes", qty: "18 portions", note: "Stable", level: "green" },
+      { name: "Pâte à tarte (dessert)", qty: "3 plaques", note: "Réduire de 1", level: "green" },
+      { name: "Saumon frais", qty: "9 kg à commander", note: "Rupture prévue", level: "red" },
+    ],
+  },
+
+  /* ============================================================
+     STOCKS & GASPILLAGE
+     ============================================================ */
+  stock: {
+    summary: { items: 142, low: 7, expiring: 4, waste: 3.8 },
+    items: [
+      { name: "Saumon frais",        cat: "Poisson",  qty: 2.1,  unit: "kg", level: 11, status: "red",   dlc: "21/06" },
+      { name: "Magret de canard",    cat: "Viande",   qty: 8.4,  unit: "kg", level: 46, status: "amber", dlc: "23/06" },
+      { name: "Bœuf haché (steaks)", cat: "Viande",   qty: 14.0, unit: "kg", level: 72, status: "green", dlc: "22/06" },
+      { name: "Crème fraîche",       cat: "Crémerie", qty: 1.8,  unit: "kg", level: 88, status: "amber", dlc: "21/06" },
+      { name: "Cèpes",               cat: "Légumes",  qty: 0.9,  unit: "kg", level: 18, status: "red",   dlc: "20/06" },
+      { name: "Pommes de terre",     cat: "Légumes",  qty: 28.0, unit: "kg", level: 81, status: "green", dlc: "30/06" },
+      { name: "Beurre AOP",          cat: "Crémerie", qty: 6.2,  unit: "kg", level: 64, status: "green", dlc: "28/06" },
+      { name: "Vin rouge (Côtes)",   cat: "Cave",     qty: 42,   unit: "btl",level: 70, status: "green", dlc: "—" },
+    ],
+    waste: {
+      labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+      kg:     [4.2, 3.8, 5.1, 3.2, 2.9, 4.6, 3.4],
+    },
+    wasteSplit: [
+      { label: "Surproduction", value: 42, color: "#D9743F" },
+      { label: "Péremption",    value: 31, color: "#E8A53D" },
+      { label: "Retours client",value: 16, color: "#3E7CB1" },
+      { label: "Préparation",   value: 11, color: "#2E9E6B" },
+    ],
+    tips: [
+      { icon: "fa-utensils",   text: "Proposer un « Gratin dauphinois » en plat du jour pour écouler 1,8 kg de crème (DLC J+2)." },
+      { icon: "fa-arrow-down", text: "Réduire la production de risotto le lundi (-22 % d'affluence prévue) : ~6 portions économisées." },
+      { icon: "fa-tags",       text: "Mettre les cèpes en suggestion ce soir : 0,9 kg à valoriser avant demain." },
+    ],
+  },
+
+  /* ============================================================
+     PLANNING DU PERSONNEL
+     ============================================================ */
+  staff: {
+    summary: { employees: 11, hours: 218, cost: 4120, ratio: 21.3 },
+    team: [
+      { name: "Olivier M.", role: "Chef", color: "#D9743F" },
+      { name: "Sarah B.",   role: "Second", color: "#E8A53D" },
+      { name: "Karim T.",   role: "Salle", color: "#2E9E6B" },
+      { name: "Léa D.",     role: "Salle", color: "#3E7CB1" },
+      { name: "Hugo P.",    role: "Plonge", color: "#6b4ea0" },
+    ],
+    schedule: {
+      days: ["Lun", "Mar", "Mer", "Jeu", "Ven"],
+      rows: [
+        { slot: "Midi", staff: [2, 3, 3, 3, 4] },
+        { slot: "Coupure", staff: [1, 1, 1, 1, 1] },
+        { slot: "Soir", staff: [3, 3, 4, 4, 5] },
+      ],
+    },
+    recommendation: {
+      title: "Optimisation suggérée — Vendredi soir",
+      text: "Affluence prévue +24 %. Ajouter 1 renfort en salle (19 h–23 h) couvrirait le pic sans dégrader le service.",
+      cost: "+72 € de main-d'œuvre", gain: "≈ +540 € de CA potentiel",
+    },
+  },
+
+  /* ============================================================
+     CARTE & RENTABILITÉ
+     ============================================================ */
+  menu: [
+    { name: "Magret de canard",      cat: "Plat",    price: 24.5, cost: 7.1,  sold: 142, margin: 71, pop: 92, star: true },
+    { name: "Tartare de bœuf",       cat: "Plat",    price: 21.0, cost: 6.3,  sold: 88,  margin: 70, pop: 74, star: true },
+    { name: "Risotto aux cèpes",     cat: "Plat",    price: 19.5, cost: 5.0,  sold: 96,  margin: 74, pop: 78, star: true },
+    { name: "Burger Signature",      cat: "Plat",    price: 18.0, cost: 6.8,  sold: 118, margin: 62, pop: 88, star: false },
+    { name: "Filet de daurade",      cat: "Plat",    price: 23.0, cost: 9.2,  sold: 41,  margin: 60, pop: 38, star: false },
+    { name: "Salade César",          cat: "Entrée",  price: 13.5, cost: 3.1,  sold: 64,  margin: 77, pop: 58, star: true },
+    { name: "Foie gras maison",      cat: "Entrée",  price: 16.0, cost: 8.4,  sold: 22,  margin: 47, pop: 24, star: false },
+    { name: "Tiramisu maison",       cat: "Dessert", price: 8.5,  cost: 1.6,  sold: 102, margin: 81, pop: 84, star: true },
+    { name: "Crème brûlée",          cat: "Dessert", price: 8.0,  cost: 1.4,  sold: 71,  margin: 82, pop: 62, star: true },
+    { name: "Café gourmand",         cat: "Dessert", price: 9.0,  cost: 2.7,  sold: 33,  margin: 70, pop: 30, star: false },
+  ],
+  menuActions: [
+    { icon: "fa-arrow-trend-up", type: "Vedette", color: "green",
+      text: "Le Magret de canard est votre plat-star (forte marge + forte popularité). Mettez-le en avant en suggestion." },
+    { icon: "fa-pen-ruler", type: "À retravailler", color: "amber",
+      text: "Le Foie gras : faible marge (47 %) et faible popularité. Renégocier le fournisseur ou revoir le prix à 18 €." },
+    { icon: "fa-bullhorn", type: "Upselling", color: "accent",
+      text: "Suggérer un verre de Côtes-du-Rhône (+6,5 €) avec le Magret : +18 % de panier sur ce plat en test." },
+    { icon: "fa-scissors", type: "À retirer ?", color: "red",
+      text: "Le Filet de daurade plombe le food cost (40 %) pour seulement 41 ventes/mois. Envisager un remplacement." },
+  ],
+
+  /* ============================================================
+     CLIENTS & AVIS
+     ============================================================ */
+  reviews: {
+    summary: { rating: 4.6, total: 1284, response: 92, sentiment: 86 },
+    distribution: [ {s:5,n:812},{s:4,n:286},{s:3,n:104},{s:2,n:48},{s:1,n:34} ],
+    sentiment: [
+      { label: "Positif", value: 86, color: "#2E9E6B" },
+      { label: "Neutre",  value: 9,  color: "#E8A53D" },
+      { label: "Négatif", value: 5,  color: "#D94A3D" },
+    ],
+    themes: [
+      { label: "Cuisine / goût", score: 94, trend: "up" },
+      { label: "Service", score: 88, trend: "up" },
+      { label: "Ambiance", score: 91, trend: "flat" },
+      { label: "Rapport qualité-prix", score: 76, trend: "down" },
+      { label: "Temps d'attente", score: 68, trend: "down" },
+    ],
+    list: [
+      { source: "google", name: "Camille R.", stars: 5, sentiment: "green", date: "Aujourd'hui",
+        text: "Service impeccable et magret parfaitement cuit. On reviendra sans hésiter !",
+        reply: "Merci infiniment Camille ! Ravis que le magret vous ait séduit. Olivier et toute l'équipe vous attendent avec plaisir. 🍷" },
+      { source: "tripadvisor", name: "Mark T.", stars: 4, sentiment: "green", date: "Hier",
+        text: "Très bonne cuisine, ambiance chaleureuse. Service un peu long le samedi soir.",
+        reply: "Merci pour votre retour Mark ! Nous renforçons justement l'équipe le samedi pour fluidifier le service. Au plaisir de vous revoir." },
+      { source: "thefork", name: "Sophie L.", stars: 2, sentiment: "red", date: "Il y a 2 j",
+        text: "Plats savoureux mais 35 min d'attente entre l'entrée et le plat. Dommage.",
+        reply: "Bonjour Sophie, nous sommes navrés pour cette attente. Vous avez raison, ce n'est pas notre standard. Nous aimerions vous réinviter — contactez-nous en MP. Merci de votre franchise." },
+    ],
+    loyalty: { members: 642, returning: 38, churnRisk: 47 },
+  },
+
+  /* ============================================================
+     ASSISTANT IA — base de connaissances (réponses scriptées)
+     ============================================================ */
+  aiSuggestions: [
+    "Que dois-je commander pour ce week-end ?",
+    "Quel plat est le plus rentable ?",
+    "Comment réduire mon gaspillage ?",
+    "Ai-je assez de personnel pour samedi ?",
+  ],
+  aiKnowledge: [
+    {
+      match: ["command", "week-end", "weekend", "achat", "approvision", "stock"],
+      html: `Pour le <strong>week-end</strong> (affluence prévue <strong>+27 %</strong> vs normale), voici ma recommandation chiffrée :
+        <div class="mini-card">
+          <div class="kv"><span>🐟 Saumon frais</span><b>9 kg</b></div>
+          <div class="kv"><span>🦆 Magret de canard</span><b>12 kg</b></div>
+          <div class="kv"><span>🍄 Cèpes</span><b>4 kg</b></div>
+          <div class="kv"><span>🥩 Bœuf haché (steaks)</span><b>8 kg</b></div>
+        </div>
+        ⚠️ Le <strong>saumon</strong> est en rupture imminente — à commander <strong>avant 16 h aujourd'hui</strong>. Budget estimé : <strong>~410 €</strong>, pour un CA week-end projeté de <strong>~14 800 €</strong>.`,
+    },
+    {
+      match: ["rentable", "marge", "plat star", "meilleur plat", "rentabilit"],
+      html: `Votre plat le plus rentable est le <strong>Risotto aux cèpes</strong> : marge de <strong>74 %</strong> (coût 5,00 € / prix 19,50 €).
+        <div class="mini-card">
+          <div class="kv"><span>🥇 Risotto aux cèpes</span><b>74 % de marge</b></div>
+          <div class="kv"><span>🥈 Crème brûlée</span><b>82 % · faible volume</b></div>
+          <div class="kv"><span>🥉 Magret de canard</span><b>71 % · plat-star ⭐</b></div>
+        </div>
+        💡 Le <strong>Magret</strong> reste votre meilleur combo marge + popularité. À l'inverse, le <strong>Foie gras</strong> (47 %) est à retravailler.`,
+    },
+    {
+      match: ["gaspillage", "gâchis", "perte", "déchet", "waste", "réduire"],
+      html: `Votre gaspillage moyen est de <strong>3,8 kg/jour</strong> (-12 % ce mois 👍). Principales causes : <strong>surproduction (42 %)</strong> et péremption (31 %).
+        <ul>
+          <li>Écouler <strong>1,8 kg de crème</strong> (DLC J+2) via un gratin en plat du jour</li>
+          <li>Réduire le risotto le lundi (-22 % d'affluence) : ~6 portions sauvées</li>
+          <li>Valoriser les <strong>cèpes</strong> ce soir en suggestion</li>
+        </ul>
+        Économie potentielle : <strong>~38 €/semaine</strong>.`,
+    },
+    {
+      match: ["personnel", "équipe", "planning", "samedi", "renfort", "staff", "employé"],
+      html: `Pour <strong>samedi</strong> (affluence <strong>+31 %</strong>, ~142 couverts), votre effectif actuel est <strong>légèrement sous-dimensionné</strong> en salle.
+        <div class="mini-card">
+          <div class="kv"><span>Cuisine</span><b>✅ Suffisant (4 pers.)</b></div>
+          <div class="kv"><span>Salle</span><b>⚠️ +1 renfort conseillé</b></div>
+          <div class="kv"><span>Coût du renfort</span><b>+72 €</b></div>
+          <div class="kv"><span>CA additionnel estimé</span><b>+540 €</b></div>
+        </div>
+        Je recommande d'ajouter <strong>1 serveur de 19 h à 23 h</strong>. Le retour sur investissement est largement positif.`,
+    },
+    {
+      match: ["food cost", "coût matière", "cout matiere", "burger"],
+      html: `Votre <strong>food cost global</strong> est de <strong>29,4 %</strong> (sous la cible de 30 % ✅). Mais attention :
+        <ul>
+          <li>🍔 <strong>Burger Signature</strong> : 38 % — hausse du prix du bœuf. Ajuster le prix à 19 € ou réduire le grammage.</li>
+          <li>🐟 <strong>Filet de daurade</strong> : 40 % pour peu de ventes — candidat au retrait.</li>
+        </ul>
+        Corriger ces deux plats ramènerait le food cost global vers <strong>28,1 %</strong>.`,
+    },
+    {
+      match: ["chiffre", "ca ", "ventes", "vente", "journée", "aujourd", "résultat"],
+      html: `Aujourd'hui, le <strong>CA est de 4 280 €</strong> (+9,5 % vs hier ✅) pour <strong>111 couverts</strong> et un ticket moyen de <strong>38,50 €</strong>.
+        <div class="mini-card">
+          <div class="kv"><span>Service du soir</span><b>58 % du CA</b></div>
+          <div class="kv"><span>Plat n°1</span><b>Magret (23 ventes)</b></div>
+          <div class="kv"><span>Taux de remplissage</span><b>87 %</b></div>
+        </div>
+        Belle journée — portée par le beau temps et le service du soir.`,
+    },
+    {
+      match: ["avis", "client", "note", "google", "réputation", "satisfaction"],
+      html: `Votre note moyenne est de <strong>4,6 ★</strong> sur 1 284 avis, avec <strong>86 % de sentiment positif</strong>.
+        <ul>
+          <li>👍 Points forts : <strong>cuisine (94)</strong> et ambiance (91)</li>
+          <li>👀 À surveiller : <strong>temps d'attente (68)</strong>, en baisse</li>
+        </ul>
+        Un avis 2★ de Sophie L. mentionne l'attente : une réponse personnalisée est prête à envoyer. <strong>47 clients</strong> sont à risque de churn — une relance fidélité est suggérée.`,
+    },
+  ],
+  aiFallback: `Bonne question ! Je peux vous aider sur : les <strong>commandes & stocks</strong>, la <strong>rentabilité des plats</strong>, le <strong>gaspillage</strong>, le <strong>planning du personnel</strong>, le <strong>food cost</strong> et les <strong>avis clients</strong>. Essayez par exemple : « Que dois-je commander pour ce week-end ? » ou cliquez sur une suggestion ci-dessous.`,
+};
+
+</script>
+<script>
+/* ============================================================
+   RESTO PILOT — Logique applicative (vanilla JS)
+   ============================================================ */
+(function () {
+  const D = window.RP;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $ = (s, r = document) => [...r.querySelectorAll(s)];
+  const eur = (n) => n.toLocaleString("fr-FR");
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+  /* ---------- SVG helpers ---------- */
+  function lineChart(series, opts = {}) {
+    // series: [{values, color, fill}] ; labels in opts.labels
+    const W = 560, H = 200, pl = 36, pr = 14, pt = 16, pb = 26;
+    const labels = opts.labels || [];
+    const all = series.flatMap(s => s.values);
+    const max = Math.max(...all) * 1.12, min = Math.min(...all, 0);
+    const x = i => pl + (i * (W - pl - pr)) / (labels.length - 1);
+    const y = v => pt + (H - pt - pb) * (1 - (v - min) / (max - min));
+    let grid = "";
+    for (let g = 0; g <= 4; g++) {
+      const gy = pt + ((H - pt - pb) / 4) * g;
+      grid += `<line x1="${pl}" y1="${gy}" x2="${W - pr}" y2="${gy}"/>`;
+    }
+    let xa = labels.map((l, i) => `<text class="lc-axis" x="${x(i)}" y="${H - 8}" text-anchor="middle">${l}</text>`).join("");
+    let ya = "";
+    for (let g = 0; g <= 4; g++) {
+      const val = min + ((max - min) / 4) * (4 - g);
+      const gy = pt + ((H - pt - pb) / 4) * g + 4;
+      ya += `<text class="lc-axis" x="${pl - 8}" y="${gy}" text-anchor="end">${Math.round(val / 1000)}k</text>`;
+    }
+    let paths = "";
+    series.forEach(s => {
+      const pts = s.values.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+      const area = `${pl},${y(min)} ${pts} ${W - pr},${y(min)}`;
+      if (s.fill) paths += `<polygon class="lc-area" points="${area}" fill="${s.color}"/>`;
+      paths += `<polyline class="lc-line" points="${pts}" stroke="${s.color}" ${s.dash ? 'stroke-dasharray="5 5" opacity=".55"' : ''}/>`;
+      if (!s.dash) paths += s.values.map((v, i) => `<circle class="lc-dot" cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${s.color}"/>`).join("");
+    });
+    return `<svg class="linechart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+      <g class="lc-grid">${grid}</g>${ya}${xa}${paths}</svg>`;
+  }
+
+  function donut(data, size = 150) {
+    const r = size / 2 - 14, cx = size / 2, cy = size / 2, C = 2 * Math.PI * r;
+    let off = 0;
+    const total = data.reduce((a, d) => a + d.value, 0);
+    const segs = data.map(d => {
+      const len = (d.value / total) * C;
+      const s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="16"
+        stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" stroke-linecap="round"
+        transform="rotate(-90 ${cx} ${cy})"/>`;
+      off += len; return s;
+    }).join("");
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${segs}</svg>`;
+  }
+
+  function ring(pct, color, size = 64) {
+    const r = size / 2 - 6, c = size / 2, C = 2 * Math.PI * r;
+    const len = (pct / 100) * C;
+    return `<svg width="${size}" height="${size}">
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#EEEAE2" stroke-width="7"/>
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+        stroke-dasharray="${len} ${C}" stroke-linecap="round" transform="rotate(-90 ${c} ${c})"/>
+    </svg><div class="ring-txt">${pct}%</div>`;
+  }
+
+  function sparkline(values, color) {
+    const W = 90, H = 38, max = Math.max(...values), min = Math.min(...values);
+    const x = i => (i * W) / (values.length - 1);
+    const y = v => H - 4 - (H - 8) * ((v - min) / (max - min || 1));
+    const pts = values.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <polygon points="0,${H} ${pts} ${W},${H}" fill="${color}" opacity=".12"/>
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
+
+  const trendBadge = (n) => n >= 0
+    ? `<span class="kpi-trend up"><i class="fas fa-arrow-up"></i>${n}%</span>`
+    : `<span class="kpi-trend down"><i class="fas fa-arrow-down"></i>${Math.abs(n)}%</span>`;
+  const pctChange = (a, b) => +(((a - b) / b) * 100).toFixed(1);
+
+  /* ============================================================
+     1. TABLEAU DE BORD
+     ============================================================ */
+  function renderDashboard() {
+    const k = D.kpis;
+    const kpiCards = [
+      { ico: "a", icon: "fa-euro-sign", label: "CA du jour", val: `${eur(k.ca.value)}<small> €</small>`, trend: pctChange(k.ca.value, k.ca.prev), spark: D.caWeek.real, color: "#D9743F" },
+      { ico: "b", icon: "fa-receipt", label: "Ticket moyen", val: `${k.ticket.value.toFixed(2).replace(".", ",")}<small> €</small>`, trend: pctChange(k.ticket.value, k.ticket.prev), spark: [34, 36, 35, 37, 36, 38, 38.5], color: "#2E9E6B" },
+      { ico: "c", icon: "fa-seedling", label: "Food cost", val: `${k.foodcost.value.toString().replace(".", ",")}<small> %</small>`, trend: -pctChange(k.foodcost.prev, k.foodcost.value), spark: [33, 32, 32, 31, 30, 30, 29.4], color: "#E8A53D", inv: true },
+      { ico: "d", icon: "fa-chart-pie", label: "Marge brute", val: `${k.marge.value.toString().replace(".", ",")}<small> %</small>`, trend: pctChange(k.marge.value, k.marge.prev), spark: [64, 65, 66, 66, 67, 68, 68.2], color: "#3E7CB1" },
+      { ico: "e", icon: "fa-users", label: "Couverts servis", val: `${k.couverts.value}`, trend: pctChange(k.couverts.value, k.couverts.prev), spark: [88, 96, 92, 104, 108, 118, 111], color: "#6b4ea0" },
+      { ico: "f", icon: "fa-chair", label: "Taux de remplissage", val: `${k.remplissage.value}<small> %</small>`, trend: pctChange(k.remplissage.value, k.remplissage.prev), spark: [70, 74, 72, 80, 82, 90, 87], color: "#D94A3D" },
+    ];
+
+    const kpiHtml = kpiCards.map(c => `
+      <div class="kpi">
+        <div class="kpi-top">
+          <div class="kpi-ico ${c.ico}"><i class="fas ${c.icon}"></i></div>
+          ${trendBadge(c.trend)}
+        </div>
+        <div class="kpi-label">${c.label}</div>
+        <div class="kpi-value">${c.val}</div>
+        <div class="tiny muted">vs hier</div>
+        ${sparkline(c.spark, c.color)}
+      </div>`).join("");
+
+    const alertsHtml = D.alerts.map(a => `
+      <div class="alert ${a.level}">
+        <div class="alert-ico"><i class="fas ${a.icon}"></i></div>
+        <div class="alert-main">
+          <div class="alert-title">${a.title}</div>
+          <div class="alert-text">${a.text}</div>
+          <div class="alert-time">${a.time}</div>
+        </div>
+        <button class="alert-action" data-toast="Action « ${a.action} » lancée">${a.action} →</button>
+      </div>`).join("");
+
+    const topHtml = D.topDishes.map((d, i) => `
+      <div class="list-row">
+        <div class="list-ico" style="background:var(--surface-2)">${["🥇","🥈","🥉","4","5"][i]}</div>
+        <div class="list-main">
+          <div class="list-title">${d.name}</div>
+          <div class="list-sub">${d.sold} vendus · ${d.price.toFixed(2).replace(".",",")} €</div>
+        </div>
+        <div class="list-end">${trendBadge(d.trend)}</div>
+      </div>`).join("");
+
+    const splitLegend = D.caSplit.map(s => `
+      <div class="li"><span class="sw" style="background:${s.color}"></span>${s.label}<span class="pct">${s.value}%</span></div>`).join("");
+
+    return `
+      <div class="grid cols-3" style="margin-bottom:18px">${kpiHtml}</div>
+
+      <div class="grid cols-3">
+        <div class="card span-2">
+          <div class="card-head">
+            <div><div class="card-title">Évolution du chiffre d'affaires</div>
+            <div class="card-desc">Réel vs prévisionnel</div></div>
+            <div class="seg" id="caRange">
+              <button class="active" data-range="week">Semaine</button>
+              <button data-range="month">Mois</button>
+            </div>
+          </div>
+          <div id="caChart"></div>
+          <div class="legend mt-16">
+            <div class="legend-item"><span class="legend-swatch" style="background:#D9743F"></span>CA réel</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:#c9bfb0"></span>Prévisionnel</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">Répartition du CA</div></div>
+          <div class="flex" style="align-items:center;gap:18px">
+            <div>${donut(D.caSplit, 140)}</div>
+            <div class="donut-legend">${splitLegend}</div>
+          </div>
+          <div class="ai-promo" style="margin-top:18px;padding:16px">
+            <h3 style="font-size:15px">💡 Insight du jour</h3>
+            <p style="margin:6px 0 0">Le service du soir génère 58 % du CA. Pensez à optimiser la rotation des tables entre 20 h et 21 h.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid cols-3" style="margin-top:18px">
+        <div class="card span-2">
+          <div class="card-head">
+            <div><div class="card-title">🔔 Alertes intelligentes prioritaires</div>
+            <div class="card-desc">Classées par urgence — l'IA surveille votre activité en continu</div></div>
+            <span class="badge red"><i class="fas fa-circle"></i> 2 urgentes</span>
+          </div>
+          ${alertsHtml}
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🍽️ Top plats du jour</div></div>
+          <div class="list">${topHtml}</div>
+        </div>
+      </div>`;
+  }
+
+  function mountDashboard() {
+    drawCaChart("week");
+    $("#caRange") && $("#caRange button").forEach(b => b.onclick = () => {
+      $("#caRange button").forEach(x => x.classList.remove("active"));
+      b.classList.add("active"); drawCaChart(b.dataset.range);
+    });
+  }
+  function drawCaChart(range) {
+    const src = range === "month" ? D.caMonth : D.caWeek;
+    $("#caChart").innerHTML = lineChart([
+      { values: src.prev, color: "#c9bfb0", dash: true },
+      { values: src.real, color: "#D9743F", fill: true },
+    ], { labels: src.labels });
+  }
+
+  /* ============================================================
+     2. PRÉVISION & AFFLUENCE
+     ============================================================ */
+  function renderForecast() {
+    const f = D.forecast;
+    const weather = f.days.map(d => `
+      <div class="wcell ${d.peak ? "peak" : ""}">
+        <div class="wd">${d.day} ${d.date}</div>
+        <div class="wi">${d.icon}</div>
+        <div class="wt">${d.temp}°</div>
+        <div class="tiny muted">${d.covers} couv.</div>
+        <div class="wc" style="color:${d.color}">${d.pct > 0 ? "+" : ""}${d.pct}%</div>
+      </div>`).join("");
+
+    const maxSlot = Math.max(...f.slots.covers);
+    const slots = f.slots.labels.map((l, i) => {
+      const h = (f.slots.covers[i] / maxSlot) * 100;
+      const peak = f.slots.covers[i] === maxSlot;
+      return `<div class="bar-col">
+        <div class="bar-stack"><div class="bar" style="height:${h}%;${peak ? "background:linear-gradient(180deg,#E8A53D,#D9743F)" : ""}" title="${f.slots.covers[i]} couverts"></div></div>
+        <div class="bar-label">${l}</div></div>`;
+    }).join("");
+
+    const drivers = f.drivers.map(d => `
+      <div class="list-row">
+        <div class="list-ico" style="background:${d.positive ? "var(--green-soft)" : "var(--blue-soft)"};color:${d.positive ? "#1d7a4f" : "#2c5d87"}"><i class="fas ${d.icon}"></i></div>
+        <div class="list-main"><div class="list-title">${d.text}</div><div class="list-sub">${d.label}</div></div>
+        <div class="list-end"><span class="badge ${d.positive ? "green" : "blue"}">${d.impact}</span></div>
+      </div>`).join("");
+
+    const prep = f.prep.map(p => `
+      <tr>
+        <td class="t-name">${p.name}</td>
+        <td class="t-num">${p.qty}</td>
+        <td><span class="badge ${p.level === "red" ? "red" : p.level === "amber" ? "amber" : "green"}">${p.note}</span></td>
+      </tr>`).join("");
+
+    return `
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-head"><div><div class="card-title">Prévision d'affluence — 5 prochains jours</div>
+          <div class="card-desc">Modèle basé sur la météo, les événements locaux et votre historique</div></div></div>
+        <div class="weather-strip">${weather}</div>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Affluence par créneau — Samedi</div>
+            <div class="card-desc">Pic estimé à 20 h (46 couverts)</div></div>
+            <span class="badge amber"><i class="fas fa-fire"></i> Jour de pointe</span></div>
+          <div class="bars">${slots}</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Facteurs d'influence détectés</div></div>
+          <div class="list">${drivers}</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="card-head"><div><div class="card-title">🎯 Quantités à préparer (recommandation IA)</div>
+          <div class="card-desc">Pour réduire le gaspillage tout en couvrant l'affluence prévue</div></div>
+          <button class="btn btn-primary btn-sm" data-toast="Liste de préparation envoyée en cuisine"><i class="fas fa-paper-plane"></i> Envoyer en cuisine</button></div>
+        <table><thead><tr><th>Produit / Préparation</th><th>Quantité conseillée</th><th>Observation</th></tr></thead>
+        <tbody>${prep}</tbody></table>
+      </div>`;
+  }
+
+  /* ============================================================
+     3. STOCKS & GASPILLAGE
+     ============================================================ */
+  function renderStock() {
+    const s = D.stock;
+    const cards = [
+      { icon: "fa-boxes-stacked", c: "d", label: "Références suivies", val: s.summary.items },
+      { icon: "fa-arrow-trend-down", c: "f", label: "Stocks bas", val: s.summary.low, badge: "À réapprovisionner" },
+      { icon: "fa-hourglass-end", c: "c", label: "Proches DLC", val: s.summary.expiring, badge: "Sous 48 h" },
+      { icon: "fa-recycle", c: "b", label: "Gaspillage / jour", val: s.summary.waste + " kg", badge: "-12 % ce mois" },
+    ];
+    const summ = cards.map(c => `
+      <div class="kpi">
+        <div class="kpi-top"><div class="kpi-ico ${c.c}"><i class="fas ${c.icon}"></i></div></div>
+        <div class="kpi-label">${c.label}</div>
+        <div class="kpi-value" style="font-size:24px">${c.val}</div>
+        ${c.badge ? `<div class="tiny muted">${c.badge}</div>` : ""}
+      </div>`).join("");
+
+    const rows = s.items.map(it => `
+      <tr>
+        <td><span class="dot-status ${it.status}"></span> <span class="t-name">${it.name}</span></td>
+        <td class="muted tiny">${it.cat}</td>
+        <td class="t-num">${it.qty.toString().replace(".",",")} ${it.unit}</td>
+        <td style="min-width:120px"><div class="meter ${it.status}"><span style="width:${it.level}%"></span></div></td>
+        <td class="muted tiny">${it.dlc}</td>
+        <td>${it.status === "red" ? '<span class="badge red">Commander</span>' : it.status === "amber" ? '<span class="badge amber">À surveiller</span>' : '<span class="badge green">OK</span>'}</td>
+      </tr>`).join("");
+
+    const maxW = Math.max(...s.waste.kg);
+    const wasteBars = s.waste.labels.map((l, i) => `
+      <div class="bar-col"><div class="bar-stack"><div class="bar prev" style="height:${(s.waste.kg[i]/maxW)*100}%;background:linear-gradient(180deg,#E8A53D,#D9743F)" title="${s.waste.kg[i]} kg"></div></div><div class="bar-label">${l}</div></div>`).join("");
+
+    const tips = s.tips.map(t => `
+      <div class="alert info" style="border-left-color:var(--green)">
+        <div class="alert-ico" style="background:var(--green-soft);color:#1d7a4f"><i class="fas ${t.icon}"></i></div>
+        <div class="alert-main"><div class="alert-text" style="font-size:13px">${t.text}</div></div>
+      </div>`).join("");
+
+    const wasteLegend = s.wasteSplit.map(w => `
+      <div class="li"><span class="sw" style="background:${w.color}"></span>${w.label}<span class="pct">${w.value}%</span></div>`).join("");
+
+    return `
+      <div class="grid cols-4" style="margin-bottom:18px">${summ}</div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-head"><div><div class="card-title">📦 État des stocks</div>
+          <div class="card-desc">Niveaux en temps réel et alertes de réapprovisionnement</div></div>
+          <button class="btn btn-ghost btn-sm" data-toast="Inventaire actualisé"><i class="fas fa-rotate"></i> Actualiser</button></div>
+        <table><thead><tr><th>Produit</th><th>Catégorie</th><th>Quantité</th><th>Niveau</th><th>DLC</th><th>Statut</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card span-2">
+          <div class="card-head"><div><div class="card-title">Gaspillage de la semaine</div>
+            <div class="card-desc">Total 27,2 kg · objectif &lt; 25 kg</div></div></div>
+          <div class="bars">${wasteBars}</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Causes du gaspillage</div></div>
+          <div class="flex" style="align-items:center;gap:16px">
+            <div>${donut(s.wasteSplit, 130)}</div>
+            <div class="donut-legend">${wasteLegend}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="card-head"><div class="card-title">♻️ Suggestions de réduction (IA)</div></div>
+        ${tips}
+      </div>`;
+  }
+
+  /* ============================================================
+     4. PLANNING DU PERSONNEL
+     ============================================================ */
+  function renderStaff() {
+    const s = D.staff;
+    const cards = [
+      { icon: "fa-user-group", c: "d", label: "Employés actifs", val: s.summary.employees },
+      { icon: "fa-clock", c: "e", label: "Heures / semaine", val: s.summary.hours + " h" },
+      { icon: "fa-money-bill-wave", c: "a", label: "Coût main-d'œuvre", val: eur(s.summary.cost) + " €" },
+      { icon: "fa-percent", c: "b", label: "Ratio masse sal. / CA", val: s.summary.ratio + " %", badge: "Cible &lt; 30 %" },
+    ];
+    const summ = cards.map(c => `
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ico ${c.c}"><i class="fas ${c.icon}"></i></div></div>
+        <div class="kpi-label">${c.label}</div><div class="kpi-value" style="font-size:24px">${c.val}</div>
+        ${c.badge ? `<div class="tiny muted">${c.badge}</div>` : ""}</div>`).join("");
+
+    // grid header
+    let grid = `<div class="staff-slot"></div>` + s.schedule.days.map(d => `<div class="staff-time center">${d}</div>`).join("");
+    s.schedule.rows.forEach(r => {
+      grid += `<div class="staff-time">${r.slot}</div>`;
+      r.staff.forEach(n => {
+        const intensity = n >= 4 ? "var(--accent)" : n >= 3 ? "var(--amber)" : "var(--green)";
+        const bg = n >= 4 ? "var(--accent-soft)" : n >= 3 ? "var(--amber-soft)" : "var(--green-soft)";
+        grid += `<div class="staff-slot" style="background:${bg};color:#3a2a12"><i class="fas fa-user" style="color:${intensity};font-size:10px"></i> ${n}</div>`;
+      });
+    });
+
+    const team = s.team.map(t => `
+      <div class="list-row">
+        <div class="avatar" style="background:${t.color}">${t.name.split(" ").map(x=>x[0]).join("")}</div>
+        <div class="list-main"><div class="list-title">${t.name}</div><div class="list-sub">${t.role}</div></div>
+        <span class="badge green"><i class="fas fa-circle"></i> Planifié</span>
+      </div>`).join("");
+
+    return `
+      <div class="grid cols-4" style="margin-bottom:18px">${summ}</div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-head"><div><div class="card-title">🗓️ Planning généré automatiquement</div>
+          <div class="card-desc">Effectif optimisé selon l'affluence prévue par créneau</div></div>
+          <button class="btn btn-primary btn-sm" data-toast="Planning régénéré selon les prévisions"><i class="fas fa-wand-magic-sparkles"></i> Régénérer</button></div>
+        <div class="staff-grid">${grid}</div>
+        <div class="legend mt-16">
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--green)"></span>Effectif léger</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--amber)"></span>Effectif moyen</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>Renfort (pic)</div>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card span-2">
+          <div class="card-head"><div class="card-title">⚡ Optimisation recommandée</div></div>
+          <div class="ai-promo">
+            <h3>${s.recommendation.title}</h3>
+            <p>${s.recommendation.text}</p>
+            <div class="flex gap-12" style="position:relative;flex-wrap:wrap">
+              <span class="badge amber">${s.recommendation.cost}</span>
+              <span class="badge green">${s.recommendation.gain}</span>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:14px;position:relative" data-toast="Renfort ajouté au planning de vendredi"><i class="fas fa-plus"></i> Ajouter le renfort</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">👥 Équipe</div></div>
+          <div class="list">${team}</div>
+        </div>
+      </div>`;
+  }
+
+  /* ============================================================
+     5. CARTE & RENTABILITÉ
+     ============================================================ */
+  function renderMenu() {
+    const m = D.menu;
+    // scatter-style matrix using simple positioning
+    const rows = m.map(d => {
+      const fc = Math.round((d.cost / d.price) * 100);
+      const q = d.star ? '<span class="badge green"><i class="fas fa-star"></i> Vedette</span>'
+        : d.margin < 55 || d.pop < 40 ? '<span class="badge red">À revoir</span>'
+        : '<span class="badge gray">Standard</span>';
+      return `<tr>
+        <td class="t-name">${d.name}</td>
+        <td class="muted tiny">${d.cat}</td>
+        <td class="t-num">${d.price.toFixed(2).replace(".",",")} €</td>
+        <td class="t-num">${fc}%</td>
+        <td class="t-num">${d.margin}%</td>
+        <td style="min-width:90px"><div class="meter"><span style="width:${d.pop}%"></span></div></td>
+        <td class="t-num">${d.sold}</td>
+        <td>${q}</td>
+      </tr>`;
+    }).join("");
+
+    const actions = D.menuActions.map(a => `
+      <div class="alert ${a.color === "green" ? "info" : a.color === "red" ? "high" : "medium"}" style="${a.color === "green" ? "border-left-color:var(--green)" : a.color === "accent" ? "border-left-color:var(--accent)" : ""}">
+        <div class="alert-ico" style="${a.color === "green" ? "background:var(--green-soft);color:#1d7a4f" : a.color === "accent" ? "background:var(--accent-soft);color:var(--accent-deep)" : ""}"><i class="fas ${a.icon}"></i></div>
+        <div class="alert-main"><div class="alert-title">${a.type}</div><div class="alert-text">${a.text}</div></div>
+      </div>`).join("");
+
+    // popularity vs margin quadrant
+    const W = 100;
+    const points = m.map(d => {
+      const left = d.pop, bottom = d.margin;
+      const color = d.star ? "#2E9E6B" : (d.margin < 55 || d.pop < 40) ? "#D94A3D" : "#E8A53D";
+      return `<div title="${d.name}" style="position:absolute;left:${left}%;bottom:${(bottom-40)/0.6}%;transform:translate(-50%,50%);width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:var(--shadow-sm);cursor:pointer"></div>`;
+    }).join("");
+
+    return `
+      <div class="grid cols-3" style="margin-bottom:18px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Marge brute moyenne</div></div>
+          <div class="stat-inline"><span class="big">69,4 %</span>${trendBadge(2.1)}</div>
+          <div class="tiny muted mt-8">Sur l'ensemble de la carte</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Plat le plus vendu</div></div>
+          <div class="stat-inline"><span class="big">Magret</span></div>
+          <div class="tiny muted mt-8">142 ventes ce mois · ⭐ plat-star</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Potentiel d'upselling</div></div>
+          <div class="stat-inline"><span class="big">+18 %</span></div>
+          <div class="tiny muted mt-8">Panier moyen avec suggestion vin</div>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card span-2">
+          <div class="card-head"><div><div class="card-title">🍴 Analyse de rentabilité par plat</div>
+            <div class="card-desc">Triés par marge et popularité</div></div></div>
+          <table><thead><tr><th>Plat</th><th>Cat.</th><th>Prix</th><th>Food cost</th><th>Marge</th><th>Popularité</th><th>Ventes</th><th>Statut</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Matrice popularité / marge</div></div></div>
+          <div style="position:relative;height:230px;margin:10px 16px 22px;border-left:2px solid var(--line);border-bottom:2px solid var(--line)">
+            ${points}
+            <span class="tiny muted" style="position:absolute;left:-2px;top:-18px">Marge ↑</span>
+            <span class="tiny muted" style="position:absolute;right:0;bottom:-22px">Popularité →</span>
+          </div>
+          <div class="legend center" style="justify-content:center">
+            <div class="legend-item"><span class="legend-swatch" style="background:#2E9E6B"></span>Vedettes</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:#E8A53D"></span>Standards</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:#D94A3D"></span>À revoir</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="card-head"><div class="card-title">💡 Recommandations d'ajustement & upselling</div></div>
+        ${actions}
+      </div>`;
+  }
+
+  /* ============================================================
+     6. CLIENTS & AVIS
+     ============================================================ */
+  function renderReviews() {
+    const r = D.reviews;
+    const totalDist = r.distribution.reduce((a, d) => a + d.n, 0);
+    const dist = r.distribution.map(d => `
+      <div class="flex gap-12" style="align-items:center;margin:7px 0">
+        <span class="tiny" style="width:34px">${d.s} ★</span>
+        <div class="meter amber" style="flex:1"><span style="width:${(d.n/totalDist)*100}%"></span></div>
+        <span class="tiny muted" style="width:42px;text-align:right">${d.n}</span>
+      </div>`).join("");
+
+    const themes = r.themes.map(t => `
+      <div class="flex gap-12" style="align-items:center;margin:9px 0">
+        <span class="tiny" style="width:140px">${t.label}</span>
+        <div class="meter ${t.score>=85?"green":t.score>=72?"amber":"red"}" style="flex:1"><span style="width:${t.score}%"></span></div>
+        <span class="tiny t-num" style="width:54px;text-align:right">${t.score}/100 ${t.trend==="up"?"↗":t.trend==="down"?"↘":"→"}</span>
+      </div>`).join("");
+
+    const sentLegend = r.sentiment.map(sv => `<div class="li"><span class="sw" style="background:${sv.color}"></span>${sv.label}<span class="pct">${sv.value}%</span></div>`).join("");
+
+    const reviews = r.list.map((rv, i) => `
+      <div class="review-card" style="margin-bottom:12px">
+        <div class="between" style="margin-bottom:8px">
+          <div class="flex gap-8" style="align-items:center">
+            <span class="source-pill ${rv.source}">${rv.source === "google" ? "Google" : rv.source === "tripadvisor" ? "TripAdvisor" : "TheFork"}</span>
+            <strong style="font-size:13.5px">${rv.name}</strong>
+            <span class="stars">${"★".repeat(rv.stars)}${"☆".repeat(5-rv.stars)}</span>
+          </div>
+          <span class="badge ${rv.sentiment}">${rv.sentiment==="green"?"Positif":"Négatif"}</span>
+        </div>
+        <div class="tiny muted" style="margin-bottom:8px">${rv.date}</div>
+        <div style="font-size:13.5px;color:var(--text)">${rv.text}</div>
+        <div class="mini-card" style="margin-top:11px;background:var(--surface);border:1px solid var(--line-2);padding:12px;border-radius:11px">
+          <div class="tiny" style="font-weight:700;color:var(--accent-deep);margin-bottom:5px"><i class="fas fa-robot"></i> Réponse générée par l'IA</div>
+          <div style="font-size:13px;color:var(--text-2)" id="reply-${i}">${rv.reply}</div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px" data-toast="Réponse publiée sur ${rv.source}"><i class="fas fa-paper-plane"></i> Publier la réponse</button>
+        </div>
+      </div>`).join("");
+
+    return `
+      <div class="grid cols-4" style="margin-bottom:18px">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ico c"><i class="fas fa-star"></i></div></div>
+          <div class="kpi-label">Note moyenne</div><div class="kpi-value">${r.summary.rating.toString().replace(".",",")}<small> / 5</small></div>
+          <div class="tiny muted">${eur(r.summary.total)} avis</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ico b"><i class="fas fa-face-smile"></i></div></div>
+          <div class="kpi-label">Sentiment positif</div><div class="kpi-value">${r.summary.sentiment}<small> %</small></div>
+          <div class="tiny muted">+4 pts ce mois</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ico d"><i class="fas fa-reply"></i></div></div>
+          <div class="kpi-label">Taux de réponse</div><div class="kpi-value">${r.summary.response}<small> %</small></div>
+          <div class="tiny muted">via réponses IA</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ico f"><i class="fas fa-heart-crack"></i></div></div>
+          <div class="kpi-label">Clients à risque (churn)</div><div class="kpi-value">${r.loyalty.churnRisk}</div>
+          <div class="tiny muted">Relance fidélité suggérée</div></div>
+      </div>
+
+      <div class="grid cols-3" style="margin-bottom:18px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Distribution des notes</div></div>
+          ${dist}
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Analyse de sentiment</div></div>
+          <div class="flex" style="align-items:center;gap:16px">
+            <div>${donut(r.sentiment, 130)}</div>
+            <div class="donut-legend">${sentLegend}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Thèmes récurrents</div></div>
+          ${themes}
+        </div>
+      </div>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">💬 Avis récents & réponses IA</div>
+            <div class="card-desc">Réponses personnalisées prêtes à publier</div></div></div>
+          ${reviews}
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:18px">
+            <div class="card-head"><div class="card-title">❤️ Fidélisation</div></div>
+            <div class="grid cols-2" style="gap:14px">
+              <div><div class="kpi-label">Membres fidélité</div><div class="kpi-value" style="font-size:24px">${eur(r.loyalty.members)}</div></div>
+              <div><div class="kpi-label">Taux de retour</div><div class="kpi-value" style="font-size:24px">${r.loyalty.returning}<small> %</small></div></div>
+            </div>
+            <div class="meter green mt-16"><span style="width:${r.loyalty.returning}%"></span></div>
+            <div class="tiny muted mt-8">38 % des clients reviennent dans les 30 jours — au-dessus de la moyenne du secteur (29 %).</div>
+          </div>
+          <div class="card ai-promo">
+            <h3>🎁 Action suggérée</h3>
+            <p>47 clients fidèles n'ont pas réservé depuis 60 jours. Une offre « -15 % sur le menu découverte » pourrait en réactiver une partie.</p>
+            <button class="btn btn-primary btn-sm" style="position:relative" data-toast="Campagne de réactivation programmée"><i class="fas fa-paper-plane"></i> Lancer la campagne</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ============================================================
+     7. ASSISTANT IA
+     ============================================================ */
+  function renderAI() {
+    const sugg = D.aiSuggestions.map(s => `<button class="chip-suggest" data-q="${s}">${s}</button>`).join("");
+    return `
+      <div class="card card-pad-lg">
+        <div class="chat-shell">
+          <div class="chat-stream" id="chatStream"></div>
+          <div class="suggestions" id="suggestions">${sugg}</div>
+          <div class="composer">
+            <input id="chatInput" placeholder="Posez votre question… ex : « Que dois-je commander pour ce week-end ? »" autocomplete="off"/>
+            <button class="send" id="chatSend"><i class="fas fa-arrow-up"></i></button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function mountAI() {
+    const stream = $("#chatStream");
+    const input = $("#chatInput");
+    const send = $("#chatSend");
+    let booted = stream.dataset.booted;
+
+    function addMsg(role, html) {
+      const m = el("div", `msg ${role}`);
+      m.innerHTML = `<div class="msg-av">${role === "ai" ? '<i class="fas fa-robot"></i>' : 'O'}</div><div class="bubble">${html}</div>`;
+      stream.appendChild(m); stream.scrollTop = stream.scrollHeight; return m;
+    }
+    function answer(q) {
+      const ql = q.toLowerCase();
+      const hit = D.aiKnowledge.find(k => k.match.some(m => ql.includes(m)));
+      return hit ? hit.html : D.aiFallback;
+    }
+    function ask(q) {
+      addMsg("user", q);
+      const t = addMsg("ai", `<div class="typing"><span></span><span></span><span></span></div>`);
+      setTimeout(() => { t.querySelector(".bubble").innerHTML = answer(q); stream.scrollTop = stream.scrollHeight; }, 750 + Math.random() * 500);
+    }
+
+    if (!booted) {
+      addMsg("ai", `Bonjour Olivier 👋 Je suis votre <strong>copilote Resto Pilot</strong>. J'ai analysé votre activité du jour : <strong>CA 4 280 €</strong> (+9,5 %), tout va bien ! ⚠️ Pensez à commander le <strong>saumon</strong> avant 16 h. Comment puis-je vous aider ?`);
+      stream.dataset.booted = "1";
+    }
+
+    const handler = () => { const v = input.value.trim(); if (!v) return; input.value = ""; ask(v); };
+    send.onclick = handler;
+    input.onkeydown = e => { if (e.key === "Enter") handler(); };
+    $("#suggestions .chip-suggest").forEach(c => c.onclick = () => ask(c.dataset.q));
+    setTimeout(() => input.focus(), 100);
+  }
+
+  /* ============================================================
+     ROUTER
+     ============================================================ */
+  const PAGES = {
+    dashboard: { title: "Tableau de bord", sub: "Vue d'ensemble en temps réel — Aujourd'hui, jeudi 19 juin", render: renderDashboard, mount: mountDashboard },
+    forecast:  { title: "Prévision & affluence", sub: "Anticipez votre activité et préparez les bonnes quantités", render: renderForecast },
+    stock:     { title: "Stocks & gaspillage", sub: "Suivi en temps réel et réduction du gâchis", render: renderStock },
+    staff:     { title: "Planning du personnel", sub: "Effectif optimisé selon l'affluence prévue", render: renderStaff },
+    menu:      { title: "Carte & rentabilité", sub: "Analyse de la marge et de la popularité de vos plats", render: renderMenu },
+    reviews:   { title: "Clients & avis", sub: "Réputation en ligne, sentiment et fidélisation", render: renderReviews },
+    assistant: { title: "Assistant IA", sub: "Posez vos questions en langage naturel, recevez des recommandations chiffrées", render: renderAI, mount: mountAI },
+  };
+
+  function navigate(key) {
+    const p = PAGES[key]; if (!p) return;
+    $("#pageTitle").textContent = p.title;
+    $("#pageSub").textContent = p.sub;
+    $("#content").innerHTML = p.render();
+    if (p.mount) p.mount();
+    $(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.nav === key));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    closeSidebar();
+    location.hash = key;
+  }
+
+  /* ---------- sidebar mobile ---------- */
+  function openSidebar() { $(".sidebar").classList.add("open"); $("#overlay").classList.add("show"); }
+  function closeSidebar() { $(".sidebar").classList.remove("open"); $("#overlay").classList.remove("show"); }
+
+  /* ---------- toast ---------- */
+  let toastT;
+  function toast(msg) {
+    let t = $("#toast"); if (!t) { t = el("div", "toast"); t.id = "toast"; document.body.appendChild(t); }
+    t.innerHTML = `<i class="fas fa-circle-check"></i> ${msg}`;
+    t.classList.add("show"); clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  /* ---------- init ---------- */
+  document.addEventListener("click", e => {
+    const nav = e.target.closest("[data-nav]"); if (nav) { navigate(nav.dataset.nav); return; }
+    const tb = e.target.closest("[data-toast]"); if (tb) { toast(tb.dataset.toast); return; }
+    if (e.target.closest("#burger")) openSidebar();
+    if (e.target.closest("#overlay")) closeSidebar();
+    if (e.target.closest("#askAi")) navigate("assistant");
+  });
+
+  const start = (location.hash || "#dashboard").slice(1);
+  navigate(PAGES[start] ? start : "dashboard");
+  window.addEventListener("hashchange", () => {
+    const k = location.hash.slice(1); if (PAGES[k]) navigate(k);
+  });
+})();
+
+</script>
+</body>
+</html>
