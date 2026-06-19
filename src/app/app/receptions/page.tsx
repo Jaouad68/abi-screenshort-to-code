@@ -7,11 +7,18 @@ import { ReceptionForm } from "./ReceptionForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReceptionsPage() {
+const JOURS_OPTIONS = [7, 30, 90];
+
+export default async function ReceptionsPage({
+  searchParams,
+}: {
+  searchParams: { jours?: string };
+}) {
   const user = await requireUser();
+  const jours = JOURS_OPTIONS.includes(Number(searchParams.jours)) ? Number(searchParams.jours) : 30;
 
   const receptions = await prisma.reception.findMany({
-    where: { etablissementId: user.etablissementId, createdAt: { gte: daysAgo(30) } },
+    where: { etablissementId: user.etablissementId, createdAt: { gte: daysAgo(jours) } },
     include: { utilisateur: true },
     orderBy: { createdAt: "desc" },
   });
@@ -25,9 +32,23 @@ export default async function ReceptionsPage() {
 
       <ReceptionForm />
 
-      <h2 className="mb-3 mt-8 text-lg font-bold text-slate-800">
-        30 derniers jours <span className="text-slate-400">({receptions.length})</span>
-      </h2>
+      <div className="mb-3 mt-8 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-slate-800">
+          Historique <span className="text-slate-400">({receptions.length})</span>
+        </h2>
+        <form method="get" className="flex gap-2">
+          <select name="jours" defaultValue={String(jours)} className="rounded-lg border border-slate-300 px-2 py-1 text-sm">
+            {JOURS_OPTIONS.map((j) => (
+              <option key={j} value={j}>
+                {j} jours
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">
+            OK
+          </button>
+        </form>
+      </div>
 
       {receptions.length === 0 ? (
         <EmptyState icon="📦" title="Aucune réception enregistrée" />

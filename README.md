@@ -17,6 +17,20 @@ conformité horodaté** présentable lors d'un contrôle DDPP.
 
 Gestion **multi-utilisateurs** (rôles Gérant / Employé) sur un établissement.
 
+### Améliorations clés
+
+- 📶 **Mode hors-ligne (PWA)** — application installable ; les relevés saisis
+  sans réseau sont conservés dans une file locale (IndexedDB) et **synchronisés
+  automatiquement** à la reconnexion. L'heure de saisie déclarée (`saisiAt`) est
+  conservée, mais l'horodatage qui fait foi reste celui du serveur (`createdAt`).
+- 📈 **Historiques & courbes** — historique filtrable par équipement/période,
+  avec **courbe de température** (SVG, plage cible et écarts en rouge).
+- ✍️ **Correction tracée** — un relevé validé n'est jamais modifié ; une
+  correction crée une **nouvelle entrée liée à l'originale** (motif obligatoire,
+  audit trail affiché).
+- ✅ **Tests (Vitest) & CI (GitHub Actions)** — logique métier, schémas de
+  validation et génération PDF couverts ; lint + typecheck + tests + build en CI.
+
 ## Pile technique
 
 - **Next.js 14** (App Router, TypeScript) — server actions + route handlers
@@ -34,6 +48,14 @@ cp .env.example .env        # ajuster AUTH_SECRET (openssl rand -base64 48)
 npm install
 npm run db:reset            # crée la base SQLite + jeu de démonstration
 npm run dev                 # http://localhost:3000
+```
+
+### Qualité
+
+```bash
+npm run lint        # ESLint (next/core-web-vitals)
+npm run typecheck   # tsc --noEmit
+npm test            # Vitest (logique HACCP, validation, export PDF)
 ```
 
 ### Comptes de démonstration

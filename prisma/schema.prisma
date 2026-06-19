@@ -87,11 +87,24 @@ model ReleveTemperature {
   valeur        Float
   conforme      Boolean // calculé à l'enregistrement (tempMin <= valeur <= tempMax)
   commentaire   String?
-  createdAt     DateTime    @default(now()) // horodatage serveur — inviolable
+  createdAt     DateTime    @default(now()) // horodatage serveur — inviolable, fait foi
   equipement    Equipement  @relation(fields: [equipementId], references: [id], onDelete: Cascade)
   equipementId  String
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
   utilisateurId String
+
+  // Saisie différée (mode hors-ligne) : heure de saisie déclarée par le client,
+  // conservée à titre informatif. L'horodatage qui fait foi reste createdAt (serveur).
+  saisiAt   DateTime?
+  horsLigne Boolean   @default(false)
+
+  // Correction tracée : une correction est une NOUVELLE entrée pointant vers
+  // l'originale. L'originale n'est jamais modifiée (inviolabilité). La présence
+  // de `correction` indique qu'un relevé a été corrigé.
+  motifCorrection String?
+  correctionDe    ReleveTemperature?  @relation("Correction", fields: [correctionDeId], references: [id])
+  correctionDeId  String?             @unique
+  correction      ReleveTemperature?  @relation("Correction")
 
   // Lien éventuel vers une non-conformité déclenchée par ce relevé hors plage.
   nonConformite NonConformite?

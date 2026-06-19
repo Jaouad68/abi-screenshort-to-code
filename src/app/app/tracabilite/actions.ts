@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { produitOuvertSchema } from "@/lib/validation";
-import { addDays } from "@/lib/dates";
+import { computeDlc } from "@/lib/haccp";
 import type { ActionState } from "@/components/FormMessage";
 
 export async function ouvrirProduit(
@@ -17,7 +17,7 @@ export async function ouvrirProduit(
 
   const { nom, dureeJours } = parsed.data;
   const dateOuverture = new Date();
-  const dlcSecondaire = addDays(dateOuverture, dureeJours);
+  const dlcSecondaire = computeDlc(dateOuverture, dureeJours);
 
   await prisma.produitOuvert.create({
     data: {

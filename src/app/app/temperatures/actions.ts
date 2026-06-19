@@ -3,8 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { createReleve } from "@/lib/releves";
+import { isConforme } from "@/lib/haccp";
 import { releveSchema } from "@/lib/validation";
 import type { ActionState } from "@/components/FormMessage";
+
+function revalidateTemp() {
+  revalidatePath("/app/temperatures");
+  revalidatePath("/app/temperatures/historique");
+  revalidatePath("/app");
+  revalidatePath("/app/non-conformites");
+}
 
 export async function enregistrerReleve(
   _prev: ActionState,
@@ -15,47 +24,60 @@ export async function enregistrerReleve(
   if (!parsed.success) return { error: parsed.error.errors[0]?.message ?? "Données invalides" };
 
   const { equipementId, valeur, commentaire } = parsed.data;
-
-  // L'équipement doit appartenir à l'établissement de l'utilisateur (cloisonnement).
-  const equipement = await prisma.equipement.findFirst({
-    where: { id: equipementId, etablissementId: user.etablissementId },
+  const res = await createReleve({
+    userId: user.id,
+    etablissementId: user.etablissementId,
+    equipementId,
+    valeur,
+    commentaire,
   });
-  if (!equipement) return { error: "Équipement introuvable." };
+  if (!res.ok) return { error: "Équipement introuvable." };
 
-  // Conformité calculée côté serveur (source de vérité).
-  const conforme = valeur >= equipement.tempMin && valeur <= equipement.tempMax;
+  revalidateTemp();
+  return res.conforme
+    ? { success: `Relevé enregistré : ${res.equipement.nom}, ${valeur} °C — conforme.` }
+    : {
+        error: `⚠️ ${res.equipement.nom} : ${valeur} °C HORS PLAGE. Une anomalie a été ouverte — pensez à saisir l'action corrective dans « Anomalies ».`,
+      };
+}
 
-  const releve = await prisma.releveTemperature.create({
+/**
+ * Correction tracée : ne modifie JAMAIS le relevé d'origine. Crée une nouvelle
+ * entrée pointant vers l'originale (audit trail), avec un motif obligatoire.
+ */
+export async function corrigerReleve(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await requireUser();
+  const originalId = String(formData.get("originalId") ?? "");
+  const valeurRaw = String(formData.get("valeur") ?? "").replace(",", ".");
+  const motif = String(formData.get("motif") ?? "").trim();
+  const valeur = Number(valeurRaw);
+
+  if (!motif) return { error: "Le motif de correction est obligatoire." };
+  if (!Number.isFinite(valeur)) return { error: "Température invalide." };
+
+  const original = await prisma.releveTemperature.findFirst({
+    where: { id: originalId, equipement: { etablissementId: user.etablissementId } },
+    include: { equipement: true, correction: true },
+  });
+  if (!original) return { error: "Relevé introuvable." };
+  if (original.correction) return { error: "Ce relevé a déjà été corrigé." };
+
+  const conforme = isConforme(valeur, original.equipement.tempMin, original.equipement.tempMax);
+
+  await prisma.releveTemperature.create({
     data: {
       valeur,
       conforme,
-      commentaire: commentaire || null,
-      equipementId: equipement.id,
+      equipementId: original.equipementId,
       utilisateurId: user.id,
+      correctionDeId: original.id,
+      motifCorrection: motif,
     },
   });
 
-  // Hors plage → ouverture automatique d'une non-conformité tracée
-  // (traçabilité réglementaire), à compléter par une action corrective.
-  if (!conforme) {
-    await prisma.nonConformite.create({
-      data: {
-        type: "Température hors plage",
-        description: `${equipement.nom} : ${valeur} °C relevé (plage cible ${equipement.tempMin} à ${equipement.tempMax} °C).`,
-        etablissementId: user.etablissementId,
-        utilisateurId: user.id,
-        releveId: releve.id,
-      },
-    });
-  }
-
-  revalidatePath("/app/temperatures");
-  revalidatePath("/app");
-  revalidatePath("/app/non-conformites");
-
-  return conforme
-    ? { success: `Relevé enregistré : ${equipement.nom}, ${valeur} °C — conforme.` }
-    : {
-        error: `⚠️ ${equipement.nom} : ${valeur} °C HORS PLAGE. Une anomalie a été ouverte — pensez à saisir l'action corrective dans « Anomalies ».`,
-      };
+  revalidateTemp();
+  return { success: "Correction enregistrée (l'entrée d'origine reste tracée)." };
 }

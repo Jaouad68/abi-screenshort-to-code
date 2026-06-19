@@ -1,17 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
-import { startOfMonth, startOfToday, startOfWeek } from "@/lib/dates";
+import { periodStart } from "@/lib/haccp";
 import { PageHeader, EmptyState, StatutBadge, ImmutableNote } from "@/components/ui";
 import { FREQUENCE_LABEL, formatDateTime } from "@/lib/labels";
 import { validerTache } from "./actions";
 
 export const dynamic = "force-dynamic";
-
-function periodStart(frequence: string): Date {
-  if (frequence === "HEBDOMADAIRE") return startOfWeek();
-  if (frequence === "MENSUELLE") return startOfMonth();
-  return startOfToday();
-}
 
 export default async function NettoyagePage() {
   const user = await requireUser();
@@ -42,10 +37,15 @@ export default async function NettoyagePage() {
         title="Plan de nettoyage"
         subtitle="Cochez chaque tâche réalisée. La validation est horodatée et signée."
         action={
-          <StatutBadge
-            label={restant === 0 ? "Tout est fait ✓" : `${restant} à faire`}
-            tone={restant === 0 ? "ok" : "warn"}
-          />
+          <div className="flex flex-col items-end gap-2">
+            <StatutBadge
+              label={restant === 0 ? "Tout est fait ✓" : `${restant} à faire`}
+              tone={restant === 0 ? "ok" : "warn"}
+            />
+            <Link href="/app/nettoyage/historique" className="text-xs font-semibold text-brand-700 hover:underline">
+              Historique
+            </Link>
+          </div>
         }
       />
 

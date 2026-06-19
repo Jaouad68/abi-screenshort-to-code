@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { startOfMonth, startOfToday, startOfWeek } from "@/lib/dates";
-
-function periodStart(frequence: string): Date {
-  if (frequence === "HEBDOMADAIRE") return startOfWeek();
-  if (frequence === "MENSUELLE") return startOfMonth();
-  return startOfToday();
-}
+import { periodStart } from "@/lib/haccp";
 
 export async function validerTache(formData: FormData) {
   const user = await requireUser();

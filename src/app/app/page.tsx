@@ -1,17 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { startOfToday, startOfWeek, startOfMonth } from "@/lib/dates";
+import { startOfToday } from "@/lib/dates";
+import { periodStart } from "@/lib/haccp";
 import { StatutBadge } from "@/components/ui";
 import { ROLE_LABEL } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
-
-function periodStart(frequence: string): Date {
-  if (frequence === "HEBDOMADAIRE") return startOfWeek();
-  if (frequence === "MENSUELLE") return startOfMonth();
-  return startOfToday();
-}
 
 export default async function Dashboard() {
   const user = await requireUser();

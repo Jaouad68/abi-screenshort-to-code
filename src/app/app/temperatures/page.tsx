@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { startOfToday } from "@/lib/dates";
-import { PageHeader, ConformeBadge, EmptyState, ImmutableNote } from "@/components/ui";
-import { TYPE_EQUIPEMENT_LABEL, formatTime, formatTemp } from "@/lib/labels";
+import { PageHeader, EmptyState, ImmutableNote } from "@/components/ui";
 import { ReleveForm } from "./ReleveForm";
+import { ReleveItem } from "./ReleveItem";
+import { toReleveView } from "./serialize";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +21,13 @@ export default async function TemperaturesPage() {
       where: {
         equipement: { etablissementId: user.etablissementId },
         createdAt: { gte: startOfToday() },
+        correctionDeId: null, // on n'affiche pas les corrections comme des lignes autonomes
       },
-      include: { equipement: true, utilisateur: true },
+      include: {
+        equipement: true,
+        utilisateur: true,
+        correction: { include: { utilisateur: true } },
+      },
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -30,6 +37,11 @@ export default async function TemperaturesPage() {
       <PageHeader
         title="Relevés de température"
         subtitle="Sélectionnez l'enceinte, saisissez la température, enregistrez."
+        action={
+          <Link href="/app/temperatures/historique" className="btn-secondary py-2 text-sm">
+            Historique
+          </Link>
+        }
       />
 
       <ReleveForm
@@ -51,29 +63,7 @@ export default async function TemperaturesPage() {
       ) : (
         <ul className="space-y-2">
           {releves.map((r) => (
-            <li
-              key={r.id}
-              className="card flex items-center justify-between gap-3 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-slate-800">{r.equipement.nom}</p>
-                <p className="text-xs text-slate-500">
-                  {TYPE_EQUIPEMENT_LABEL[r.equipement.type]} · {formatTime(r.createdAt)} · {r.utilisateur.nom}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span
-                  className={
-                    r.conforme
-                      ? "text-lg font-bold tabular-nums text-slate-800"
-                      : "text-lg font-bold tabular-nums text-red-600"
-                  }
-                >
-                  {formatTemp(r.valeur)}
-                </span>
-                <ConformeBadge conforme={r.conforme} />
-              </div>
-            </li>
+            <ReleveItem key={r.id} releve={toReleveView(r)} />
           ))}
         </ul>
       )}
