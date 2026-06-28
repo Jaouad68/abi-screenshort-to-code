@@ -34,19 +34,22 @@ Gestion **multi-utilisateurs** (rôles Gérant / Employé) sur un établissement
 ## Pile technique
 
 - **Next.js 14** (App Router, TypeScript) — server actions + route handlers
-- **Prisma** + **SQLite** en dev (schéma portable **PostgreSQL** managé UE en prod)
+- **Prisma** + **PostgreSQL** (Docker en local, base managée UE en prod — parité dev/prod, migrations versionnées)
 - **Auth** email/mot de passe : `bcryptjs` (hachage) + **JWT** signé (`jose`) en cookie httpOnly, rôles
 - **Horodatage serveur** (`createdAt = now()` côté base) — jamais l'horloge du client
 - **Inviolabilité** : aucune route ne modifie/supprime un enregistrement validé ; une correction crée une nouvelle entrée tracée
 - **PDF serveur** via `pdfkit`
 - **Tailwind CSS** — interface mobile-first, gros boutons
 
-## Démarrage rapide
+## Démarrage rapide (local)
+
+Base **PostgreSQL** en local via Docker (parité avec la production) :
 
 ```bash
 cp .env.example .env        # ajuster AUTH_SECRET (openssl rand -base64 48)
+docker compose up -d        # démarre Postgres 16 sur localhost:5432
 npm install
-npm run db:reset            # crée la base SQLite + jeu de démonstration
+npm run db:reset            # applique les migrations + jeu de démonstration
 npm run dev                 # http://localhost:3000
 ```
 
@@ -65,14 +68,33 @@ npm test            # Vitest (logique HACCP, validation, export PDF)
 | Gérant  | gerant@demo.fr   | Demo1234     |
 | Employé | employe@demo.fr  | Demo1234     |
 
-## Passage en production (UE / RGPD)
+## Déploiement Vercel (UE / RGPD)
 
-1. Dans `prisma/schema.prisma`, basculer `provider = "postgresql"`.
-2. `DATABASE_URL` → base Postgres managée hébergée dans l'UE (ex. Supabase région `eu-west`).
-3. `AUTH_SECRET` → valeur aléatoire forte ; déploiement HTTPS (ex. Vercel).
-4. Pour les photos, basculer du stockage en base vers un stockage objet UE.
+L'application est prête pour Vercel : `vercel.json` fixe la région **`cdg1` (Paris)**
+et la commande de build `npm run vercel-build` (`prisma generate` →
+`prisma migrate deploy` → `next build`).
 
-`npm run db:push` applique le schéma à la base de production.
+**1. Créer une base Postgres managée dans l'UE** (ex. [Supabase](https://supabase.com)
+région `eu-*`, ou [Neon](https://neon.tech) `eu-*`). Récupérer :
+- l'URL **poolée** (PgBouncer, port `6543`) → `DATABASE_URL`
+- l'URL **directe** (port `5432`) → `DIRECT_URL`
+
+**2. Importer le repo dans Vercel** et définir les variables d'environnement
+(Project → Settings → Environment Variables) :
+
+| Variable        | Valeur                                                                 |
+| --------------- | ---------------------------------------------------------------------- |
+| `DATABASE_URL`  | `postgresql://…@…:6543/postgres?pgbouncer=true&connection_limit=1`     |
+| `DIRECT_URL`    | `postgresql://…@…:5432/postgres`                                        |
+| `AUTH_SECRET`   | `openssl rand -base64 48`                                               |
+
+**3. Déployer.** Le build exécute automatiquement `prisma migrate deploy` (via
+`DIRECT_URL`) puis construit l'app. Pour charger le jeu de démonstration une
+fois en ligne : `DATABASE_URL=<directe> npm run db:seed` (optionnel).
+
+> Données personnelles limitées (noms employés, email gérant), mots de passe
+> hachés (bcrypt), HTTPS, hébergement UE → conforme à l'esprit RGPD. Pour les
+> photos, prévoir un stockage objet UE en v2 (actuellement stockées en base).
 
 ## Conformité réglementaire
 

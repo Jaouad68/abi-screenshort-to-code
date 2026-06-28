@@ -8,8 +8,11 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Aucune connexion DB en CI (pages dynamiques, tests sans I/O). Ces URLs
+    # servent seulement à satisfaire `prisma generate` / la validation de schéma.
     env:
-      DATABASE_URL: "file:./ci.db"
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=public"
+      DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci?schema=public"
       AUTH_SECRET: "ci-secret-not-used-in-production-but-long-enough"
     steps:
       - uses: actions/checkout@v4

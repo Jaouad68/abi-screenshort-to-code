@@ -7,16 +7,21 @@
 //    aucune mise à jour/suppression de ces lignes. Une "correction" est une
 //    nouvelle entrée tracée (cf. champ correctionDe* / annule).
 //
-// En développement : SQLite (zéro configuration).
-// En production : remplacer provider par "postgresql" (base managée UE).
+// Base PostgreSQL (parité dev/prod) :
+//  - En local : Postgres via docker-compose (cf. README) — DATABASE_URL/DIRECT_URL
+//    pointent vers localhost:5432.
+//  - En production (Vercel) : base managée hébergée dans l'UE (ex. Supabase /
+//    Neon région eu-*). DATABASE_URL = connexion *poolée* (PgBouncer) pour le
+//    runtime serverless ; DIRECT_URL = connexion directe pour les migrations.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ------------------------------------------------------------------ //

@@ -1,0 +1,25 @@
+# Postgres local pour le développement (parité avec la production Vercel).
+#   docker compose up -d        # démarre la base
+#   npm run db:reset            # applique les migrations + jeu de démonstration
+#   docker compose down         # arrête la base (les données persistent)
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: resto-haccp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: resto
+      POSTGRES_PASSWORD: resto
+      POSTGRES_DB: resto_haccp
+    ports:
+      - "5432:5432"
+    volumes:
+      - resto_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resto -d resto_haccp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  resto_pgdata:
