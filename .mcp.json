@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "aks": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "~/.azure:/home/mcp/.azure",
+        "-v",
+        "~/.kube:/home/mcp/.kube",
+        "ghcr.io/azure/aks-mcp:latest",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}
