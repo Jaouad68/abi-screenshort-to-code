@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store. — Découvrez tous les produits</title>
+<meta name="description" content="Projet de démonstration front-end inspiré de la mise en page d'une boutique high-tech. Non affilié à Apple Inc.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ GLOBAL NAV ============ -->
+<header class="global-nav" id="globalNav">
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo" aria-label="Accueil">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16.7 12.4c0-2.6 2.1-3.8 2.2-3.9-1.2-1.7-3-2-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.3 3.1-2.5.7-1 1.1-2 1.4-3.1-2.6-1-3.1-3.4-3.9-3.8zM14.3 4.6c.7-.9 1.2-2.1 1-3.3-1 .1-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.2 1.2.1 2.4-.6 3.1-1.5z"/></svg>
+    </a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="#store">Store</a>
+      <a href="#cat-mac">Mac</a>
+      <a href="#cat-ipad">iPad</a>
+      <a href="#cat-iphone">iPhone</a>
+      <a href="#cat-watch">Watch</a>
+      <a href="#cat-airpods">AirPods</a>
+      <a href="#cat-tv">TV &amp; Home</a>
+      <a href="#value">Assistance</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="searchToggle" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+      <button class="icon-btn" id="bagToggle" aria-label="Sac">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 8h12l1 12H5L6 8z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 8a3 3 0 016 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="bag-count" id="bagCount">0</span>
+      </button>
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="search-panel" id="searchPanel">
+    <div class="search-panel-inner">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <input type="text" placeholder="Rechercher dans le Store" aria-label="Rechercher dans le Store">
+      <button id="searchClose" aria-label="Fermer la recherche">✕</button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="#store">Store</a>
+    <a href="#cat-mac">Mac</a>
+    <a href="#cat-ipad">iPad</a>
+    <a href="#cat-iphone">iPhone</a>
+    <a href="#cat-watch">Watch</a>
+    <a href="#cat-airpods">AirPods</a>
+    <a href="#cat-tv">TV &amp; Home</a>
+    <a href="#value">Assistance</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ============ STORE HEADER + CHIPS ============ -->
+  <section class="store-header" id="store">
+    <h1>Store.</h1>
+    <p class="store-sub">Découvrez la sélection, comparez les modèles et trouvez celui qui vous correspond.</p>
+    <div class="chip-row" role="list">
+      <a class="chip" href="#categories" role="listitem">Acheter par catégorie</a>
+      <a class="chip" href="#cat-mac" role="listitem">Mac</a>
+      <a class="chip" href="#cat-ipad" role="listitem">iPad</a>
+      <a class="chip" href="#cat-iphone" role="listitem">iPhone</a>
+      <a class="chip" href="#cat-watch" role="listitem">Watch</a>
+      <a class="chip" href="#cat-airpods" role="listitem">AirPods</a>
+      <a class="chip" href="#cat-tv" role="listitem">TV &amp; Home</a>
+      <a class="chip" href="#cat-access" role="listitem">Accessoires</a>
+      <a class="chip" href="#value" role="listitem">Trade&#8209;in</a>
+      <a class="chip" href="#value" role="listitem">Financement</a>
+    </div>
+  </section>
+
+  <!-- ============ HERO CAROUSEL ============ -->
+  <section class="hero" aria-roledescription="carrousel">
+    <div class="hero-track" id="heroTrack">
+
+      <article class="hero-slide slide-phone">
+        <div class="hero-copy">
+          <p class="eyebrow">Nouveau</p>
+          <h2>Phone 17 Pro</h2>
+          <p class="tagline">Vertigineusement rapide.</p>
+          <p class="price">À partir de 1 229 €</p>
+          <div class="hero-cta">
+            <a href="#" class="btn btn-primary">Acheter</a>
+            <a href="#" class="btn btn-link">En savoir plus &rsaquo;</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="device device-phone"><div class="notch"></div></div>
+        </div>
+      </article>
+
+      <article class="hero-slide slide-mac">
+        <div class="hero-copy">
+          <p class="eyebrow">Nouveau</p>
+          <h2>MacBook Air</h2>
+          <p class="tagline">Léger comme l'air. Rapide comme l'éclair.</p>
+          <p class="price">À partir de 1 099 €</p>
+          <div class="hero-cta">
+            <a href="#" class="btn btn-primary">Acheter</a>
+            <a href="#" class="btn btn-link">En savoir plus &rsaquo;</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="device device-mac"><div class="camera"></div></div>
+        </div>
+      </article>
+
+      <article class="hero-slide slide-watch">
+        <div class="hero-copy">
+          <p class="eyebrow">Nouveau</p>
+          <h2>Watch Series 11</h2>
+          <p class="tagline">Une longueur d'avance pour votre santé.</p>
+          <p class="price">À partir de 449 €</p>
+          <div class="hero-cta">
+            <a href="#" class="btn btn-primary">Acheter</a>
+            <a href="#" class="btn btn-link">En savoir plus &rsaquo;</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="device device-watch"><div class="crown"></div></div>
+        </div>
+      </article>
+
+    </div>
+    <div class="hero-dots" id="heroDots"></div>
+  </section>
+
+  <!-- ============ SHOP BY CATEGORY ============ -->
+  <section class="section" id="categories">
+    <h3 class="section-title">Achetez par catégorie</h3>
+    <div class="category-grid">
+
+      <article class="cat-card" id="cat-mac">
+        <div class="cat-visual"><div class="device device-mac small"><div class="camera"></div></div></div>
+        <h4>Mac</h4>
+        <a href="#" class="cat-link">Acheter Mac &rsaquo;</a>
+      </article>
+
+      <article class="cat-card" id="cat-ipad">
+        <div class="cat-visual"><div class="device device-ipad"><div class="cam-dot"></div></div></div>
+        <h4>iPad</h4>
+        <a href="#" class="cat-link">Acheter iPad &rsaquo;</a>
+      </article>
+
+      <article class="cat-card" id="cat-iphone">
+        <div class="cat-visual"><div class="device device-phone small"><div class="notch"></div></div></div>
+        <h4>iPhone</h4>
+        <a href="#" class="cat-link">Acheter iPhone &rsaquo;</a>
+      </article>
+
+      <article class="cat-card" id="cat-watch">
+        <div class="cat-visual"><div class="device device-watch small"><div class="crown"></div></div></div>
+        <h4>Watch</h4>
+        <a href="#" class="cat-link">Acheter Watch &rsaquo;</a>
+      </article>
+
+      <article class="cat-card" id="cat-airpods">
+        <div class="cat-visual">
+          <div class="device device-earbud"></div>
+          <div class="device device-earbud offset"></div>
+        </div>
+        <h4>AirPods</h4>
+        <a href="#" class="cat-link">Acheter AirPods &rsaquo;</a>
+      </article>
+
+      <article class="cat-card" id="cat-tv">
+        <div class="cat-visual"><div class="device device-tv"><div class="stand"></div></div></div>
+        <h4>TV &amp; Home</h4>
+        <a href="#" class="cat-link">Acheter TV &amp; Home &rsaquo;</a>
+      </article>
+
+      <article class="cat-card" id="cat-access">
+        <div class="cat-visual"><div class="device device-accessory"></div></div>
+        <h4>Accessoires</h4>
+        <a href="#" class="cat-link">Acheter les accessoires &rsaquo;</a>
+      </article>
+
+      <article class="cat-card">
+        <div class="cat-visual"><div class="device device-vision"></div></div>
+        <h4>Vision Pro</h4>
+        <a href="#" class="cat-link">Acheter Vision Pro &rsaquo;</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ VALUE PROPS ============ -->
+  <section class="section alt" id="value">
+    <h3 class="section-title">Faites votre choix avec le Store</h3>
+    <div class="value-grid">
+      <article class="value-card">
+        <div class="value-icon">💳</div>
+        <h4>Financement</h4>
+        <p>Payez en plusieurs fois sans frais avec nos partenaires financiers.</p>
+      </article>
+      <article class="value-card">
+        <div class="value-icon">♻️</div>
+        <h4>Trade&#8209;in</h4>
+        <p>Faites reprendre votre appareil actuel et bénéficiez d'une réduction.</p>
+      </article>
+      <article class="value-card">
+        <div class="value-icon">🚚</div>
+        <h4>Livraison &amp; retrait</h4>
+        <p>Livraison gratuite ou retrait en magasin dès aujourd'hui.</p>
+      </article>
+      <article class="value-card">
+        <div class="value-icon">🛠️</div>
+        <h4>Configuration personnalisée</h4>
+        <p>Un conseiller vous aide à configurer votre nouvel appareil.</p>
+      </article>
+      <article class="value-card">
+        <div class="value-icon">🎓</div>
+        <h4>Store Éducation</h4>
+        <p>Tarifs spéciaux pour les étudiants et le personnel enseignant.</p>
+      </article>
+      <article class="value-card">
+        <div class="value-icon">💬</div>
+        <h4>Assistance</h4>
+        <p>Une équipe dédiée pour répondre à toutes vos questions, 7j/7.</p>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="footer-cols">
+    <div class="footer-col">
+      <h5>Boutique et Assistance</h5>
+      <ul>
+        <li><a href="#">Trouver un magasin</a></li>
+        <li><a href="#">Genius Bar</a></li>
+        <li><a href="#">Aujourd'hui au Store</a></li>
+        <li><a href="#">Formations</a></li>
+        <li><a href="#">Store pour les professionnels</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Compte</h5>
+      <ul>
+        <li><a href="#">Gérer votre identifiant</a></li>
+        <li><a href="#">Compte Store</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Boutique en ligne</h5>
+      <ul>
+        <li><a href="#">Statut de la commande</a></li>
+        <li><a href="#">Aide à l'achat</a></li>
+        <li><a href="#">Financement</a></li>
+        <li><a href="#">Trade&#8209;in</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>À propos</h5>
+      <ul>
+        <li><a href="#">Newsroom</a></li>
+        <li><a href="#">Emploi</a></li>
+        <li><a href="#">Investisseurs</a></li>
+        <li><a href="#">Éthique &amp; conformité</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-legal">
+    <p>Ceci est un projet de démonstration front-end à but éducatif. Il n'est ni affilié à, ni approuvé par Apple Inc. Toutes les marques citées appartiennent à leurs propriétaires respectifs.</p>
+    <p>Copyright © 2026 — Projet de démonstration. Tous droits réservés au titulaire du projet.</p>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>
