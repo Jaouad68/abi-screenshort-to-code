@@ -38,7 +38,7 @@
   var bagToggle = document.getElementById("bagToggle");
   var bagCount = document.getElementById("bagCount");
   var count = 0;
-  document.querySelectorAll(".btn-primary").forEach(function (btn) {
+  document.querySelectorAll('.btn-primary[href="#"]').forEach(function (btn) {
     btn.addEventListener("click", function (e) {
       e.preventDefault();
       count += 1;

@@ -76,6 +76,7 @@ h1, h2, h3, h4, h5, p { margin: 0; }
   transition: opacity 0.2s;
 }
 .nav-links a:hover { opacity: 1; }
+.nav-links a.current { opacity: 1; font-weight: 600; }
 
 .nav-actions {
   display: flex;
@@ -271,6 +272,122 @@ h1, h2, h3, h4, h5, p { margin: 0; }
   padding: 0;
 }
 .hero-dots button.active { background: var(--text); }
+
+/* ============ PRODUCT HERO ============ */
+.product-hero {
+  text-align: center;
+  padding: 64px 22px 20px;
+  background: linear-gradient(180deg, #fbfbfd, #f5f5f7);
+}
+.product-hero .eyebrow {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+}
+.product-hero h1 {
+  font-size: clamp(40px, 7vw, 64px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.product-hero .tagline {
+  font-size: 21px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+.product-hero .hero-cta { justify-content: center; margin-top: 22px; }
+.product-hero .hero-visual {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 48px 0 0;
+  min-height: 300px;
+}
+.device-phone.alt { opacity: 0.55; transform: translateY(20px) scale(0.92); }
+
+/* ============ COMPARE MODELS ============ */
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+.compare-card {
+  position: relative;
+  background: var(--bg-alt);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px 28px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.compare-card.featured {
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  border: 1px solid var(--border);
+}
+.featured-tag {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.compare-visual {
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.device-phone.small.tall { height: 122px; }
+.device-mac.small.wide { width: 190px; }
+.compare-card h4 { font-size: 20px; font-weight: 600; }
+.compare-desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+.compare-price { font-size: 15px; font-weight: 500; margin-top: 2px; }
+
+.swatches { display: flex; gap: 8px; margin: 6px 0 4px; }
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--c);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.btn-block { width: 100%; text-align: center; }
+
+/* ============ SPEC TABLE ============ */
+.spec-table-wrap { overflow-x: auto; }
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-width: 480px;
+}
+.spec-table th, .spec-table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.spec-table th { font-weight: 600; color: var(--text-dim); font-size: 13px; }
+.spec-table td:first-child, .spec-table th:first-child { color: var(--text-dim); font-weight: 500; }
+.spec-table tbody tr:last-child td { border-bottom: none; }
+
+/* ============ CTA BAND ============ */
+.cta-band {
+  text-align: center;
+  padding: 72px 22px;
+  background: #1d1d1f;
+  color: #f5f5f7;
+}
+.cta-band h3 { font-size: 28px; font-weight: 600; }
+.cta-band p { color: #a1a1a6; margin-top: 8px; }
+.cta-band .btn-primary { display: inline-block; margin-top: 20px; }
 
 /* ============ DEVICE SILHOUETTES (pure CSS placeholders) ============ */
 .device {
