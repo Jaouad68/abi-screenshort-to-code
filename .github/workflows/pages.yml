@@ -1,0 +1,32 @@
+name: Deploy apple-store-clone to Pages
+
+on:
+  push:
+    branches:
+      - claude/apple-store-recreation-i0xwb2
+      - claude/beautiful-newton-2q6mq
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apple-store-clone
+      - id: deployment
+        uses: actions/deploy-pages@v4
