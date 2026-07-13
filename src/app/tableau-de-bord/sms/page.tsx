@@ -13,6 +13,11 @@ const STATUT_BADGE: Record<string, string> = {
   ENVOYE: "text-sage-d",
   SIMULE: "text-muted",
   ECHEC: "text-danger",
+  QUOTA_DEPASSE: "text-brass",
+};
+
+const STATUT_LABEL: Record<string, string> = {
+  QUOTA_DEPASSE: "Quota dépassé",
 };
 
 export default async function JournalSmsPage() {
@@ -47,7 +52,7 @@ export default async function JournalSmsPage() {
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <span className={`font-semibold uppercase ${STATUT_BADGE[log.statut] ?? ""}`}>
-                  {log.statut}
+                  {STATUT_LABEL[log.statut] ?? log.statut}
                 </span>
                 <span className="text-muted">
                   {log.segments} segment{log.segments > 1 ? "s" : ""}

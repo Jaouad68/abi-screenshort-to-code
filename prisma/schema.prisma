@@ -16,6 +16,13 @@ enum Plan {
   PREMIUM
 }
 
+enum AbonnementStatut {
+  ESSAI
+  ACTIF
+  IMPAYE
+  ANNULE
+}
+
 enum AppointmentStatut {
   RESERVE
   CONFIRME
@@ -54,6 +61,7 @@ enum SmsStatut {
   ENVOYE
   ECHEC
   SIMULE
+  QUOTA_DEPASSE
 }
 
 model Salon {
@@ -72,12 +80,15 @@ model Salon {
   // JSON: { seuilNoShow: 2, seuilPardon: 3, montantType: "pourcentage"|"fixe", valeur: number }
   reglagesAcompte Json
 
-  plan Plan @default(ESSENTIEL)
+  plan             Plan             @default(ESSENTIEL)
+  abonnementStatut AbonnementStatut @default(ESSAI)
+  stripeCustomerId     String?
+  stripeSubscriptionId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user         User?
+  memberships  Membership[]
   services     Service[]
   clients      Client[]
   appointments Appointment[]
@@ -89,10 +100,23 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  salonId String @unique
+  memberships         Membership[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+/** A gérant account can manage several salons (each with its own subscription). */
+model Membership {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  salonId String
   salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
 
-  passwordResetTokens PasswordResetToken[]
+  @@unique([userId, salonId])
+  @@index([salonId])
 }
 
 model PasswordResetToken {
