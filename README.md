@@ -37,8 +37,21 @@ Prisma/SQLite.
   annulation tardive (< 48h) le conservent, annulation précoce le rembourse
 - Badge acompte dans l'agenda gérant (dû / réglé / conservé / remboursé)
 
-Pas encore implémenté (voir la suite de la feuille de route) : bilan mensuel,
-export RGPD, multi-salons.
+**Phase 4 — Bilan & fidélisation : partiellement terminée.**
+
+- Bilan honnête (`src/lib/bilan.ts`) : ne compte que l'argent prouvable — acomptes
+  conservés + créneaux libérés réellement repris (détection par chevauchement de
+  créneau) ; les créneaux libérés non repris sont affichés mais comptés à zéro
+- Vue « Bilan du mois » (`/tableau-de-bord/bilan`) avec navigation par mois, 2 KPIs
+  (taux de non-venue vs mois précédent, % de RDV pris en ligne)
+- Export CSV du fichier client, RGPD (`/api/export/clients`)
+
+Volontairement non traité — aucune règle ni maquette précise dans le dossier de
+passation pour ces points, à cadrer avec vous avant implémentation : relances
+(offre Premium), avis Google, mentions légales / politique de confidentialité.
+
+Pas encore implémenté (voir la suite de la feuille de route) : multi-salons,
+facturation abonnement, durcissement RGPD/sécurité (Phase 5).
 
 ## Démarrer
 
@@ -64,7 +77,7 @@ Variables d'environnement (voir `.env.example`) :
 ## Tests
 
 ```bash
-npm test        # Vitest — moteur de créneaux, segments SMS, gabarits, règle d'acompte
+npm test        # Vitest — moteur de créneaux, segments SMS, gabarits, règle d'acompte, bilan
 npm run lint     # ESLint
 npm run build    # build de production + vérification TypeScript
 ```
@@ -73,10 +86,11 @@ npm run build    # build de production + vérification TypeScript
 
 - `src/app/page.tsx` — page d'accueil
 - `src/app/inscription`, `src/app/connexion` — auth gérant
-- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS)
+- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS, bilan)
 - `src/app/r/[slug]` — page de réservation publique par salon
 - `src/app/b/[token]` — page publique de confirmation/annulation (sans compte)
 - `src/app/api/cron/rappels-j2` — route cron pour le rappel J-2
 - `src/app/api/stripe/webhook` — webhook Stripe (confirmation d'acompte)
-- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS, acompte...)
+- `src/app/api/export/clients` — export CSV du fichier client
+- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS, acompte, bilan...)
 - `prisma/schema.prisma` — modèle de données

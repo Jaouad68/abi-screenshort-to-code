@@ -40,3 +40,40 @@ export function ajouterJours(dateISO: string, jours: number): string {
   d.setUTCDate(d.getUTCDate() + jours);
   return d.toISOString().slice(0, 10);
 }
+
+export function moisActuelISO(): string {
+  return new Date().toISOString().slice(0, 7);
+}
+
+export function debutEtFinDeMoisUtc(moisISO: string): { debut: Date; fin: Date } {
+  const debut = new Date(`${moisISO}-01T00:00:00.000Z`);
+  const fin = new Date(debut);
+  fin.setUTCMonth(fin.getUTCMonth() + 1);
+  return { debut, fin };
+}
+
+export function ajouterMois(moisISO: string, mois: number): string {
+  const d = new Date(`${moisISO}-01T00:00:00.000Z`);
+  d.setUTCMonth(d.getUTCMonth() + mois);
+  return d.toISOString().slice(0, 7);
+}
+
+const MOIS_LABEL_FR = [
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
+];
+
+export function formatMoisFr(moisISO: string): string {
+  const [annee, mois] = moisISO.split("-").map(Number);
+  return `${MOIS_LABEL_FR[mois - 1]} ${annee}`;
+}

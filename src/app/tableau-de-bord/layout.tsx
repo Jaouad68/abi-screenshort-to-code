@@ -35,6 +35,9 @@ export default async function TableauDeBordLayout({
             <Link href="/tableau-de-bord/sms" className="hover:text-sage-d">
               Journal SMS
             </Link>
+            <Link href="/tableau-de-bord/bilan" className="hover:text-sage-d">
+              Bilan
+            </Link>
             <form action={deconnecter}>
               <button type="submit" className="text-muted hover:text-danger">
                 Déconnexion
