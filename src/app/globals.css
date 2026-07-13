@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #14211d;
+  --ink-2: #243430;
+  --sage: #527e6d;
+  --sage-d: #3a5e51;
+  --sage-l: #ebf1ee;
+  --sage-line: #c3d5cd;
+  --brass: #ab7a26;
+  --brass-l: #f5eacf;
+  --cream: #f4f0e7;
+  --paper: #fbf9f3;
+  --white: #ffffff;
+  --muted: #6c7772;
+  --line: #e5e2d6;
+  --danger: #b94a3d;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-sage: var(--sage);
+  --color-sage-d: var(--sage-d);
+  --color-sage-l: var(--sage-l);
+  --color-sage-line: var(--sage-line);
+  --color-brass: var(--brass);
+  --color-brass-l: var(--brass-l);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-white: var(--white);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-danger: var(--danger);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+
+  --radius-card: 22px;
+  --radius-pill: 99px;
+  --radius-control: 13px;
+
+  --shadow-hero: 0 44px 90px -46px rgba(20, 33, 29, 0.44);
+  --shadow-proof: 0 40px 76px -48px rgba(20, 33, 29, 0.4);
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: var(--font-serif);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
