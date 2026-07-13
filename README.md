@@ -50,8 +50,20 @@ Volontairement non traité — aucune règle ni maquette précise dans le dossie
 passation pour ces points, à cadrer avec vous avant implémentation : relances
 (offre Premium), avis Google, mentions légales / politique de confidentialité.
 
+**Phase 5 — Durcissement RGPD/sécurité : en cours (volet sécurité fait).**
+
+- Réinitialisation de mot de passe gérant (`/mot-de-passe-oublie`), par e-mail
+  (`src/lib/email`, même abstraction Null/Brevo que les SMS), lien à usage unique
+  valable 1h, aucune fuite d'information sur l'existence d'un compte
+- Gestion du STOP SMS obligatoire : webhook entrant (`/api/sms/inbound`) qui coupe
+  le consentement du client dès qu'il répond STOP ; les envois automatiques
+  (rappel J-2, accusés) le respectent aussitôt
+- Droit à la suppression : page « Clients » (`/tableau-de-bord/clients`) avec
+  anonymisation des données personnelles (nom, téléphone, consentement) tout en
+  conservant l'historique de rendez-vous pour la comptabilité/le bilan
+
 Pas encore implémenté (voir la suite de la feuille de route) : multi-salons,
-facturation abonnement, durcissement RGPD/sécurité (Phase 5).
+facturation abonnement (Phase 5, restant).
 
 ## Démarrer
 
@@ -73,6 +85,10 @@ Variables d'environnement (voir `.env.example`) :
 - `NEXT_PUBLIC_BASE_URL` — base des liens `/b/[token]` envoyés par SMS
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — optionnels ; sans eux, un
   acompte requis est enregistré comme dû mais jamais collecté en ligne
+- `EMAIL_FROM` — optionnel ; sans lui, les e-mails (réinitialisation de mot de
+  passe) sont seulement journalisés en console, jamais envoyés réellement
+  (réutilise `BREVO_API_KEY`)
+- `STOP_SMS_SECRET` — secret partagé exigé par le webhook entrant `/api/sms/inbound`
 
 ## Tests
 
@@ -86,11 +102,13 @@ npm run build    # build de production + vérification TypeScript
 
 - `src/app/page.tsx` — page d'accueil
 - `src/app/inscription`, `src/app/connexion` — auth gérant
-- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS, bilan)
+- `src/app/mot-de-passe-oublie`, `src/app/reinitialiser-mot-de-passe/[token]` — réinitialisation de mot de passe
+- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS, bilan, clients)
 - `src/app/r/[slug]` — page de réservation publique par salon
 - `src/app/b/[token]` — page publique de confirmation/annulation (sans compte)
 - `src/app/api/cron/rappels-j2` — route cron pour le rappel J-2
 - `src/app/api/stripe/webhook` — webhook Stripe (confirmation d'acompte)
+- `src/app/api/sms/inbound` — webhook SMS entrant (gestion du STOP)
 - `src/app/api/export/clients` — export CSV du fichier client
-- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS, acompte, bilan...)
+- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS, e-mail, acompte, bilan...)
 - `prisma/schema.prisma` — modèle de données

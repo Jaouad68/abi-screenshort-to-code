@@ -47,6 +47,7 @@ enum SmsGabarit {
   RAPPEL_J2
   ANNULATION
   NOTIF_GERANT
+  STOP
 }
 
 enum SmsStatut {
@@ -90,6 +91,21 @@ model User {
 
   salonId String @unique
   salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Service {

@@ -6,6 +6,7 @@ const GABARIT_LABEL: Record<string, string> = {
   RAPPEL_J2: "Rappel J-2",
   ANNULATION: "Accusé annulation",
   NOTIF_GERANT: "Notification gérant",
+  STOP: "Désinscription (STOP)",
 };
 
 const STATUT_BADGE: Record<string, string> = {

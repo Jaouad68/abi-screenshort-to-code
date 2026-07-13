@@ -46,7 +46,12 @@ export default function ConnexionPage() {
             {pending ? "Connexion..." : "Se connecter"}
           </button>
         </form>
-        <p className="text-sm text-muted mt-6">
+        <p className="text-sm text-muted mt-4">
+          <Link href="/mot-de-passe-oublie" className="text-sage-d font-semibold">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+        <p className="text-sm text-muted mt-2">
           Pas encore de compte ?{" "}
           <Link href="/inscription" className="text-sage-d font-semibold">
             Créer un salon

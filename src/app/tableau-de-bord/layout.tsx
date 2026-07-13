@@ -38,6 +38,9 @@ export default async function TableauDeBordLayout({
             <Link href="/tableau-de-bord/bilan" className="hover:text-sage-d">
               Bilan
             </Link>
+            <Link href="/tableau-de-bord/clients" className="hover:text-sage-d">
+              Clients
+            </Link>
             <form action={deconnecter}>
               <button type="submit" className="text-muted hover:text-danger">
                 Déconnexion
