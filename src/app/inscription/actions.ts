@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createSessionCookie } from "@/lib/auth";
-import { slugify } from "@/lib/slug";
+import { uniqueSalonSlug } from "@/lib/slug";
 import { DEFAULT_HORAIRES, DEFAULT_REGLAGES_ACOMPTE } from "@/lib/horaires";
 import { telephoneMobileFr } from "@/lib/telephone";
 
@@ -19,17 +19,6 @@ const schema = z.object({
 export type InscriptionState = {
   error?: string;
 };
-
-async function uniqueSlug(base: string): Promise<string> {
-  const root = slugify(base) || "salon";
-  let slug = root;
-  let i = 1;
-  while (await prisma.salon.findUnique({ where: { slug } })) {
-    i += 1;
-    slug = `${root}-${i}`;
-  }
-  return slug;
-}
 
 export async function inscrire(
   _prev: InscriptionState,
@@ -54,7 +43,7 @@ export async function inscrire(
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const slug = await uniqueSlug(nomSalon);
+  const slug = await uniqueSalonSlug(nomSalon);
 
   const salon = await prisma.salon.create({
     data: {
