@@ -30,11 +30,19 @@ export async function connecter(
 
   const { email, password } = parsed.data;
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { memberships: { orderBy: { createdAt: "asc" }, take: 1 } },
+  });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return { error: "E-mail ou mot de passe incorrect." };
   }
 
-  await createSessionCookie(user.id, user.salonId);
+  const salonId = user.memberships[0]?.salonId;
+  if (!salonId) {
+    return { error: "Ce compte n'est rattaché à aucun salon." };
+  }
+
+  await createSessionCookie(user.id, salonId);
   redirect("/tableau-de-bord");
 }

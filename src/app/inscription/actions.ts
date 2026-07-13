@@ -63,11 +63,17 @@ export async function inscrire(
       telephone: telephone || null,
       horaires: DEFAULT_HORAIRES,
       reglagesAcompte: DEFAULT_REGLAGES_ACOMPTE,
-      user: { create: { email, passwordHash } },
     },
-    include: { user: true },
   });
 
-  await createSessionCookie(salon.user!.id, salon.id);
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      memberships: { create: { salonId: salon.id } },
+    },
+  });
+
+  await createSessionCookie(user.id, salon.id);
   redirect("/tableau-de-bord");
 }
