@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Plan {
+  ESSENTIEL
+  SERENITE
+  PREMIUM
+}
+
+enum AppointmentStatut {
+  RESERVE
+  CONFIRME
+  ANNULE
+  HONORE
+  NON_VENU
+}
+
+enum AppointmentSource {
+  EN_LIGNE
+  TELEPHONE
+}
+
+enum AcompteStatut {
+  AUCUN
+  DEMANDE
+  REGLE
+  CONSERVE
+}
+
+model Salon {
+  id        String   @id @default(cuid())
+  nom       String
+  slug      String   @unique
+  adresse   String?
+  ville     String?
+  telephone String?
+
+  // JSON: [{ jour: "lun", fenetres: [["09:00","12:00"],["14:00","19:00"]] }, ...]
+  // Default value ("[]") is applied in application code (see lib/salon.ts), not at the DB
+  // level, because SQLite's Prisma connector cannot express non-scalar JSON defaults.
+  horaires Json
+
+  // JSON: { seuilNoShow: 2, seuilPardon: 3, montantType: "pourcentage"|"fixe", valeur: number }
+  reglagesAcompte Json
+
+  plan Plan @default(ESSENTIEL)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User?
+  services     Service[]
+  clients      Client[]
+  appointments Appointment[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  salonId String @unique
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id        String  @id @default(cuid())
+  nom       String
+  dureeMin  Int
+  bufferMin Int     @default(0)
+  prixCents Int
+  actif     Boolean @default(true)
+
+  salonId String
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  appointments Appointment[]
+
+  @@index([salonId])
+}
+
+model Client {
+  id                 String    @id @default(cuid())
+  prenom             String
+  telephone          String
+  consentementSms    Boolean   @default(false)
+  consentementDate   DateTime?
+  noShowCount        Int       @default(0)
+  honoredCount       Int       @default(0)
+
+  salonId String
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  appointments Appointment[]
+
+  @@unique([salonId, telephone])
+}
+
+model Appointment {
+  id     String            @id @default(cuid())
+  debutAt DateTime
+  finAt   DateTime
+  statut  AppointmentStatut @default(RESERVE)
+  source  AppointmentSource @default(EN_LIGNE)
+
+  acompteCents  Int           @default(0)
+  acompteStatut AcompteStatut @default(AUCUN)
+
+  bookingToken String @unique
+
+  createdAt DateTime @default(now())
+
+  salonId String
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  clientId String
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  @@index([salonId, debutAt])
+}
