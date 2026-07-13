@@ -15,7 +15,12 @@ export default async function TableauDeBordLayout({
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-serif text-xl">RésaZen</p>
-            <p className="text-sm text-muted">{salon.nom}</p>
+            <p className="text-sm text-muted">
+              {salon.nom} ·{" "}
+              <Link href={`/r/${salon.slug}`} className="text-sage-d hover:underline">
+                Page de réservation
+              </Link>
+            </p>
           </div>
           <nav className="flex items-center gap-6 text-sm font-semibold">
             <Link href="/tableau-de-bord" className="hover:text-sage-d">
