@@ -2,7 +2,7 @@
 
 Application de réservation en ligne anti-« no-show » pour salons de coiffure,
 barbiers et instituts de beauté. Stack : Next.js (App Router) + Tailwind CSS +
-Prisma/SQLite.
+Prisma/PostgreSQL.
 
 ## État d'avancement
 
@@ -81,9 +81,13 @@ l'instant, choix confirmé).
 
 ## Démarrer
 
+Nécessite une base PostgreSQL (locale, ou un service gratuit type
+[Neon](https://neon.tech)/Supabase/Vercel Postgres pour éviter d'installer
+PostgreSQL en local).
+
 ```bash
 npm install
-npx prisma migrate dev   # crée dev.db (SQLite) à partir du schéma
+npx prisma migrate dev   # crée les tables dans la base pointée par DATABASE_URL
 npm run dev
 ```
 
@@ -91,7 +95,7 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 
 Variables d'environnement (voir `.env.example`) :
 
-- `DATABASE_URL` — chaîne de connexion SQLite locale (`file:./dev.db`)
+- `DATABASE_URL` — chaîne de connexion PostgreSQL (`postgresql://user:password@host:5432/dbname`)
 - `SESSION_SECRET` — secret de signature des cookies de session
 - `BREVO_API_KEY` / `SMS_SENDER_NAME` — optionnels ; sans eux, les SMS sont
   seulement journalisés (Journal SMS), jamais envoyés réellement
