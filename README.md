@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RésaZen
 
-## Getting Started
+Application de réservation en ligne anti-« no-show » pour salons de coiffure,
+barbiers et instituts de beauté. Stack : Next.js (App Router) + Tailwind CSS +
+Prisma/SQLite.
 
-First, run the development server:
+## État d'avancement
+
+**Phase 1 — MVP réservation : terminée.**
+
+- Compte gérant (inscription / connexion / déconnexion, session par cookie signé)
+- Prestations (CRUD : nom, durée, battement, prix, activer/désactiver)
+- Horaires d'ouverture par jour, avec coupure méridienne
+- Moteur de créneaux (`src/lib/slots.ts`, couvert par des tests unitaires)
+- Page de réservation publique pour les clientes (`/r/[slug]`), sans compte
+- Agenda du gérant avec actions Terminé / Non venu et badge de réputation
+
+Pas encore implémenté (voir la suite de la feuille de route) : SMS, acompte
+Stripe, bilan mensuel, export RGPD, multi-salons.
+
+## Démarrer
 
 ```bash
+npm install
+npx prisma migrate dev   # crée dev.db (SQLite) à partir du schéma
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Variables d'environnement (voir `.env.example`) :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `DATABASE_URL` — chaîne de connexion SQLite locale (`file:./dev.db`)
+- `SESSION_SECRET` — secret de signature des cookies de session
 
-## Learn More
+## Tests
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test        # Vitest — moteur de créneaux
+npm run lint     # ESLint
+npm run build    # build de production + vérification TypeScript
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/page.tsx` — page d'accueil
+- `src/app/inscription`, `src/app/connexion` — auth gérant
+- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires)
+- `src/app/r/[slug]` — page de réservation publique par salon
+- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires...)
+- `prisma/schema.prisma` — modèle de données

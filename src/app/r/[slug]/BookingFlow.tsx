@@ -36,8 +36,6 @@ export function BookingFlow({
   useEffect(() => {
     if (!serviceId) return;
     let annule = false;
-    setChargement(true);
-    setHeure(null);
     obtenirCreneaux(salonSlug, serviceId, date).then((result) => {
       if (!annule) {
         setSlots(result);
@@ -48,6 +46,18 @@ export function BookingFlow({
       annule = true;
     };
   }, [salonSlug, serviceId, date]);
+
+  function choisirService(id: string) {
+    setServiceId(id);
+    setHeure(null);
+    setChargement(true);
+  }
+
+  function changerDate(value: string) {
+    setDate(value);
+    setHeure(null);
+    setChargement(true);
+  }
 
   if (state.succes) {
     return (
@@ -85,7 +95,7 @@ export function BookingFlow({
             <button
               key={service.id}
               type="button"
-              onClick={() => setServiceId(service.id)}
+              onClick={() => choisirService(service.id)}
               className={`flex items-center justify-between rounded-control border px-5 py-4 text-left min-h-[48px] transition-colors ${
                 serviceId === service.id
                   ? "border-sage bg-sage-l"
@@ -116,7 +126,7 @@ export function BookingFlow({
             type="date"
             value={date}
             min={todayISO()}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => changerDate(e.target.value)}
             className="rounded-control border border-line px-3 py-2 min-h-[44px] mb-4 bg-white"
           />
           {chargement && <p className="text-muted text-sm">Chargement des créneaux...</p>}
