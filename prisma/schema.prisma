@@ -36,6 +36,24 @@ enum AcompteStatut {
   CONSERVE
 }
 
+enum SmsDirection {
+  SORTANT
+  ENTRANT
+}
+
+enum SmsGabarit {
+  CONFIRMATION
+  RAPPEL_J2
+  ANNULATION
+  NOTIF_GERANT
+}
+
+enum SmsStatut {
+  ENVOYE
+  ECHEC
+  SIMULE
+}
+
 model Salon {
   id        String   @id @default(cuid())
   nom       String
@@ -116,7 +134,8 @@ model Appointment {
   acompteCents  Int           @default(0)
   acompteStatut AcompteStatut @default(AUCUN)
 
-  bookingToken String @unique
+  bookingToken String  @unique
+  rappelEnvoye Boolean @default(false)
 
   createdAt DateTime @default(now())
 
@@ -129,5 +148,25 @@ model Appointment {
   clientId String
   client   Client  @relation(fields: [clientId], references: [id], onDelete: Restrict)
 
+  smsLogs SmsLog[]
+
   @@index([salonId, debutAt])
+}
+
+model SmsLog {
+  id String @id @default(cuid())
+
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  direction    SmsDirection @default(SORTANT)
+  gabarit      SmsGabarit
+  destinataire String
+  corps        String
+  segments     Int
+  statut       SmsStatut
+
+  envoyeLe DateTime @default(now())
+
+  @@index([appointmentId])
 }

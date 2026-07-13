@@ -15,8 +15,18 @@ Prisma/SQLite.
 - Page de réservation publique pour les clientes (`/r/[slug]`), sans compte
 - Agenda du gérant avec actions Terminé / Non venu et badge de réputation
 
-Pas encore implémenté (voir la suite de la feuille de route) : SMS, acompte
-Stripe, bilan mensuel, export RGPD, multi-salons.
+**Phase 2 — SMS : terminée.**
+
+- Journal SMS (`src/lib/sms`) : abstraction fournisseur (Null par défaut, Brevo
+  prêt à activer), gabarits sans accent (GSM7, 1 segment), compteur de segments
+- Confirmation cliente + notification gérant à la réservation
+- Page publique `/b/[token]` (sans compte) pour confirmer ou annuler un RDV
+- Rappel J-2 via une route cron protégée (`/api/cron/rappels-j2`)
+- Accusé d'annulation cliente + notification « créneau libéré » au gérant
+- Vue « Journal SMS » dans le tableau de bord (`/tableau-de-bord/sms`)
+
+Pas encore implémenté (voir la suite de la feuille de route) : acompte Stripe,
+bilan mensuel, export RGPD, multi-salons.
 
 ## Démarrer
 
@@ -32,11 +42,15 @@ Variables d'environnement (voir `.env.example`) :
 
 - `DATABASE_URL` — chaîne de connexion SQLite locale (`file:./dev.db`)
 - `SESSION_SECRET` — secret de signature des cookies de session
+- `BREVO_API_KEY` / `SMS_SENDER_NAME` — optionnels ; sans eux, les SMS sont
+  seulement journalisés (Journal SMS), jamais envoyés réellement
+- `CRON_SECRET` — secret partagé exigé par la route `/api/cron/rappels-j2`
+- `NEXT_PUBLIC_BASE_URL` — base des liens `/b/[token]` envoyés par SMS
 
 ## Tests
 
 ```bash
-npm test        # Vitest — moteur de créneaux
+npm test        # Vitest — moteur de créneaux, segments SMS, gabarits
 npm run lint     # ESLint
 npm run build    # build de production + vérification TypeScript
 ```
@@ -45,7 +59,9 @@ npm run build    # build de production + vérification TypeScript
 
 - `src/app/page.tsx` — page d'accueil
 - `src/app/inscription`, `src/app/connexion` — auth gérant
-- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires)
+- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS)
 - `src/app/r/[slug]` — page de réservation publique par salon
-- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires...)
+- `src/app/b/[token]` — page publique de confirmation/annulation (sans compte)
+- `src/app/api/cron/rappels-j2` — route cron pour le rappel J-2
+- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS...)
 - `prisma/schema.prisma` — modèle de données

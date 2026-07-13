@@ -2,27 +2,10 @@ import Link from "next/link";
 import { requireSalon } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
-import { dateVersHeure, debutEtFinDeJourUtc } from "@/lib/datetime";
+import { dateVersHeure, debutEtFinDeJourUtc, dateISOActuelle, ajouterJours } from "@/lib/datetime";
 import type { ReglagesAcompte } from "@/lib/horaires";
+import { STATUT_LABEL } from "@/lib/statut";
 import { marquerHonore, marquerNonVenu } from "./actions-agenda";
-
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function decalerDate(dateISO: string, jours: number): string {
-  const d = new Date(`${dateISO}T00:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + jours);
-  return d.toISOString().slice(0, 10);
-}
-
-const STATUT_LABEL: Record<string, string> = {
-  RESERVE: "Réservé",
-  CONFIRME: "Confirmé",
-  ANNULE: "Annulé",
-  HONORE: "Terminé",
-  NON_VENU: "Non venu",
-};
 
 export default async function TableauDeBordPage({
   searchParams,
@@ -31,7 +14,7 @@ export default async function TableauDeBordPage({
 }) {
   const salon = await requireSalon();
   const { date: dateParam } = await searchParams;
-  const date = dateParam ?? todayISO();
+  const date = dateParam ?? dateISOActuelle();
 
   const { debut, fin } = debutEtFinDeJourUtc(date);
   const rendezVous = await prisma.appointment.findMany({
@@ -57,13 +40,13 @@ export default async function TableauDeBordPage({
       <div className="flex items-center justify-between mb-2">
         <h1 className="font-serif text-3xl capitalize">{dateAffichee}</h1>
         <div className="flex items-center gap-3 text-sm font-semibold">
-          <Link href={`/tableau-de-bord?date=${decalerDate(date, -1)}`} className="hover:text-sage-d">
+          <Link href={`/tableau-de-bord?date=${ajouterJours(date, -1)}`} className="hover:text-sage-d">
             ← Veille
           </Link>
           <Link href="/tableau-de-bord" className="hover:text-sage-d">
             Aujourd&apos;hui
           </Link>
-          <Link href={`/tableau-de-bord?date=${decalerDate(date, 1)}`} className="hover:text-sage-d">
+          <Link href={`/tableau-de-bord?date=${ajouterJours(date, 1)}`} className="hover:text-sage-d">
             Lendemain →
           </Link>
         </div>
@@ -104,7 +87,7 @@ export default async function TableauDeBordPage({
                   <span className="text-xs uppercase font-semibold text-muted">
                     {STATUT_LABEL[rdv.statut]}
                   </span>
-                  {rdv.statut === "RESERVE" && (
+                  {(rdv.statut === "RESERVE" || rdv.statut === "CONFIRME") && (
                     <div className="flex gap-2">
                       <form action={marquerHonore.bind(null, rdv.id)}>
                         <button

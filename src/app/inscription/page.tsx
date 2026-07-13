@@ -28,6 +28,14 @@ export default function InscriptionPage() {
             />
           </label>
           <label className="flex flex-col gap-1">
+            <span className="text-sm font-semibold">Votre mobile (notifications RDV)</span>
+            <input
+              name="telephone"
+              className="rounded-control border border-line px-4 py-3 min-h-[48px] bg-white"
+              placeholder="06 12 34 56 78 (optionnel)"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
             <span className="text-sm font-semibold">E-mail</span>
             <input
               type="email"

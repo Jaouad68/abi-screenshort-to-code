@@ -3,8 +3,19 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slotsFor } from "@/lib/slots";
-import { dateVersJour, dateEtHeureVersDate, dateVersHeure, debutEtFinDeJourUtc } from "@/lib/datetime";
+import {
+  dateVersJour,
+  dateEtHeureVersDate,
+  dateVersHeure,
+  debutEtFinDeJourUtc,
+  dateISOActuelle,
+  heureActuelleUtc,
+} from "@/lib/datetime";
 import type { Horaires } from "@/lib/horaires";
+import { telephoneMobileFr } from "@/lib/telephone";
+import { envoyerSms } from "@/lib/sms/service";
+import { smsConfirmationClient, smsNotifGerantNouveauRdv } from "@/lib/sms/templates";
+import { lienRendezVous } from "@/lib/sms/liens";
 
 async function creneauxDisponibles(salonSlug: string, serviceId: string, dateISO: string) {
   const salon = await prisma.salon.findUnique({ where: { slug: salonSlug } });
@@ -35,12 +46,20 @@ async function creneauxDisponibles(salonSlug: string, serviceId: string, dateISO
     fin: dateVersHeure(r.finAt),
   }));
 
-  return slotsFor({
+  const slots = slotsFor({
     fenetres: jourHoraire.fenetres,
     dureeMin: service.dureeMin,
     bufferMin: service.bufferMin,
     occupes,
   });
+
+  // A slot earlier today than the current time can no longer be booked.
+  if (dateISO === dateISOActuelle()) {
+    const heureActuelle = heureActuelleUtc();
+    return slots.filter((s) => s > heureActuelle);
+  }
+
+  return slots;
 }
 
 export async function obtenirCreneaux(salonSlug: string, serviceId: string, dateISO: string) {
@@ -52,11 +71,7 @@ const schemaReservation = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   heure: z.string().regex(/^\d{2}:\d{2}$/),
   prenom: z.string().trim().min(1, "Prénom requis."),
-  telephone: z
-    .string()
-    .trim()
-    .transform((v) => v.replace(/[\s.-]/g, ""))
-    .pipe(z.string().regex(/^(0|\+33)[1-9]\d{8}$/, "Numéro de mobile invalide.")),
+  telephone: telephoneMobileFr,
   consentementSms: z.boolean(),
 });
 
@@ -119,7 +134,9 @@ export async function reserver(
     },
   });
 
-  await prisma.appointment.create({
+  const bookingToken = crypto.randomUUID();
+
+  const rdv = await prisma.appointment.create({
     data: {
       salonId: salon.id,
       serviceId: service.id,
@@ -128,9 +145,34 @@ export async function reserver(
       finAt,
       statut: "RESERVE",
       source: "EN_LIGNE",
-      bookingToken: crypto.randomUUID(),
+      bookingToken,
     },
   });
+
+  const lien = lienRendezVous(bookingToken);
+
+  if (consentementSms) {
+    await envoyerSms({
+      appointmentId: rdv.id,
+      destinataire: telephone,
+      gabarit: "CONFIRMATION",
+      corps: smsConfirmationClient({ salonNom: salon.nom, dateISO: date, heure, lien }),
+    });
+  }
+
+  if (salon.telephone) {
+    await envoyerSms({
+      appointmentId: rdv.id,
+      destinataire: salon.telephone,
+      gabarit: "NOTIF_GERANT",
+      corps: smsNotifGerantNouveauRdv({
+        clientPrenom: prenom,
+        dateISO: date,
+        heure,
+        serviceNom: service.nom,
+      }),
+    });
+  }
 
   return { succes: { prenom, heure, date, serviceNom: service.nom } };
 }

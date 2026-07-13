@@ -13,7 +13,7 @@ async function chargerRendezVous(appointmentId: string, salonId: string) {
 export async function marquerHonore(appointmentId: string) {
   const salon = await requireSalon();
   const rdv = await chargerRendezVous(appointmentId, salon.id);
-  if (!rdv || rdv.statut !== "RESERVE") return;
+  if (!rdv || (rdv.statut !== "RESERVE" && rdv.statut !== "CONFIRME")) return;
 
   await prisma.$transaction([
     prisma.appointment.update({ where: { id: rdv.id }, data: { statut: "HONORE" } }),
@@ -29,7 +29,7 @@ export async function marquerHonore(appointmentId: string) {
 export async function marquerNonVenu(appointmentId: string) {
   const salon = await requireSalon();
   const rdv = await chargerRendezVous(appointmentId, salon.id);
-  if (!rdv || rdv.statut !== "RESERVE") return;
+  if (!rdv || (rdv.statut !== "RESERVE" && rdv.statut !== "CONFIRME")) return;
 
   await prisma.$transaction([
     prisma.appointment.update({ where: { id: rdv.id }, data: { statut: "NON_VENU" } }),

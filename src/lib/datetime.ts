@@ -22,3 +22,21 @@ export function debutEtFinDeJourUtc(dateISO: string): { debut: Date; fin: Date }
     fin: new Date(`${dateISO}T23:59:59.999Z`),
   };
 }
+
+export function estPasse(date: Date): boolean {
+  return date.getTime() < Date.now();
+}
+
+export function dateISOActuelle(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function heureActuelleUtc(): string {
+  return new Date().toISOString().slice(11, 16);
+}
+
+export function ajouterJours(dateISO: string, jours: number): string {
+  const d = new Date(`${dateISO}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + jours);
+  return d.toISOString().slice(0, 10);
+}
