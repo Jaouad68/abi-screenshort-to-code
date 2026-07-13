@@ -50,7 +50,7 @@ Volontairement non traité — aucune règle ni maquette précise dans le dossie
 passation pour ces points, à cadrer avec vous avant implémentation : relances
 (offre Premium), avis Google, mentions légales / politique de confidentialité.
 
-**Phase 5 — Durcissement RGPD/sécurité : en cours (volet sécurité fait).**
+**Phase 5 — Durcissement RGPD/sécurité, facturation, multi-salons : terminée.**
 
 - Réinitialisation de mot de passe gérant (`/mot-de-passe-oublie`), par e-mail
   (`src/lib/email`, même abstraction Null/Brevo que les SMS), lien à usage unique
@@ -61,9 +61,23 @@ passation pour ces points, à cadrer avec vous avant implémentation : relances
 - Droit à la suppression : page « Clients » (`/tableau-de-bord/clients`) avec
   anonymisation des données personnelles (nom, téléphone, consentement) tout en
   conservant l'historique de rendez-vous pour la comptabilité/le bilan
+- Facturation par abonnement (`src/lib/facturation`) : 3 plans (Essentiel,
+  Sérénité, Premium), Stripe Checkout en mode abonnement + Billing Portal,
+  webhook étendu (`customer.subscription.updated/deleted`,
+  `invoice.payment_failed`) qui met à jour le statut d'abonnement du salon ;
+  quota SMS mensuel appliqué selon le plan (Essentiel : 100 SMS/mois)
+- Page « Facturation » dans le tableau de bord (`/tableau-de-bord/facturation`)
+- Multi-salons : un compte gérant peut gérer plusieurs salons (relation
+  many-to-many via `Membership`), chacun avec ses propres prestations,
+  horaires, clients et abonnement ; sélecteur de salon actif dans l'en-tête dès
+  qu'un compte a 2 salons ou plus, page « Ajouter un salon »
+  (`/tableau-de-bord/salons/nouveau`)
 
-Pas encore implémenté (voir la suite de la feuille de route) : multi-salons,
-facturation abonnement (Phase 5, restant).
+Volontairement non traité — aucune règle ni maquette précise dans le dossier de
+passation pour ces points, à cadrer avant implémentation : relances (offre
+Premium), avis Google, mentions légales / politique de confidentialité,
+facturation consolidée multi-salons (un abonnement Stripe par salon pour
+l'instant, choix confirmé).
 
 ## Démarrer
 
@@ -84,7 +98,10 @@ Variables d'environnement (voir `.env.example`) :
 - `CRON_SECRET` — secret partagé exigé par la route `/api/cron/rappels-j2`
 - `NEXT_PUBLIC_BASE_URL` — base des liens `/b/[token]` envoyés par SMS
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — optionnels ; sans eux, un
-  acompte requis est enregistré comme dû mais jamais collecté en ligne
+  acompte requis est enregistré comme dû mais jamais collecté en ligne, et la
+  page Facturation ne propose pas de vrai paiement (mode simulé)
+- `STRIPE_PRICE_ESSENTIEL` / `STRIPE_PRICE_SERENITE` / `STRIPE_PRICE_PREMIUM` —
+  optionnels ; identifiants des prix Stripe (mode abonnement) pour chaque plan
 - `EMAIL_FROM` — optionnel ; sans lui, les e-mails (réinitialisation de mot de
   passe) sont seulement journalisés en console, jamais envoyés réellement
   (réutilise `BREVO_API_KEY`)
@@ -103,7 +120,7 @@ npm run build    # build de production + vérification TypeScript
 - `src/app/page.tsx` — page d'accueil
 - `src/app/inscription`, `src/app/connexion` — auth gérant
 - `src/app/mot-de-passe-oublie`, `src/app/reinitialiser-mot-de-passe/[token]` — réinitialisation de mot de passe
-- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS, bilan, clients)
+- `src/app/tableau-de-bord` — dashboard protégé (agenda, prestations, horaires, SMS, bilan, clients, facturation, salons)
 - `src/app/r/[slug]` — page de réservation publique par salon
 - `src/app/b/[token]` — page publique de confirmation/annulation (sans compte)
 - `src/app/api/cron/rappels-j2` — route cron pour le rappel J-2

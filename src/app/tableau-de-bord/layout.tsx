@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { requireSalon } from "@/lib/auth";
+import { requireSalon, getSession, mesSalons } from "@/lib/auth";
 import { deconnecter } from "./actions";
+import { SalonSwitcher } from "./salon-switcher";
 
 export default async function TableauDeBordLayout({
   children,
@@ -8,6 +9,8 @@ export default async function TableauDeBordLayout({
   children: React.ReactNode;
 }) {
   const salon = await requireSalon();
+  const session = await getSession();
+  const salons = session ? await mesSalons(session.userId) : [salon];
 
   return (
     <div className="flex-1 flex flex-col">
@@ -15,12 +18,18 @@ export default async function TableauDeBordLayout({
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
             <p className="font-serif text-xl">RésaZen</p>
-            <p className="text-sm text-muted">
-              {salon.nom} ·{" "}
+            <div className="text-sm text-muted flex items-center gap-2 flex-wrap">
+              <SalonSwitcher salons={salons} activeSalonId={salon.id} />
+              {salons.length < 2 && <span>{salon.nom}</span>}
+              <span>·</span>
+              <Link href="/tableau-de-bord/salons/nouveau" className="text-sage-d hover:underline">
+                + Ajouter un salon
+              </Link>
+              <span>·</span>
               <Link href={`/r/${salon.slug}`} className="text-sage-d hover:underline">
                 Page de réservation
               </Link>
-            </p>
+            </div>
           </div>
           <nav className="flex items-center gap-6 text-sm font-semibold">
             <Link href="/tableau-de-bord" className="hover:text-sage-d">
@@ -40,6 +49,9 @@ export default async function TableauDeBordLayout({
             </Link>
             <Link href="/tableau-de-bord/clients" className="hover:text-sage-d">
               Clients
+            </Link>
+            <Link href="/tableau-de-bord/facturation" className="hover:text-sage-d">
+              Facturation
             </Link>
             <form action={deconnecter}>
               <button type="submit" className="text-muted hover:text-danger">

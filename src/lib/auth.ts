@@ -38,3 +38,13 @@ export async function requireSalon() {
 
   return salon;
 }
+
+/** All salons a gérant belongs to, oldest membership first. */
+export async function mesSalons(userId: string) {
+  const memberships = await prisma.membership.findMany({
+    where: { userId },
+    include: { salon: { select: { id: true, nom: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  return memberships.map((m) => m.salon);
+}
