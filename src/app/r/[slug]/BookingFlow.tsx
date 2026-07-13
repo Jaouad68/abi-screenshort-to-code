@@ -78,6 +78,12 @@ export function BookingFlow({
           })}{" "}
           à {state.succes.heure.replace(":", "h")}.
         </p>
+        {state.succes.acompteDuCents !== undefined && (
+          <p className="text-sage-l mt-4 pt-4 border-t border-white/20">
+            Un acompte de {formatCents(state.succes.acompteDuCents)} est demandé pour ce
+            rendez-vous. Le salon vous recontactera pour le règlement.
+          </p>
+        )}
       </div>
     );
   }

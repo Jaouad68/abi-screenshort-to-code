@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { slotsFor } from "@/lib/slots";
 import {
@@ -11,11 +12,13 @@ import {
   dateISOActuelle,
   heureActuelleUtc,
 } from "@/lib/datetime";
-import type { Horaires } from "@/lib/horaires";
+import type { Horaires, ReglagesAcompte } from "@/lib/horaires";
 import { telephoneMobileFr } from "@/lib/telephone";
 import { envoyerSms } from "@/lib/sms/service";
 import { smsConfirmationClient, smsNotifGerantNouveauRdv } from "@/lib/sms/templates";
-import { lienRendezVous } from "@/lib/sms/liens";
+import { lienRendezVous, lienReservation } from "@/lib/sms/liens";
+import { acompteRequis, montantAcompteCents } from "@/lib/acompte";
+import { getPaymentProvider } from "@/lib/paiement/provider";
 
 async function creneauxDisponibles(salonSlug: string, serviceId: string, dateISO: string) {
   const salon = await prisma.salon.findUnique({ where: { slug: salonSlug } });
@@ -82,6 +85,7 @@ export type ReservationState = {
     heure: string;
     date: string;
     serviceNom: string;
+    acompteDuCents?: number;
   };
 };
 
@@ -136,6 +140,10 @@ export async function reserver(
 
   const bookingToken = crypto.randomUUID();
 
+  const reglages = salon.reglagesAcompte as ReglagesAcompte;
+  const depositRequis = acompteRequis(client, reglages);
+  const acompteCents = depositRequis ? montantAcompteCents(reglages, service.prixCents) : 0;
+
   const rdv = await prisma.appointment.create({
     data: {
       salonId: salon.id,
@@ -146,19 +154,12 @@ export async function reserver(
       statut: "RESERVE",
       source: "EN_LIGNE",
       bookingToken,
+      acompteCents,
+      acompteStatut: depositRequis ? "DEMANDE" : "AUCUN",
     },
   });
 
   const lien = lienRendezVous(bookingToken);
-
-  if (consentementSms) {
-    await envoyerSms({
-      appointmentId: rdv.id,
-      destinataire: telephone,
-      gabarit: "CONFIRMATION",
-      corps: smsConfirmationClient({ salonNom: salon.nom, dateISO: date, heure, lien }),
-    });
-  }
 
   if (salon.telephone) {
     await envoyerSms({
@@ -171,6 +172,48 @@ export async function reserver(
         heure,
         serviceNom: service.nom,
       }),
+    });
+  }
+
+  if (depositRequis) {
+    const session = await getPaymentProvider().creerSessionPaiement({
+      appointmentId: rdv.id,
+      montantCents: acompteCents,
+      description: `Acompte - ${service.nom} - ${salon.nom}`,
+      successUrl: lien,
+      cancelUrl: lienReservation(salonSlug),
+    });
+
+    if (session.sessionId && session.url) {
+      await prisma.appointment.update({
+        where: { id: rdv.id },
+        data: { stripeSessionId: session.sessionId },
+      });
+      redirect(session.url);
+    }
+
+    // No payment provider configured: the deposit is recorded as due but not
+    // collectable online yet, so the client-facing confirmation still goes out.
+    if (consentementSms) {
+      await envoyerSms({
+        appointmentId: rdv.id,
+        destinataire: telephone,
+        gabarit: "CONFIRMATION",
+        corps: smsConfirmationClient({ salonNom: salon.nom, dateISO: date, heure, lien }),
+      });
+    }
+
+    return {
+      succes: { prenom, heure, date, serviceNom: service.nom, acompteDuCents: acompteCents },
+    };
+  }
+
+  if (consentementSms) {
+    await envoyerSms({
+      appointmentId: rdv.id,
+      destinataire: telephone,
+      gabarit: "CONFIRMATION",
+      corps: smsConfirmationClient({ salonNom: salon.nom, dateISO: date, heure, lien }),
     });
   }
 

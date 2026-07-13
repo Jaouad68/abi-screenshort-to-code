@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
 import { dateVersHeure, debutEtFinDeJourUtc, dateISOActuelle, ajouterJours } from "@/lib/datetime";
 import type { ReglagesAcompte } from "@/lib/horaires";
-import { STATUT_LABEL } from "@/lib/statut";
+import { STATUT_LABEL, ACOMPTE_LABEL } from "@/lib/statut";
 import { marquerHonore, marquerNonVenu } from "./actions-agenda";
 
 export default async function TableauDeBordPage({
@@ -81,6 +81,15 @@ export default async function TableauDeBordPage({
                   </p>
                   <p className="text-sm text-muted">
                     {rdv.service.nom} · {formatCents(rdv.service.prixCents)}
+                    {rdv.acompteStatut !== "AUCUN" && (
+                      <>
+                        {" "}
+                        ·{" "}
+                        <span className="text-brass font-medium">
+                          {ACOMPTE_LABEL[rdv.acompteStatut]} ({formatCents(rdv.acompteCents)})
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">

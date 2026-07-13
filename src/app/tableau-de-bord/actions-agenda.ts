@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSalon } from "@/lib/auth";
+import { getPaymentProvider } from "@/lib/paiement/provider";
 
 async function chargerRendezVous(appointmentId: string, salonId: string) {
   return prisma.appointment.findFirst({
@@ -23,6 +24,15 @@ export async function marquerHonore(appointmentId: string) {
     }),
   ]);
 
+  // The deposit was only meant to deter a no-show; the client showed up, so refund it.
+  if (rdv.acompteStatut === "REGLE" && rdv.stripeSessionId) {
+    await getPaymentProvider().rembourser(rdv.stripeSessionId);
+    await prisma.appointment.update({
+      where: { id: rdv.id },
+      data: { acompteStatut: "REMBOURSE" },
+    });
+  }
+
   revalidatePath("/tableau-de-bord");
 }
 
@@ -38,6 +48,14 @@ export async function marquerNonVenu(appointmentId: string) {
       data: { noShowCount: { increment: 1 } },
     }),
   ]);
+
+  // The no-show is exactly what the deposit was meant to cover: keep it.
+  if (rdv.acompteStatut === "REGLE") {
+    await prisma.appointment.update({
+      where: { id: rdv.id },
+      data: { acompteStatut: "CONSERVE" },
+    });
+  }
 
   revalidatePath("/tableau-de-bord");
 }

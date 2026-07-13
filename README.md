@@ -25,8 +25,20 @@ Prisma/SQLite.
 - Accusé d'annulation cliente + notification « créneau libéré » au gérant
 - Vue « Journal SMS » dans le tableau de bord (`/tableau-de-bord/sms`)
 
-Pas encore implémenté (voir la suite de la feuille de route) : acompte Stripe,
-bilan mensuel, export RGPD, multi-salons.
+**Phase 3 — Réputation & acompte : terminée.**
+
+- Règle d'acompte (`src/lib/acompte.ts`) : acompte dû dès `noShowCount >= seuilNoShow`,
+  sauf pardon après `seuilPardon` RDV honorés ; montant en % ou fixe
+- Paiement (`src/lib/paiement`) : abstraction fournisseur (Null par défaut, Stripe
+  Checkout prêt à activer), webhook `/api/stripe/webhook` pour confirmer le paiement
+- Réservation publique : redirige vers Stripe Checkout si l'acompte est requis et
+  Stripe configuré, sinon l'enregistre comme dû (mode simulé)
+- Transitions automatiques : Terminé rembourse un acompte réglé, Non venu et
+  annulation tardive (< 48h) le conservent, annulation précoce le rembourse
+- Badge acompte dans l'agenda gérant (dû / réglé / conservé / remboursé)
+
+Pas encore implémenté (voir la suite de la feuille de route) : bilan mensuel,
+export RGPD, multi-salons.
 
 ## Démarrer
 
@@ -46,11 +58,13 @@ Variables d'environnement (voir `.env.example`) :
   seulement journalisés (Journal SMS), jamais envoyés réellement
 - `CRON_SECRET` — secret partagé exigé par la route `/api/cron/rappels-j2`
 - `NEXT_PUBLIC_BASE_URL` — base des liens `/b/[token]` envoyés par SMS
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — optionnels ; sans eux, un
+  acompte requis est enregistré comme dû mais jamais collecté en ligne
 
 ## Tests
 
 ```bash
-npm test        # Vitest — moteur de créneaux, segments SMS, gabarits
+npm test        # Vitest — moteur de créneaux, segments SMS, gabarits, règle d'acompte
 npm run lint     # ESLint
 npm run build    # build de production + vérification TypeScript
 ```
@@ -63,5 +77,6 @@ npm run build    # build de production + vérification TypeScript
 - `src/app/r/[slug]` — page de réservation publique par salon
 - `src/app/b/[token]` — page publique de confirmation/annulation (sans compte)
 - `src/app/api/cron/rappels-j2` — route cron pour le rappel J-2
-- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS...)
+- `src/app/api/stripe/webhook` — webhook Stripe (confirmation d'acompte)
+- `src/lib` — logique métier partagée (moteur de créneaux, session, horaires, SMS, acompte...)
 - `prisma/schema.prisma` — modèle de données

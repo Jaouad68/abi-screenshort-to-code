@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { envoyerSms } from "@/lib/sms/service";
 import { smsAccuseAnnulationClient, smsNotifGerantCreneauLibere } from "@/lib/sms/templates";
 import { dateVersHeure } from "@/lib/datetime";
+import { estAnnulationTardive } from "@/lib/acompte";
+import { getPaymentProvider } from "@/lib/paiement/provider";
 
 async function chargerParToken(token: string) {
   return prisma.appointment.findUnique({
@@ -26,6 +28,26 @@ export async function annulerRdv(token: string) {
   if (!rdv || (rdv.statut !== "RESERVE" && rdv.statut !== "CONFIRME")) return;
 
   await prisma.appointment.update({ where: { id: rdv.id }, data: { statut: "ANNULE" } });
+
+  if (rdv.acompteStatut === "REGLE") {
+    if (estAnnulationTardive(rdv.debutAt)) {
+      // Cancelling this close to the appointment is exactly what the deposit
+      // was meant to cover: the salon keeps it.
+      await prisma.appointment.update({
+        where: { id: rdv.id },
+        data: { acompteStatut: "CONSERVE" },
+      });
+    } else if (rdv.stripeSessionId) {
+      await getPaymentProvider().rembourser(rdv.stripeSessionId);
+      await prisma.appointment.update({
+        where: { id: rdv.id },
+        data: { acompteStatut: "REMBOURSE" },
+      });
+    }
+  } else if (rdv.acompteStatut === "DEMANDE") {
+    // Nothing was ever collected; the appointment is cancelled, so nothing is due anymore.
+    await prisma.appointment.update({ where: { id: rdv.id }, data: { acompteStatut: "AUCUN" } });
+  }
 
   const dateISO = rdv.debutAt.toISOString().slice(0, 10);
   const heure = dateVersHeure(rdv.debutAt);

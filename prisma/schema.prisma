@@ -34,6 +34,7 @@ enum AcompteStatut {
   DEMANDE
   REGLE
   CONSERVE
+  REMBOURSE
 }
 
 enum SmsDirection {
@@ -134,8 +135,9 @@ model Appointment {
   acompteCents  Int           @default(0)
   acompteStatut AcompteStatut @default(AUCUN)
 
-  bookingToken String  @unique
-  rappelEnvoye Boolean @default(false)
+  bookingToken     String  @unique
+  rappelEnvoye     Boolean @default(false)
+  stripeSessionId  String? @unique
 
   createdAt DateTime @default(now())
 
