@@ -20,6 +20,17 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function EtapeTitre({ numero, label }: { numero: number; label: string }) {
+  return (
+    <p className="flex items-center gap-2 text-xs uppercase font-semibold text-muted tracking-wide mb-3">
+      <span className="w-5 h-5 rounded-full bg-ink text-white flex items-center justify-center text-[11px] font-sans font-bold shrink-0">
+        {numero}
+      </span>
+      {label}
+    </p>
+  );
+}
+
 const initialState: ReservationState = {};
 
 export function BookingFlow({
@@ -114,9 +125,7 @@ export function BookingFlow({
   return (
     <div className="bg-paper rounded-card shadow-hero p-6 md:p-8 flex flex-col gap-8">
       <section>
-        <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
-          1 · Votre prestation
-        </p>
+        <EtapeTitre numero={1} label="Votre prestation" />
         <div className="flex flex-col gap-3">
           {services.map((service) => (
             <button
@@ -146,9 +155,7 @@ export function BookingFlow({
 
       {selectedService && (
         <section>
-          <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
-            2 · Votre praticien
-          </p>
+          <EtapeTitre numero={2} label="Votre praticien" />
           <div className="flex flex-wrap gap-2">
             {praticiens.map((praticien) => (
               <button
@@ -173,9 +180,7 @@ export function BookingFlow({
 
       {selectedService && selectedPraticien && (
         <section>
-          <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
-            3 · Votre créneau
-          </p>
+          <EtapeTitre numero={3} label="Votre créneau" />
           <input
             type="date"
             value={date}
@@ -208,9 +213,7 @@ export function BookingFlow({
 
       {selectedService && selectedPraticien && heure && (
         <section>
-          <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
-            4 · Vos coordonnées
-          </p>
+          <EtapeTitre numero={4} label="Vos coordonnées" />
           <form action={formAction} className="flex flex-col gap-4">
             <input type="hidden" name="serviceId" value={selectedService.id} />
             <input type="hidden" name="praticienId" value={selectedPraticien.id} />
