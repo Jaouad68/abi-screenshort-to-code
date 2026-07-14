@@ -167,6 +167,15 @@ export function BookingFlow({
             <input type="hidden" name="serviceId" value={selectedService.id} />
             <input type="hidden" name="date" value={date} />
             <input type="hidden" name="heure" value={heure} />
+            {/* Honeypot: hidden from real visitors, bots that auto-fill every field get caught. */}
+            <input
+              type="text"
+              name="site_web"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="absolute -left-[9999px] w-px h-px overflow-hidden"
+            />
 
             <label className="flex flex-col gap-1">
               <span className="text-sm font-semibold">Prénom</span>
