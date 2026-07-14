@@ -28,7 +28,7 @@ export default async function ClientsPage() {
           return (
             <div
               key={client.id}
-              className="bg-paper rounded-card border border-line px-6 py-4 flex items-center justify-between"
+              className="bg-paper rounded-card border border-line px-6 py-4 flex flex-wrap items-center justify-between gap-3"
             >
               <div>
                 <p className="font-semibold">{client.prenom}</p>

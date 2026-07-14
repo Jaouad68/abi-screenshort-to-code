@@ -43,6 +43,7 @@ export async function ajouterSalon(
       horaires: DEFAULT_HORAIRES,
       reglagesAcompte: DEFAULT_REGLAGES_ACOMPTE,
       memberships: { create: { userId: session.userId } },
+      praticiens: { create: { nom: "Praticien principal" } },
     },
   });
 

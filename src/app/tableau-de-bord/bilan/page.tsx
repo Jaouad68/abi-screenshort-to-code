@@ -58,7 +58,7 @@ export default async function BilanPage({
 
   return (
     <div className="max-w-2xl">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <h1 className="font-serif text-3xl capitalize">{formatMoisFr(mois)}</h1>
         <div className="flex items-center gap-3 text-sm font-semibold">
           <Link href={`/tableau-de-bord/bilan?mois=${ajouterMois(mois, -1)}`} className="hover:text-sage-d">
@@ -124,7 +124,7 @@ export default async function BilanPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="bg-paper rounded-card border border-line p-6">
           <p className="text-sm text-muted mb-2">Taux de non-venue</p>
           <p className="font-serif text-3xl tabular-nums mb-1">{tauxActuel} %</p>
@@ -148,7 +148,7 @@ export default async function BilanPage({
         créneaux libérés qui n&apos;ont trouvé personne sont affichés, mais comptés à zéro.
       </p>
 
-      <div className="mt-8 pt-8 border-t border-line flex items-center justify-between">
+      <div className="mt-8 pt-8 border-t border-line flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-semibold">Fichier client</p>
           <p className="text-sm text-muted">

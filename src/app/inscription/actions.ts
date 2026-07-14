@@ -52,6 +52,7 @@ export async function inscrire(
       telephone: telephone || null,
       horaires: DEFAULT_HORAIRES,
       reglagesAcompte: DEFAULT_REGLAGES_ACOMPTE,
+      praticiens: { create: { nom: "Praticien principal" } },
     },
   });
 

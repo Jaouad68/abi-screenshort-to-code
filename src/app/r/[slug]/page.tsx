@@ -16,6 +16,10 @@ export default async function ReservationPage({
         where: { actif: true },
         orderBy: { nom: "asc" },
       },
+      praticiens: {
+        where: { actif: true },
+        orderBy: { nom: "asc" },
+      },
     },
   });
 
@@ -37,6 +41,7 @@ export default async function ReservationPage({
             dureeMin: s.dureeMin,
             prixCents: s.prixCents,
           }))}
+          praticiens={salon.praticiens.map((p) => ({ id: p.id, nom: p.nom }))}
         />
       </div>
     </main>

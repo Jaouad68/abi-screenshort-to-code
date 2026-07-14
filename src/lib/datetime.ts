@@ -52,6 +52,13 @@ export function debutEtFinDeMoisUtc(moisISO: string): { debut: Date; fin: Date }
   return { debut, fin };
 }
 
+/** Monday of the week containing dateISO (weeks run Monday to Sunday). */
+export function debutDeSemaineIso(dateISO: string): string {
+  const jour = new Date(`${dateISO}T00:00:00.000Z`).getUTCDay(); // 0=dim, 1=lun, ...
+  const decalage = jour === 0 ? 6 : jour - 1;
+  return ajouterJours(dateISO, -decalage);
+}
+
 export function ajouterMois(moisISO: string, mois: number): string {
   const d = new Date(`${moisISO}-01T00:00:00.000Z`);
   d.setUTCMonth(d.getUTCMonth() + mois);

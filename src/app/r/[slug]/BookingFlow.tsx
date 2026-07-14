@@ -11,6 +11,11 @@ type ServiceVM = {
   prixCents: number;
 };
 
+type PraticienVM = {
+  id: string;
+  nom: string;
+};
+
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -20,11 +25,14 @@ const initialState: ReservationState = {};
 export function BookingFlow({
   salonSlug,
   services,
+  praticiens,
 }: {
   salonSlug: string;
   services: ServiceVM[];
+  praticiens: PraticienVM[];
 }) {
   const [serviceId, setServiceId] = useState<string | null>(null);
+  const [praticienId, setPraticienId] = useState<string | null>(null);
   const [date, setDate] = useState(todayISO());
   const [heure, setHeure] = useState<string | null>(null);
   const [slots, setSlots] = useState<string[]>([]);
@@ -34,9 +42,9 @@ export function BookingFlow({
   const [state, formAction, pending] = useActionState(reserverAction, initialState);
 
   useEffect(() => {
-    if (!serviceId) return;
+    if (!serviceId || !praticienId) return;
     let annule = false;
-    obtenirCreneaux(salonSlug, serviceId, date).then((result) => {
+    obtenirCreneaux(salonSlug, serviceId, praticienId, date).then((result) => {
       if (!annule) {
         setSlots(result);
         setChargement(false);
@@ -45,10 +53,22 @@ export function BookingFlow({
     return () => {
       annule = true;
     };
-  }, [salonSlug, serviceId, date]);
+  }, [salonSlug, serviceId, praticienId, date]);
 
   function choisirService(id: string) {
     setServiceId(id);
+    // Skip the practitioner step entirely when there's only one to pick from.
+    if (praticiens.length === 1) {
+      setPraticienId(praticiens[0].id);
+      setChargement(true);
+    } else {
+      setPraticienId(null);
+    }
+    setHeure(null);
+  }
+
+  function choisirPraticien(id: string) {
+    setPraticienId(id);
     setHeure(null);
     setChargement(true);
   }
@@ -89,6 +109,7 @@ export function BookingFlow({
   }
 
   const selectedService = services.find((s) => s.id === serviceId);
+  const selectedPraticien = praticiens.find((p) => p.id === praticienId);
 
   return (
     <div className="bg-paper rounded-card shadow-hero p-6 md:p-8 flex flex-col gap-8">
@@ -126,7 +147,34 @@ export function BookingFlow({
       {selectedService && (
         <section>
           <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
-            2 · Votre créneau
+            2 · Votre praticien
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {praticiens.map((praticien) => (
+              <button
+                key={praticien.id}
+                type="button"
+                onClick={() => choisirPraticien(praticien.id)}
+                className={`rounded-control border px-4 py-2 min-h-[44px] font-medium transition-colors ${
+                  praticienId === praticien.id
+                    ? "border-sage bg-sage text-white"
+                    : "border-line bg-white hover:border-sage-line"
+                }`}
+              >
+                {praticien.nom}
+              </button>
+            ))}
+          </div>
+          {praticiens.length === 0 && (
+            <p className="text-muted italic text-sm">Aucun praticien disponible pour le moment.</p>
+          )}
+        </section>
+      )}
+
+      {selectedService && selectedPraticien && (
+        <section>
+          <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
+            3 · Votre créneau
           </p>
           <input
             type="date"
@@ -158,13 +206,14 @@ export function BookingFlow({
         </section>
       )}
 
-      {selectedService && heure && (
+      {selectedService && selectedPraticien && heure && (
         <section>
           <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-3">
-            3 · Vos coordonnées
+            4 · Vos coordonnées
           </p>
           <form action={formAction} className="flex flex-col gap-4">
             <input type="hidden" name="serviceId" value={selectedService.id} />
+            <input type="hidden" name="praticienId" value={selectedPraticien.id} />
             <input type="hidden" name="date" value={date} />
             <input type="hidden" name="heure" value={heure} />
             {/* Honeypot: hidden from real visitors, bots that auto-fill every field get caught. */}
@@ -191,6 +240,15 @@ export function BookingFlow({
                 name="telephone"
                 required
                 placeholder="06 12 34 56 78"
+                className="rounded-control border border-line px-4 py-3 min-h-[48px] bg-white"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-semibold">E-mail (optionnel)</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="vous@exemple.fr"
                 className="rounded-control border border-line px-4 py-3 min-h-[48px] bg-white"
               />
             </label>
