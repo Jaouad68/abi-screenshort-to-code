@@ -1,5 +1,8 @@
 import { requireSalon } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Pagination } from "../Pagination";
+
+const PAR_PAGE = 20;
 
 const GABARIT_LABEL: Record<string, string> = {
   CONFIRMATION: "Confirmation",
@@ -20,14 +23,27 @@ const STATUT_LABEL: Record<string, string> = {
   QUOTA_DEPASSE: "Quota dépassé",
 };
 
-export default async function JournalSmsPage() {
+export default async function JournalSmsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const salon = await requireSalon();
+  const { page: pageParam } = await searchParams;
+  const pageDemandee = Number(pageParam ?? "1");
+  const page = Number.isInteger(pageDemandee) && pageDemandee > 0 ? pageDemandee : 1;
+
+  const where = { appointment: { salonId: salon.id } };
+  const total = await prisma.smsLog.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / PAR_PAGE));
+  const pageActuelle = Math.min(page, totalPages);
 
   const logs = await prisma.smsLog.findMany({
-    where: { appointment: { salonId: salon.id } },
+    where,
     include: { appointment: { include: { client: true } } },
     orderBy: { envoyeLe: "desc" },
-    take: 100,
+    skip: (pageActuelle - 1) * PAR_PAGE,
+    take: PAR_PAGE,
   });
 
   return (
@@ -67,6 +83,12 @@ export default async function JournalSmsPage() {
           </div>
         ))}
       </div>
+
+      <Pagination
+        page={pageActuelle}
+        totalPages={totalPages}
+        hrefPourPage={(p) => `/tableau-de-bord/sms?page=${p}`}
+      />
     </div>
   );
 }
