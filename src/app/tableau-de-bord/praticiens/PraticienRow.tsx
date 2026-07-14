@@ -43,7 +43,7 @@ export function PraticienRow({
 
   return (
     <div
-      className={`flex items-center justify-between bg-paper rounded-card border border-line px-6 py-4 ${
+      className={`flex flex-wrap items-center justify-between gap-3 bg-paper rounded-card border border-line px-6 py-4 ${
         praticien.actif ? "" : "opacity-50"
       }`}
     >

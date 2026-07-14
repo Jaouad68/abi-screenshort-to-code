@@ -30,7 +30,7 @@ export default async function PrestationsPage() {
         {services.map((service) => (
           <div
             key={service.id}
-            className={`flex items-center justify-between bg-paper rounded-card border border-line px-6 py-4 ${
+            className={`flex flex-wrap items-center justify-between gap-3 bg-paper rounded-card border border-line px-6 py-4 ${
               service.actif ? "" : "opacity-50"
             }`}
           >
@@ -46,7 +46,7 @@ export default async function PrestationsPage() {
                 {service.bufferMin > 0 && ` + ${service.bufferMin} min de battement`}
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <span className="font-serif text-xl tabular-nums">
                 {formatCents(service.prixCents)}
               </span>

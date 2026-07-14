@@ -41,7 +41,7 @@ export default async function FacturationPage() {
       <h1 className="font-serif text-3xl mb-2">Facturation</h1>
       <p className="text-muted mb-8">Votre abonnement RésaZen et votre consommation SMS.</p>
 
-      <div className="bg-paper rounded-card border border-line p-6 mb-8 flex items-center justify-between">
+      <div className="bg-paper rounded-card border border-line p-6 mb-8 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-semibold">
             Plan {planActuel.nom} · {formatCents(planActuel.prixCents)}/mois
@@ -73,7 +73,7 @@ export default async function FacturationPage() {
         </p>
       )}
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {PLANS.map((p) => {
           const estActuel = p.plan === salon.plan && salon.abonnementStatut === "ACTIF";
           return (

@@ -57,12 +57,12 @@ export async function VueMois({ salonId, moisISO }: { salonId: string; moisISO: 
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 text-center text-xs uppercase font-semibold text-muted mb-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[10px] sm:text-xs uppercase font-semibold text-muted mb-2">
         {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((j) => (
           <div key={j}>{j}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {jours.map((jourISO) => {
           const horsMois = jourISO.slice(0, 7) !== moisCourant;
           const compte = compteParJour.get(jourISO) ?? 0;
@@ -71,7 +71,7 @@ export async function VueMois({ salonId, moisISO }: { salonId: string; moisISO: 
             <Link
               key={jourISO}
               href={`/tableau-de-bord?date=${jourISO}`}
-              className={`rounded-control border border-line p-2 min-h-[64px] flex flex-col items-center gap-1 hover:border-sage-line transition-colors ${
+              className={`rounded-control border border-line p-1 sm:p-2 min-h-[48px] sm:min-h-[64px] flex flex-col items-center gap-1 hover:border-sage-line transition-colors ${
                 horsMois ? "opacity-30" : "bg-paper"
               }`}
             >

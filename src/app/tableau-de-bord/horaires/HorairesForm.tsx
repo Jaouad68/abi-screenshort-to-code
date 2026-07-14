@@ -64,7 +64,7 @@ export function HorairesForm({ initialHoraires }: { initialHoraires: Horaires })
         {horaires.map((jh, jourIndex) => (
           <div
             key={jh.jour}
-            className="bg-white rounded-card border border-line px-6 py-4 flex items-center gap-6"
+            className="bg-white rounded-card border border-line px-4 sm:px-6 py-4 flex flex-wrap items-center gap-3 sm:gap-6"
           >
             <span className="w-28 font-semibold shrink-0">{JOUR_LABELS[jh.jour]}</span>
 
