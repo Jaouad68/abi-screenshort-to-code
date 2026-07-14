@@ -243,6 +243,15 @@ export function BookingFlow({
                 className="rounded-control border border-line px-4 py-3 min-h-[48px] bg-white"
               />
             </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-semibold">E-mail (optionnel)</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="vous@exemple.fr"
+                className="rounded-control border border-line px-4 py-3 min-h-[48px] bg-white"
+              />
+            </label>
             <label className="flex items-start gap-2 text-sm">
               <input type="checkbox" name="consentementSms" className="mt-1" />
               <span>

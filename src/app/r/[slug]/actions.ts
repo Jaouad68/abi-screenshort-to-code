@@ -19,6 +19,7 @@ import { smsConfirmationClient, smsNotifGerantNouveauRdv } from "@/lib/sms/templ
 import { lienRendezVous, lienReservation } from "@/lib/sms/liens";
 import { acompteRequis, montantAcompteCents } from "@/lib/acompte";
 import { getPaymentProvider } from "@/lib/paiement/provider";
+import { getEmailProvider } from "@/lib/email/provider";
 
 async function creneauxDisponibles(
   salonSlug: string,
@@ -95,8 +96,54 @@ const schemaReservation = z.object({
   heure: z.string().regex(/^\d{2}:\d{2}$/),
   prenom: z.string().trim().min(1, "Prénom requis."),
   telephone: telephoneMobileFr,
+  email: z.union([z.email("Adresse e-mail invalide."), z.literal("")]),
   consentementSms: z.boolean(),
 });
+
+function dateHeureFr(dateISO: string, heure: string): string {
+  const label = new Date(`${dateISO}T00:00:00.000Z`).toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  });
+  return `${label} à ${heure.replace(":", "h")}`;
+}
+
+async function envoyerConfirmationClient(params: {
+  appointmentId: string;
+  consentementSms: boolean;
+  telephone: string;
+  email: string;
+  salonNom: string;
+  praticienNom: string;
+  serviceNom: string;
+  dateISO: string;
+  heure: string;
+  lien: string;
+}) {
+  if (params.consentementSms) {
+    await envoyerSms({
+      appointmentId: params.appointmentId,
+      destinataire: params.telephone,
+      gabarit: "CONFIRMATION",
+      corps: smsConfirmationClient({
+        salonNom: params.salonNom,
+        dateISO: params.dateISO,
+        heure: params.heure,
+        lien: params.lien,
+      }),
+    });
+  }
+
+  if (params.email) {
+    await getEmailProvider().envoyer({
+      destinataire: params.email,
+      sujet: `Confirmation de votre rendez-vous chez ${params.salonNom}`,
+      corps: `Bonjour,\n\nVotre rendez-vous est confirmé :\n${params.serviceNom} avec ${params.praticienNom}\n${dateHeureFr(params.dateISO, params.heure)}\n\nGérer ou annuler ce rendez-vous : ${params.lien}\n\n${params.salonNom}`,
+    });
+  }
+}
 
 export type ReservationState = {
   error?: string;
@@ -129,6 +176,7 @@ export async function reserver(
     heure: formData.get("heure"),
     prenom: formData.get("prenom"),
     telephone: formData.get("telephone"),
+    email: formData.get("email") ?? "",
     consentementSms: formData.get("consentementSms") === "on",
   });
 
@@ -136,7 +184,7 @@ export async function reserver(
     return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
   }
 
-  const { serviceId, praticienId, date, heure, prenom, telephone, consentementSms } = parsed.data;
+  const { serviceId, praticienId, date, heure, prenom, telephone, email, consentementSms } = parsed.data;
 
   const salon = await prisma.salon.findUnique({ where: { slug: salonSlug } });
   if (!salon) return { error: "Salon introuvable." };
@@ -162,11 +210,17 @@ export async function reserver(
 
   const client = await prisma.client.upsert({
     where: { salonId_telephone: { salonId: salon.id, telephone } },
-    update: { prenom, consentementSms, consentementDate: consentementSms ? new Date() : undefined },
+    update: {
+      prenom,
+      email: email || undefined,
+      consentementSms,
+      consentementDate: consentementSms ? new Date() : undefined,
+    },
     create: {
       salonId: salon.id,
       prenom,
       telephone,
+      email: email || null,
       consentementSms,
       consentementDate: consentementSms ? new Date() : null,
     },
@@ -239,28 +293,36 @@ export async function reserver(
 
     // No payment provider configured: the deposit is recorded as due but not
     // collectable online yet, so the client-facing confirmation still goes out.
-    if (consentementSms) {
-      await envoyerSms({
-        appointmentId: rdv.id,
-        destinataire: telephone,
-        gabarit: "CONFIRMATION",
-        corps: smsConfirmationClient({ salonNom: salon.nom, dateISO: date, heure, lien }),
-      });
-    }
+    await envoyerConfirmationClient({
+      appointmentId: rdv.id,
+      consentementSms,
+      telephone,
+      email,
+      salonNom: salon.nom,
+      praticienNom: praticien.nom,
+      serviceNom: service.nom,
+      dateISO: date,
+      heure,
+      lien,
+    });
 
     return {
       succes: { prenom, heure, date, serviceNom: service.nom, acompteDuCents: acompteCents },
     };
   }
 
-  if (consentementSms) {
-    await envoyerSms({
-      appointmentId: rdv.id,
-      destinataire: telephone,
-      gabarit: "CONFIRMATION",
-      corps: smsConfirmationClient({ salonNom: salon.nom, dateISO: date, heure, lien }),
-    });
-  }
+  await envoyerConfirmationClient({
+    appointmentId: rdv.id,
+    consentementSms,
+    telephone,
+    email,
+    salonNom: salon.nom,
+    praticienNom: praticien.nom,
+    serviceNom: service.nom,
+    dateISO: date,
+    heure,
+    lien,
+  });
 
   return { succes: { prenom, heure, date, serviceNom: service.nom } };
 }
