@@ -13,7 +13,7 @@ export default function PolitiqueConfidentialitePage() {
         <section>
           <h2 className="font-serif text-xl text-ink mb-2">Responsable du traitement</h2>
           <p>
-            <strong className="text-ink">[Nom / raison sociale à compléter]</strong>, éditeur du site RésaZen
+            <strong className="text-ink">Jaouad Khamlach</strong>, éditeur du site RésaZen
             (voir <Link href="/mentions-legales" className="text-sage-d hover:underline">mentions légales</Link>),
             est responsable du traitement des données décrites ci-dessous.
           </p>
@@ -75,7 +75,7 @@ export default function PolitiqueConfidentialitePage() {
             Conformément au RGPD, vous disposez d&apos;un droit d&apos;accès, de rectification, d&apos;effacement
             et d&apos;opposition sur vos données personnelles. Pour l&apos;exercer, contactez directement le salon
             auprès duquel vous avez pris rendez-vous, ou écrivez à{" "}
-            <strong className="text-ink">[adresse e-mail de contact à compléter]</strong>.
+            <strong className="text-ink">jaouad.khamlach.job@gmail.com</strong>.
           </p>
         </section>
 

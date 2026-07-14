@@ -13,21 +13,21 @@ export default function MentionsLegalesPage() {
         <section>
           <h2 className="font-serif text-xl text-ink mb-2">Éditeur du site</h2>
           <p>
-            Le site RésaZen est édité par <strong className="text-ink">[Nom / raison sociale à compléter]</strong>,
+            Le site RésaZen est édité par <strong className="text-ink">Jaouad Khamlach</strong>,
             <br />
-            [Statut juridique — ex : entreprise individuelle, SASU… à compléter]
+            en nom propre (immatriculation en cours)
             <br />
-            [Adresse à compléter]
+            Argenteuil (95100), France
             <br />
-            [SIRET à compléter, une fois l&apos;activité immatriculée]
+            SIRET : immatriculation en cours
             <br />
-            Contact : <strong className="text-ink">[adresse e-mail de contact à compléter]</strong>
+            Contact : <strong className="text-ink">jaouad.khamlach.job@gmail.com</strong>
           </p>
         </section>
 
         <section>
           <h2 className="font-serif text-xl text-ink mb-2">Directeur de la publication</h2>
-          <p>[Nom du responsable à compléter]</p>
+          <p>Jaouad Khamlach</p>
         </section>
 
         <section>
