@@ -61,3 +61,32 @@ h3,
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+.hero-glow {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-glow::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 140%;
+  z-index: -1;
+  background:
+    radial-gradient(38rem 22rem at 18% 0%, var(--sage-l) 0%, transparent 60%),
+    radial-gradient(30rem 20rem at 85% 15%, var(--brass-l) 0%, transparent 55%);
+}
+
+.brand-panel {
+  background:
+    radial-gradient(34rem 24rem at 15% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(28rem 22rem at 90% 90%, rgba(255, 255, 255, 0.06) 0%, transparent 55%),
+    linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 100%);
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}

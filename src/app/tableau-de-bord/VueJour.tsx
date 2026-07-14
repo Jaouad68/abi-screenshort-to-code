@@ -55,7 +55,15 @@ export async function VueJour({
 
       <div className="flex flex-col gap-3">
         {rendezVous.length === 0 && (
-          <p className="text-muted italic">Aucun rendez-vous ce jour-là.</p>
+          <div className="rounded-card border border-dashed border-line px-6 py-12 text-center text-muted flex flex-col items-center gap-2">
+            <span className="w-11 h-11 rounded-full bg-sage-l text-sage-d flex items-center justify-center text-xl">
+              📅
+            </span>
+            <p>Aucun rendez-vous ce jour-là.</p>
+            <p className="text-sm">
+              Partagez votre lien de réservation pour remplir votre agenda.
+            </p>
+          </div>
         )}
         {rendezVous.map((rdv) => {
           const alerteNoShow = rdv.client.noShowCount >= reglagesAcompte.seuilNoShow;

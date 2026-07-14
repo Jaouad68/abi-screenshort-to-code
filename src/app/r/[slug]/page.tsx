@@ -26,13 +26,13 @@ export default async function ReservationPage({
   if (!salon) notFound();
 
   return (
-    <main className="flex-1 flex justify-center px-6 py-12">
+    <main className="hero-glow flex-1 flex justify-center px-6 py-12 md:py-16">
       <div className="w-full max-w-xl">
-        <p className="text-sm text-muted mb-1">
+        <span className="uppercase text-xs font-semibold tracking-wide text-sage-d bg-sage-l rounded-pill px-3 py-1 inline-block mb-4">
           {salon.nom}
           {salon.ville ? ` · ${salon.ville}` : ""}
-        </p>
-        <h1 className="font-serif text-3xl mb-8">Réserver un rendez-vous</h1>
+        </span>
+        <h1 className="font-serif text-4xl mb-8">Réserver un rendez-vous</h1>
         <BookingFlow
           salonSlug={salon.slug}
           services={salon.services.map((s) => ({
