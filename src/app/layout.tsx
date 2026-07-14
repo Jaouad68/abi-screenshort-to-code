@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, Hanken_Grotesk } from "next/font/google";
+import { Footer } from "./Footer";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -33,6 +34,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-cream text-ink font-sans">
         {children}
+        <Footer />
       </body>
     </html>
   );

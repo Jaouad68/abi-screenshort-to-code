@@ -89,11 +89,19 @@ export type ReservationState = {
   };
 };
 
+const LIMITE_RESERVATIONS = 3;
+const FENETRE_LIMITE_MS = 10 * 60_000;
+
 export async function reserver(
   salonSlug: string,
   _prev: ReservationState,
   formData: FormData
 ): Promise<ReservationState> {
+  // Honeypot: real visitors never see or fill this field; only bots do.
+  if (formData.get("site_web")) {
+    return { error: "Formulaire invalide." };
+  }
+
   const parsed = schemaReservation.safeParse({
     serviceId: formData.get("serviceId"),
     date: formData.get("date"),
@@ -137,6 +145,16 @@ export async function reserver(
       consentementDate: consentementSms ? new Date() : null,
     },
   });
+
+  const reservationsRecentes = await prisma.appointment.count({
+    where: {
+      clientId: client.id,
+      createdAt: { gte: new Date(Date.now() - FENETRE_LIMITE_MS) },
+    },
+  });
+  if (reservationsRecentes >= LIMITE_RESERVATIONS) {
+    return { error: "Trop de réservations effectuées récemment. Merci de réessayer dans quelques minutes." };
+  }
 
   const bookingToken = crypto.randomUUID();
 
