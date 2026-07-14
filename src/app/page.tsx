@@ -102,51 +102,102 @@ function IconeCheck({ className }: { className?: string }) {
   );
 }
 
+function MockupReservation() {
+  return (
+    <div className="card-hover w-full max-w-md bg-white rounded-card border border-line shadow-hero overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-line bg-paper">
+        <span className="w-2.5 h-2.5 rounded-full bg-danger/70" />
+        <span className="w-2.5 h-2.5 rounded-full bg-brass/70" />
+        <span className="w-2.5 h-2.5 rounded-full bg-sage/70" />
+        <span className="ml-3 text-xs text-muted bg-white rounded-pill border border-line px-3 py-1 truncate">
+          resazen.app/r/salon-christelle
+        </span>
+      </div>
+      <div className="p-6 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Balayage</span>
+          <span className="font-serif text-lg">120,00 €</span>
+        </div>
+        <div className="flex items-center justify-between text-sm text-muted border-t border-line pt-4">
+          <span>Mardi 14 juillet · 10h00</span>
+          <span>Avec Christelle</span>
+        </div>
+        <div className="bg-sage text-white rounded-control px-4 py-3 flex items-center justify-between">
+          <span className="text-sm font-semibold">Rendez-vous confirmé</span>
+          <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+            ✓
+          </span>
+        </div>
+        <p className="text-xs text-muted">
+          SMS de confirmation envoyé · rappel automatique 2 jours avant
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <main className="flex-1 flex flex-col">
-      <header className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto w-full">
-        <span className="font-serif text-2xl">RésaZen</span>
-        <nav className="flex items-center gap-4 sm:gap-6 text-sm font-semibold">
-          <a href="#tarifs" className="hidden sm:inline hover:text-sage-d">
-            Tarifs
-          </a>
-          <Link href="/connexion" className="hover:text-sage-d">
-            Se connecter
-          </Link>
-          <Link
-            href="/inscription"
-            className="rounded-pill bg-ink text-white px-4 py-2 hover:bg-ink-2 transition-colors"
-          >
-            Essai gratuit
-          </Link>
-        </nav>
+      <header className="glass-nav sticky top-0 z-20 border-b border-line">
+        <div className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto w-full">
+          <span className="font-serif text-2xl">RésaZen</span>
+          <nav className="flex items-center gap-4 sm:gap-6 text-sm font-semibold">
+            <a href="#tarifs" className="hidden sm:inline hover:text-sage-d">
+              Tarifs
+            </a>
+            <Link href="/connexion" className="hover:text-sage-d">
+              Se connecter
+            </Link>
+            <Link
+              href="/inscription"
+              className="rounded-pill bg-ink text-white px-4 py-2 hover:bg-ink-2 transition-colors"
+            >
+              Essai gratuit
+            </Link>
+          </nav>
+        </div>
       </header>
 
-      <section className="hero-glow flex flex-col items-center justify-center gap-8 px-6 py-20 md:py-28 text-center">
-        <span className="uppercase text-xs font-semibold tracking-wide text-sage-d bg-sage-l rounded-pill px-3 py-1">
-          Coiffeurs · Barbiers · Instituts
-        </span>
-        <h1 className="font-serif text-5xl md:text-6xl max-w-2xl">
-          Chaque lapin vous coûte <span className="italic text-sage">un fauteuil vide</span>.
-        </h1>
-        <p className="max-w-xl text-muted text-lg">
-          RésaZen prend vos rendez-vous en ligne, rappelle vos clients par SMS,
-          et fait payer un acompte à ceux qui ont déjà fait faux bond.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link
-            href="/inscription"
-            className="rounded-pill bg-ink text-white px-6 py-3 font-semibold hover:bg-ink-2 transition-colors min-h-[48px] flex items-center shadow-hero"
-          >
-            Essayer un mois gratuitement
-          </Link>
-          <Link
-            href="/connexion"
-            className="rounded-pill bg-white border border-line px-6 py-3 font-semibold hover:border-sage-line transition-colors min-h-[48px] flex items-center"
-          >
-            Se connecter
-          </Link>
+      <section className="hero-glow px-6 py-20 md:py-28">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div className="flex flex-col items-center lg:items-start gap-8 text-center lg:text-left">
+            <span className="uppercase text-xs font-semibold tracking-wide text-sage-d bg-sage-l rounded-pill px-3 py-1">
+              Coiffeurs · Barbiers · Instituts
+            </span>
+            <h1 className="font-serif text-5xl md:text-6xl max-w-2xl">
+              Chaque lapin vous coûte <span className="italic text-sage">un fauteuil vide</span>.
+            </h1>
+            <p className="max-w-xl text-muted text-lg">
+              RésaZen prend vos rendez-vous en ligne, rappelle vos clients par SMS,
+              et fait payer un acompte à ceux qui ont déjà fait faux bond.
+            </p>
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              <Link
+                href="/inscription"
+                className="rounded-pill bg-ink text-white px-6 py-3 font-semibold hover:bg-ink-2 transition-colors min-h-[48px] flex items-center shadow-hero"
+              >
+                Essayer un mois gratuitement
+              </Link>
+              <Link
+                href="/connexion"
+                className="rounded-pill bg-white border border-line px-6 py-3 font-semibold hover:border-sage-line transition-colors min-h-[48px] flex items-center"
+              >
+                Se connecter
+              </Link>
+            </div>
+            <ul className="flex flex-wrap justify-center lg:justify-start gap-x-5 gap-y-2 text-sm text-muted">
+              {["Sans engagement", "Résiliable à tout moment", "Conforme RGPD"].map((a) => (
+                <li key={a} className="flex items-center gap-1.5">
+                  <IconeCheck className="w-4 h-4 text-sage-d shrink-0" />
+                  {a}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex justify-center">
+            <MockupReservation />
+          </div>
         </div>
       </section>
 
@@ -157,7 +208,7 @@ export default function Home() {
           </h2>
           <div className="grid sm:grid-cols-2 gap-6">
             {FONCTIONNALITES.map((f) => (
-              <div key={f.titre} className="bg-white rounded-card border border-line p-6 flex gap-4">
+              <div key={f.titre} className="card-hover bg-white rounded-card border border-line p-6 flex gap-4">
                 <span className="shrink-0 w-11 h-11 rounded-control bg-sage-l text-sage-d flex items-center justify-center">
                   <f.icone className="w-6 h-6" />
                 </span>
@@ -205,7 +256,7 @@ export default function Home() {
                   className={`relative rounded-card border p-6 flex flex-col gap-3 ${
                     populaire
                       ? "bg-ink text-white border-ink shadow-hero sm:-translate-y-2"
-                      : "bg-white border-line"
+                      : "card-hover bg-white border-line"
                   }`}
                 >
                   {populaire && (

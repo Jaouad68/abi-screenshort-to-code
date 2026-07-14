@@ -74,17 +74,22 @@ export default async function BilanPage({
       </div>
       <p className="text-muted mb-8">{total} rendez-vous ce mois-ci.</p>
 
-      <div className="bg-sage text-white rounded-card p-6 mb-3">
-        <p className="text-xs uppercase font-semibold tracking-wide text-sage-l mb-2">
-          Récupéré grâce à RésaZen
-        </p>
-        <p className="font-serif text-4xl tabular-nums mb-2">{formatCents(bilan.recupereCents)}</p>
-        <p className="text-sage-l text-sm">
-          {sources.length > 0 ? sources.join(" et ") : "Rien à signaler ce mois-ci."}
-        </p>
+      <div className="card-hover bg-sage text-white rounded-card p-6 mb-3 flex items-start gap-4">
+        <span className="shrink-0 w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-xl">
+          €
+        </span>
+        <div>
+          <p className="text-xs uppercase font-semibold tracking-wide text-sage-l mb-2">
+            Récupéré grâce à RésaZen
+          </p>
+          <p className="font-serif text-4xl mb-2">{formatCents(bilan.recupereCents)}</p>
+          <p className="text-sage-l text-sm">
+            {sources.length > 0 ? sources.join(" et ") : "Rien à signaler ce mois-ci."}
+          </p>
+        </div>
       </div>
 
-      <div className="bg-paper rounded-card border border-line p-6 mb-8">
+      <div className="card-hover bg-paper rounded-card border border-line p-6 mb-8">
         <p className="text-xs uppercase font-semibold text-muted tracking-wide mb-4">
           D&apos;où vient ce montant
         </p>
@@ -125,10 +130,18 @@ export default async function BilanPage({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="bg-paper rounded-card border border-line p-6">
+        <div className="card-hover bg-paper rounded-card border border-line p-6">
           <p className="text-sm text-muted mb-2">Taux de non-venue</p>
-          <p className="font-serif text-3xl tabular-nums mb-1">{tauxActuel} %</p>
-          <p className="text-xs text-muted">
+          <p className="font-serif text-3xl mb-1">{tauxActuel} %</p>
+          <p
+            className={`text-xs font-semibold ${
+              tauxActuel === tauxPrecedent
+                ? "text-muted font-normal"
+                : tauxActuel < tauxPrecedent
+                  ? "text-sage-d"
+                  : "text-danger"
+            }`}
+          >
             {tauxActuel === tauxPrecedent
               ? "stable par rapport au mois précédent"
               : tauxActuel < tauxPrecedent
@@ -136,9 +149,9 @@ export default async function BilanPage({
                 : `↑ contre ${tauxPrecedent} % le mois précédent`}
           </p>
         </div>
-        <div className="bg-paper rounded-card border border-line p-6">
+        <div className="card-hover bg-paper rounded-card border border-line p-6">
           <p className="text-sm text-muted mb-2">RDV pris en ligne</p>
-          <p className="font-serif text-3xl tabular-nums mb-1">{enLigne} %</p>
+          <p className="font-serif text-3xl mb-1">{enLigne} %</p>
           <p className="text-xs text-muted">autant de temps au téléphone en moins</p>
         </div>
       </div>
