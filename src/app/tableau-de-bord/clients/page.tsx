@@ -1,20 +1,36 @@
 import { requireSalon } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Pagination } from "../Pagination";
 import { anonymiserClient } from "./actions";
 
-export default async function ClientsPage() {
+const PAR_PAGE = 20;
+
+export default async function ClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const salon = await requireSalon();
+  const { page: pageParam } = await searchParams;
+  const pageDemandee = Number(pageParam ?? "1");
+  const page = Number.isInteger(pageDemandee) && pageDemandee > 0 ? pageDemandee : 1;
+
+  const total = await prisma.client.count({ where: { salonId: salon.id } });
+  const totalPages = Math.max(1, Math.ceil(total / PAR_PAGE));
+  const pageActuelle = Math.min(page, totalPages);
 
   const clients = await prisma.client.findMany({
     where: { salonId: salon.id },
     orderBy: { prenom: "asc" },
+    skip: (pageActuelle - 1) * PAR_PAGE,
+    take: PAR_PAGE,
   });
 
   return (
     <div>
       <h1 className="font-serif text-3xl mb-2">Clients</h1>
       <p className="text-muted mb-8">
-        {clients.length} client{clients.length > 1 ? "s" : ""}. Export CSV disponible depuis le{" "}
+        {total} client{total > 1 ? "s" : ""}. Export CSV disponible depuis le{" "}
         <a href="/tableau-de-bord/bilan" className="text-sage-d hover:underline">
           Bilan
         </a>
@@ -53,6 +69,12 @@ export default async function ClientsPage() {
           );
         })}
       </div>
+
+      <Pagination
+        page={pageActuelle}
+        totalPages={totalPages}
+        hrefPourPage={(p) => `/tableau-de-bord/clients?page=${p}`}
+      />
     </div>
   );
 }
