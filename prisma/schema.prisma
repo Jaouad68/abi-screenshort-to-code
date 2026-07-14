@@ -92,6 +92,7 @@ model Salon {
   services     Service[]
   clients      Client[]
   appointments Appointment[]
+  praticiens   Praticien[]
 }
 
 model User {
@@ -148,10 +149,24 @@ model Service {
   @@index([salonId])
 }
 
+model Praticien {
+  id    String  @id @default(cuid())
+  nom   String
+  actif Boolean @default(true)
+
+  salonId String
+  salon   Salon  @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  appointments Appointment[]
+
+  @@index([salonId])
+}
+
 model Client {
   id                 String    @id @default(cuid())
   prenom             String
   telephone          String
+  email              String?
   consentementSms    Boolean   @default(false)
   consentementDate   DateTime?
   noShowCount        Int       @default(0)
@@ -189,6 +204,9 @@ model Appointment {
 
   clientId String
   client   Client  @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  praticienId String
+  praticien   Praticien @relation(fields: [praticienId], references: [id], onDelete: Restrict)
 
   smsLogs SmsLog[]
 

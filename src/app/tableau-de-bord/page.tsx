@@ -19,7 +19,7 @@ export default async function TableauDeBordPage({
   const { debut, fin } = debutEtFinDeJourUtc(date);
   const rendezVous = await prisma.appointment.findMany({
     where: { salonId: salon.id, debutAt: { gte: debut, lte: fin } },
-    include: { client: true, service: true },
+    include: { client: true, service: true, praticien: true },
     orderBy: { debutAt: "asc" },
   });
 
@@ -80,7 +80,7 @@ export default async function TableauDeBordPage({
                     )}
                   </p>
                   <p className="text-sm text-muted">
-                    {rdv.service.nom} · {formatCents(rdv.service.prixCents)}
+                    {rdv.service.nom} · {rdv.praticien.nom} · {formatCents(rdv.service.prixCents)}
                     {rdv.acompteStatut !== "AUCUN" && (
                       <>
                         {" "}

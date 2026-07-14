@@ -20,7 +20,12 @@ import { lienRendezVous, lienReservation } from "@/lib/sms/liens";
 import { acompteRequis, montantAcompteCents } from "@/lib/acompte";
 import { getPaymentProvider } from "@/lib/paiement/provider";
 
-async function creneauxDisponibles(salonSlug: string, serviceId: string, dateISO: string) {
+async function creneauxDisponibles(
+  salonSlug: string,
+  serviceId: string,
+  praticienId: string,
+  dateISO: string
+) {
   const salon = await prisma.salon.findUnique({ where: { slug: salonSlug } });
   if (!salon) return [];
 
@@ -29,15 +34,24 @@ async function creneauxDisponibles(salonSlug: string, serviceId: string, dateISO
   });
   if (!service) return [];
 
+  const praticien = await prisma.praticien.findFirst({
+    where: { id: praticienId, salonId: salon.id, actif: true },
+  });
+  if (!praticien) return [];
+
   const horaires = salon.horaires as Horaires;
   const jour = dateVersJour(dateISO);
   const jourHoraire = horaires.find((h) => h.jour === jour);
   if (!jourHoraire || jourHoraire.fenetres.length === 0) return [];
 
   const { debut, fin } = debutEtFinDeJourUtc(dateISO);
+  // Occupancy is computed per praticien: two praticiens can serve two
+  // clients at the same time, so only this praticien's own appointments
+  // should block slots for them.
   const rdvsExistants = await prisma.appointment.findMany({
     where: {
       salonId: salon.id,
+      praticienId: praticien.id,
       debutAt: { gte: debut, lte: fin },
       statut: { not: "ANNULE" },
     },
@@ -65,12 +79,18 @@ async function creneauxDisponibles(salonSlug: string, serviceId: string, dateISO
   return slots;
 }
 
-export async function obtenirCreneaux(salonSlug: string, serviceId: string, dateISO: string) {
-  return creneauxDisponibles(salonSlug, serviceId, dateISO);
+export async function obtenirCreneaux(
+  salonSlug: string,
+  serviceId: string,
+  praticienId: string,
+  dateISO: string
+) {
+  return creneauxDisponibles(salonSlug, serviceId, praticienId, dateISO);
 }
 
 const schemaReservation = z.object({
   serviceId: z.string().min(1),
+  praticienId: z.string().min(1, "Praticien requis."),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   heure: z.string().regex(/^\d{2}:\d{2}$/),
   prenom: z.string().trim().min(1, "Prénom requis."),
@@ -104,6 +124,7 @@ export async function reserver(
 
   const parsed = schemaReservation.safeParse({
     serviceId: formData.get("serviceId"),
+    praticienId: formData.get("praticienId"),
     date: formData.get("date"),
     heure: formData.get("heure"),
     prenom: formData.get("prenom"),
@@ -115,7 +136,7 @@ export async function reserver(
     return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
   }
 
-  const { serviceId, date, heure, prenom, telephone, consentementSms } = parsed.data;
+  const { serviceId, praticienId, date, heure, prenom, telephone, consentementSms } = parsed.data;
 
   const salon = await prisma.salon.findUnique({ where: { slug: salonSlug } });
   if (!salon) return { error: "Salon introuvable." };
@@ -125,8 +146,13 @@ export async function reserver(
   });
   if (!service) return { error: "Prestation introuvable." };
 
+  const praticien = await prisma.praticien.findFirst({
+    where: { id: praticienId, salonId: salon.id, actif: true },
+  });
+  if (!praticien) return { error: "Praticien introuvable." };
+
   // Re-validate against the live schedule to avoid a race with another booking.
-  const disponibles = await creneauxDisponibles(salonSlug, serviceId, date);
+  const disponibles = await creneauxDisponibles(salonSlug, serviceId, praticienId, date);
   if (!disponibles.includes(heure)) {
     return { error: "Ce créneau vient d'être pris. Merci d'en choisir un autre." };
   }
@@ -167,6 +193,7 @@ export async function reserver(
       salonId: salon.id,
       serviceId: service.id,
       clientId: client.id,
+      praticienId: praticien.id,
       debutAt,
       finAt,
       statut: "RESERVE",

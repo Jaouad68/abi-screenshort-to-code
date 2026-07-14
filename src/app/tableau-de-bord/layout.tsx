@@ -38,6 +38,9 @@ export default async function TableauDeBordLayout({
             <Link href="/tableau-de-bord/prestations" className="hover:text-sage-d">
               Prestations
             </Link>
+            <Link href="/tableau-de-bord/praticiens" className="hover:text-sage-d">
+              Praticiens
+            </Link>
             <Link href="/tableau-de-bord/horaires" className="hover:text-sage-d">
               Horaires
             </Link>
