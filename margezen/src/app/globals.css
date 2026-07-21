@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-fond: #12100e;
+  --color-surface: #1c1917;
+  --color-texte: #f5f0e8;
+  --color-positif: #a3b18a;
+  --color-alerte: #c1443c;
+  --color-attention: #d9a441;
+}
+
+html,
+body {
+  background-color: var(--color-fond);
+  color: var(--color-texte);
+  font-family: var(--font-body);
+}
