@@ -1,0 +1,15 @@
+{
+  "fournisseur": null,
+  "date_facture": null,
+  "total_ht": null,
+  "lignes": [
+    {
+      "libelle_brut": "PRODUIT NON LISIBLE",
+      "quantite": null,
+      "unite": null,
+      "prix_unitaire_ht": null,
+      "total_ht": null,
+      "confiance": 0.2
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+```json
+{
+  "fournisseur": "Pomona TerreAzur",
+  "date_facture": "2026-02-20",
+  "total_ht": 96.3,
+  "lignes": [
+    {
+      "libelle_brut": "TOMATES GRAPPE CAT1",
+      "quantite": 12,
+      "unite": "kg",
+      "prix_unitaire_ht": 3.2,
+      "total_ht": 38.4,
+      "confiance": 0.88
+    },
+    {
+      "libelle_brut": "SALADE BATAVIA X12",
+      "quantite": 4,
+      "unite": "carton",
+      "prix_unitaire_ht": 14.475,
+      "total_ht": 57.9,
+      "confiance": 0.77
+    }
+  ]
+}
+```

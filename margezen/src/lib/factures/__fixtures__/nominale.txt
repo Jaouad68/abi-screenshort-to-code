@@ -1,0 +1,39 @@
+{
+  "fournisseur": "METRO Cash & Carry",
+  "date_facture": "2026-03-12",
+  "total_ht": 284.50,
+  "lignes": [
+    {
+      "libelle_brut": "BEURRE DOUX PLAQ 500G AOP",
+      "quantite": 10,
+      "unite": "piece",
+      "prix_unitaire_ht": 4.2,
+      "total_ht": 42.0,
+      "confiance": 0.95
+    },
+    {
+      "libelle_brut": "HUILE TOURNESOL 5L",
+      "quantite": 2,
+      "unite": "L",
+      "prix_unitaire_ht": 12.5,
+      "total_ht": 25.0,
+      "confiance": 0.92
+    },
+    {
+      "libelle_brut": "ENTRECOTE VBF 1ERE CAT",
+      "quantite": 8.4,
+      "unite": "kg",
+      "prix_unitaire_ht": 26.25,
+      "total_ht": 220.5,
+      "confiance": 0.81
+    },
+    {
+      "libelle_brut": "ILLISIBLE TAMPON ENCRE",
+      "quantite": null,
+      "unite": null,
+      "prix_unitaire_ht": null,
+      "total_ht": null,
+      "confiance": 0.35
+    }
+  ]
+}

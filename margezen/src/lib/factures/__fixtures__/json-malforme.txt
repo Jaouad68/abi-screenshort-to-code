@@ -1,0 +1,14 @@
+{
+  "fournisseur": "Rungis Distribution",
+  "date_facture": "2026-01-05",
+  "total_ht": 150.00,
+  "lignes": [
+    {
+      "libelle_brut": "SAUMON FRAIS ECOSSE",
+      "quantite": 5,
+      "unite": "kg",
+      "prix_unitaire_ht": 18.5,
+      "total_ht": 92.5,
+      "confiance": 0.9,
+    }
+  ]
