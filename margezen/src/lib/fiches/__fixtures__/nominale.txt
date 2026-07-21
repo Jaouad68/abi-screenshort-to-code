@@ -1,0 +1,11 @@
+{
+  "ingredients": [
+    {"nom": "entrecote", "quantite": 0.28, "unite": "kg"},
+    {"nom": "beurre", "quantite": 0.02, "unite": "kg"},
+    {"nom": "huile", "quantite": 0.01, "unite": "L"},
+    {"nom": "pomme de terre", "quantite": 0.2, "unite": "kg"},
+    {"nom": "sel", "quantite": 0.003, "unite": "kg"},
+    {"nom": "poivre", "quantite": 0.001, "unite": "kg"}
+  ],
+  "note": "Portion de frites estimée à 200g, garniture standard bistrot."
+}

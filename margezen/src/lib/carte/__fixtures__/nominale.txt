@@ -1,0 +1,28 @@
+{
+  "plats": [
+    {
+      "nom": "Entrecôte grillée, frites maison",
+      "description": "Sauce au poivre ou beurre maître d'hôtel",
+      "categorie": "plat",
+      "prix_ttc": 24.5
+    },
+    {
+      "nom": "Salade César",
+      "description": null,
+      "categorie": "entree",
+      "prix_ttc": 12.0
+    },
+    {
+      "nom": "Moelleux au chocolat",
+      "description": "Cœur coulant, glace vanille",
+      "categorie": "dessert",
+      "prix_ttc": 9.5
+    },
+    {
+      "nom": "Verre de Côtes du Rhône",
+      "description": null,
+      "categorie": "boisson",
+      "prix_ttc": null
+    }
+  ]
+}

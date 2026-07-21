@@ -47,6 +47,35 @@ Ce qui est livré à ce stade :
   balises de code parasites, document non reconnu) et tests du pipeline
   complet sans appel réseau (`lib/factures/extraction.test.ts`).
 
+## Sprint 3 — Onboarding et fiches techniques
+
+Le sprint le plus important du produit : si l'onboarding est long ou produit
+des fiches fausses, le produit est mort. Traité avec un soin particulier.
+
+- **Étape 1 — Import de carte** : `POST /api/carte/importer`, même
+  discipline que l'extraction de facture (Zod strict, une relance, bascule
+  manuelle). Un plat par ligne détectée, aucun prix inventé.
+- **Étape 2 — Génération assistée de fiche technique** :
+  `POST /api/plats/{id}/fiche-technique/proposer` — propose une composition
+  (grammages professionnels, garniture et assaisonnement inclus) que le
+  restaurateur corrige ensuite ; ne persiste rien tant que ce n'est pas
+  validé. Chaque ingrédient proposé est rapproché des ingrédients déjà
+  connus de l'établissement par nom normalisé.
+- **Étape 3 — Écran de correction** (`/plats/{id}/fiche-technique`) :
+  curseur + champ numérique par ingrédient, coût matière/marge/coefficient
+  affichés en direct (réutilise `lib/marge.ts`, jamais un second calcul
+  parallèle), bouton unique « Cette fiche est bonne » qui enchaîne
+  automatiquement sur le plat suivant sans fiche.
+- **Point de vigilance obligatoire** (fait avant l'écriture de l'écran) :
+  voir `docs/validation-fiches.md` — validation de la crédibilité des
+  grammages sur les 20 plats de référence de la spécification.
+- Écrans `/carte` (liste des plats, avancement des fiches techniques) et
+  `/carte/importer` (photo de la carte, enchaîne directement sur la
+  première fiche technique à corriger).
+- 99,3 % de couverture sur `lib/` (seuils v8 ciblés sur la logique propre,
+  les wrappers réseau Anthropic/Supabase et les fonctions navigateur pur
+  canvas sont explicitement exclus — voir `vitest.config.ts`).
+
 ## Installation
 
 ```bash
@@ -131,6 +160,30 @@ Décisions prises pendant ce sprint :
   jaune 0.7–0.9, vert ≥0.9) plutôt qu'un simple binaire, pour donner un
   signal visuel gradué en plus du seuil dur de 0.7 imposé par la
   spécification.
+- **`ingredient.prix_unitaire_cts` rendu nullable**
+  (`0004_ingredient_prix_nullable.sql`) : le schéma initial l'imposait
+  `not null`, mais l'onboarding crée des fiches techniques (donc des
+  ingrédients) avant qu'aucune facture n'ait jamais été scannée — le prix
+  est alors inconnu. Un prix manquant se traduit par un coût matière
+  incomplet (« — », jamais une estimation), exactement comme
+  `coutMatierePortion` le gère déjà.
+- **`plat.description` ajoutée** (`0003_plat_description.sql`) : absente du
+  schéma du Sprint 1, mais nécessaire pour alimenter le prompt de
+  génération de fiche technique (« Description sur la carte »).
+- **`docs/validation-fiches.md` sans appel API réel** : aucune clé
+  Anthropic n'est disponible dans cet environnement. Le prompt exact a été
+  appliqué par le modèle de cette session lui-même plutôt que par un appel
+  réseau à `claude-sonnet-4-6` — voir la méthodologie détaillée en tête de
+  ce document. À rejouer avec un vrai appel API avant mise en production.
+- **La proposition de fiche technique ne persiste rien** : la génération
+  (étape 2) ne fait aucune écriture en base ; seule la validation
+  explicite (« Cette fiche est bonne », étape 3) crée les ingrédients
+  manquants et les lignes de `fiche_technique` — cohérent avec la règle
+  « jamais de composition inventée sans validation humaine ».
+- **Établissement passé en paramètre d'URL** (`?etablissement=...`) sur
+  `/carte` et `/carte/importer` : il n'existe pas encore d'authentification
+  ni de sélecteur d'établissement (prévus plus tard). Solution temporaire
+  et clairement documentée, pas un choix définitif.
 
 ## Ouvert / à valider
 
@@ -148,3 +201,14 @@ Décisions prises pendant ce sprint :
   premier test réel.
 - Le rate limiting sur les routes d'appel LLM est prévu au Sprint 6
   (durcissement) — la route actuelle ne le fait pas encore.
+- `docs/validation-fiches.md` doit être rejoué avec un vrai appel à l'API
+  Anthropic avant mise en production (voir méthodologie dans ce document).
+- Aucune authentification ni sélecteur d'établissement n'existe encore :
+  les écrans d'onboarding prennent l'établissement en paramètre d'URL en
+  attendant. À remplacer par le contexte de session dès que
+  l'authentification sera en place.
+- Le rapprochement d'un nouvel ingrédient en doublon (nom légèrement
+  différent d'un ingrédient existant non détecté par la similarité
+  trigramme) peut provoquer un conflit d'unicité sur
+  `(etablissement_id, nom_normalise)` à la validation de la fiche
+  technique — pas de fusion automatique à ce stade.

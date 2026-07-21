@@ -69,11 +69,19 @@ describe.runIf(disponible)("RLS — isolation multi-tenant", () => {
     );
     await admin.query(stub);
 
-    const migration = fs.readFileSync(
-      path.join(__dirname, "../../supabase/migrations/0001_init.sql"),
-      "utf-8",
-    );
-    await admin.query(migration);
+    const dossierMigrations = path.join(__dirname, "../../supabase/migrations");
+    const fichiersMigrations = fs
+      .readdirSync(dossierMigrations)
+      .filter((nom) => nom.endsWith(".sql"))
+      .sort();
+
+    for (const nomFichier of fichiersMigrations) {
+      const migration = fs.readFileSync(
+        path.join(dossierMigrations, nomFichier),
+        "utf-8",
+      );
+      await admin.query(migration);
+    }
 
     await admin.query(
       `grant usage on schema public to authenticated;

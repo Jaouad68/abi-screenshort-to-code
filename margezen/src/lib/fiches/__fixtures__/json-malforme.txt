@@ -1,0 +1,5 @@
+{
+  "ingredients": [
+    {"nom": "saumon", "quantite": 0.16, "unite": "kg"}
+  "note": null
+}

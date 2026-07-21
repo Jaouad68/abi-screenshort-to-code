@@ -58,6 +58,7 @@ export function remplacerExtension(
  * Node/Vitest ; `calculerDimensionsCible` et `remplacerExtension`,
  * purement arithmétiques, sont couvertes par des tests unitaires.
  */
+/* v8 ignore start */
 export async function comprimerImageFacture(fichier: File): Promise<File> {
   const image = await createImageBitmap(fichier);
   const cible = calculerDimensionsCible({
@@ -87,3 +88,4 @@ export async function comprimerImageFacture(fichier: File): Promise<File> {
     type: "image/jpeg",
   });
 }
+/* v8 ignore stop */

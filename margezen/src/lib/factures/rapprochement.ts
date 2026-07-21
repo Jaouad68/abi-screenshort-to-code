@@ -85,7 +85,12 @@ interface LigneTrigramme {
  * Récupère les candidats en base (alias exact puis RPC trigramme) et
  * applique `decidirRapprochement`. La RPC `rechercher_ingredients_similaires`
  * est définie dans supabase/migrations/0002_rapprochement.sql.
+ *
+ * Non couvert par les tests unitaires : orchestration réseau Supabase
+ * sans logique propre au-delà de `decidirRapprochement`, déjà testée
+ * exhaustivement ci-dessus.
  */
+/* v8 ignore start */
 export async function rapprocherLigneFacture(
   supabase: SupabaseClient,
   etablissementId: string,
@@ -139,3 +144,4 @@ export async function rapprocherLigneFacture(
 
   return decidirRapprochement(candidats);
 }
+/* v8 ignore stop */

@@ -1,0 +1,12 @@
+```json
+{
+  "plats": [
+    {
+      "nom": "Soupe à l'oignon gratinée",
+      "description": null,
+      "categorie": "entree",
+      "prix_ttc": 8.5
+    }
+  ]
+}
+```

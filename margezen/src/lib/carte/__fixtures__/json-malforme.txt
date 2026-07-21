@@ -1,0 +1,10 @@
+{
+  "plats": [
+    {
+      "nom": "Burger maison"
+      "description": null,
+      "categorie": "plat",
+      "prix_ttc": 16.0
+    }
+  ]
+}
