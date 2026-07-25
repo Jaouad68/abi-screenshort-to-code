@@ -279,6 +279,10 @@ input:focus, select:focus, button:focus-visible {
 
 /* ---------- Impression / export PDF ---------- */
 @media print {
+  /* Sans ceci, la plupart des navigateurs impriment sans les couleurs de
+     fond (en-tête, jauge de confiance…) : le texte blanc de l'en-tête
+     devient alors invisible sur la page. */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
   body { background: #fff; }
   .no-print { display: none !important; }
   .layout { display: block; }
