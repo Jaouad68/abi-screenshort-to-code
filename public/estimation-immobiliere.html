@@ -106,6 +106,7 @@ legend {
   margin-bottom: 10px;
   padding: 0;
 }
+.note-fieldset { font-size: 0.82rem; color: var(--gris-texte-2); margin: -4px 0 12px; }
 .champ { margin-bottom: 14px; }
 .champ label { display: block; font-size: 0.87rem; color: var(--gris-texte-2); margin-bottom: 5px; font-weight: 600; }
 .ligne-champs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -220,6 +221,15 @@ input:focus, select:focus, button:focus-visible {
 .metric-card h3 { margin: 0 0 8px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: .4px; color: var(--gris-texte-2); }
 .metric-card .gros { font-size: 1.35rem; font-weight: 700; color: var(--bleu-nuit); }
 .metric-card .sous { font-size: 0.82rem; color: var(--gris-texte-2); margin-top: 4px; }
+
+/* comparaison avec le prix d'achat */
+.carte-achat { margin-bottom: 22px; }
+.achat-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin-top: 10px; }
+@media (min-width: 640px) { .achat-grille { grid-template-columns: repeat(4, 1fr); } }
+.achat-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: .3px; color: var(--gris-texte-2); }
+.achat-valeur { font-size: 1.15rem; font-weight: 700; color: var(--bleu-nuit); margin-top: 2px; }
+.achat-valeur.positif { color: var(--vert); }
+.achat-valeur.negatif { color: var(--rouge); }
 
 /* jauge de confiance */
 .jauge-track { background: #e6e9f2; border-radius: 999px; height: 16px; overflow: hidden; margin-top: 6px; }
@@ -399,6 +409,22 @@ input:focus, select:focus, button:focus-visible {
           </div>
         </fieldset>
 
+        <fieldset>
+          <legend>Historique d'achat (optionnel)</legend>
+          <p class="note-fieldset">Renseignez ces deux champs pour comparer le prix payé à l'achat avec l'estimation actuelle du bien.</p>
+          <div class="ligne-champs">
+            <div class="champ">
+              <label for="prix-achat">Prix d'achat initial (€)</label>
+              <input type="number" id="prix-achat" name="prixAchat" min="1000" step="1000" placeholder="Ex. 480000">
+            </div>
+            <div class="champ">
+              <label for="annee-achat">Année d'achat</label>
+              <input type="number" id="annee-achat" name="anneeAchat" min="1950" max="2026" step="1" placeholder="Ex. 2016">
+              <p class="erreur-champ" id="erreur-annee-achat">Indiquez une année entre 1950 et aujourd'hui.</p>
+            </div>
+          </div>
+        </fieldset>
+
         <button type="submit" class="btn-primary" id="btn-estimer">Estimer ce bien</button>
       </form>
     </section>
@@ -450,6 +476,28 @@ input:focus, select:focus, button:focus-visible {
           <div class="gros jauge-pct"><span id="confiance-pct">—</span>%</div>
           <div class="jauge-track"><div class="jauge-fill" id="jauge-fill"></div></div>
           <div class="sous" id="confiance-detail"></div>
+        </div>
+      </div>
+
+      <div class="metric-card carte-achat" id="carte-achat" hidden>
+        <h3>Comparaison avec le prix d'achat</h3>
+        <div class="achat-grille">
+          <div>
+            <div class="achat-label">Acheté en <span id="achat-annee"></span></div>
+            <div class="achat-valeur" id="achat-prix">—</div>
+          </div>
+          <div>
+            <div class="achat-label">Estimation actuelle</div>
+            <div class="achat-valeur" id="achat-estimation-actuelle">—</div>
+          </div>
+          <div>
+            <div class="achat-label">Plus-value</div>
+            <div class="achat-valeur" id="achat-plusvalue">—</div>
+          </div>
+          <div>
+            <div class="achat-label">Évolution annuelle moyenne</div>
+            <div class="achat-valeur" id="achat-taux">—</div>
+          </div>
         </div>
       </div>
 
@@ -844,6 +892,7 @@ input:focus, select:focus, button:focus-visible {
   $("pieces").addEventListener("input", function () { $("pieces").dataset.modifieManuel = "1"; });
 
   remplirSousTypes("appartement");
+  $("annee-achat").max = new Date().getFullYear();
 
   /* ------------------------------------------------------------------ *
    * 7. RÉCUPÉRATION DES VENTES DVF À PROXIMITÉ
@@ -980,7 +1029,9 @@ input:focus, select:focus, button:focus-visible {
       ascenseur: $("crit-ascenseur").checked,
       parking: $("crit-parking").checked,
       cave: $("crit-cave").checked,
-      terrasse: $("crit-terrasse").checked
+      terrasse: $("crit-terrasse").checked,
+      prixAchat: Number($("prix-achat").value) || null,
+      anneeAchat: Number($("annee-achat").value) || null
     };
   }
 
@@ -996,6 +1047,14 @@ input:focus, select:focus, button:focus-visible {
       ok = false;
     } else {
       erreurSurface.style.display = "none";
+    }
+    var erreurAnneeAchat = $("erreur-annee-achat");
+    var anneeCourante = new Date().getFullYear();
+    if (donnees.anneeAchat && (donnees.anneeAchat < 1950 || donnees.anneeAchat > anneeCourante)) {
+      erreurAnneeAchat.style.display = "block";
+      ok = false;
+    } else {
+      erreurAnneeAchat.style.display = "none";
     }
     return ok;
   }
@@ -1087,7 +1146,39 @@ input:focus, select:focus, button:focus-visible {
       : "Basée sur une moyenne de secteur (" + (resultat.niveau === "ville" ? "commune" : resultat.niveau === "departement" ? "département" : "nationale") + ") — DVF indisponible à proximité";
 
     afficherComparables(resultat, donnees);
-    afficherRecapImpression(donnees, etat.adresseSelectionnee);
+    afficherComparaisonAchat(donnees, estimation);
+    afficherRecapImpression(donnees, etat.adresseSelectionnee, estimation);
+  }
+
+  function afficherComparaisonAchat(donnees, estimation) {
+    var carte = $("carte-achat");
+    if (!donnees.prixAchat || !donnees.anneeAchat) {
+      carte.hidden = true;
+      return;
+    }
+    var anneeCourante = new Date().getFullYear();
+    var nbAnnees = anneeCourante - donnees.anneeAchat;
+    var plusValue = estimation - donnees.prixAchat;
+    var plusValuePct = (plusValue / donnees.prixAchat) * 100;
+    var tauxAnnuel = nbAnnees > 0 ? (Math.pow(estimation / donnees.prixAchat, 1 / nbAnnees) - 1) * 100 : null;
+    var classePlusValue = plusValue >= 0 ? "positif" : "negatif";
+    var signe = plusValue >= 0 ? "+" : "";
+
+    $("achat-annee").textContent = donnees.anneeAchat;
+    $("achat-prix").textContent = formatEuro(donnees.prixAchat);
+    $("achat-estimation-actuelle").textContent = formatEuro(estimation);
+    var elPlusValue = $("achat-plusvalue");
+    elPlusValue.textContent = signe + formatEuro(plusValue) + " (" + signe + plusValuePct.toFixed(1) + "%)";
+    elPlusValue.className = "achat-valeur " + classePlusValue;
+    var elTaux = $("achat-taux");
+    if (tauxAnnuel !== null) {
+      elTaux.textContent = (tauxAnnuel >= 0 ? "+" : "") + tauxAnnuel.toFixed(1) + "%/an";
+      elTaux.className = "achat-valeur " + (tauxAnnuel >= 0 ? "positif" : "negatif");
+    } else {
+      elTaux.textContent = "—";
+      elTaux.className = "achat-valeur";
+    }
+    carte.hidden = false;
   }
 
   function positionnerReperes(ecartPct) {
@@ -1122,15 +1213,23 @@ input:focus, select:focus, button:focus-visible {
     });
   }
 
-  function afficherRecapImpression(donnees, adresse) {
+  function afficherRecapImpression(donnees, adresse, estimation) {
     var dl = $("recap-bien");
     var sousTypeLabel = $("sous-type").selectedOptions[0] ? $("sous-type").selectedOptions[0].textContent : "";
+    var lignesAchat = "";
+    if (donnees.prixAchat && donnees.anneeAchat) {
+      var plusValue = estimation - donnees.prixAchat;
+      lignesAchat =
+        "<dt>Prix d'achat</dt><dd>" + formatEuro(donnees.prixAchat) + " (" + donnees.anneeAchat + ")</dd>" +
+        "<dt>Plus-value</dt><dd>" + (plusValue >= 0 ? "+" : "") + formatEuro(plusValue) + "</dd>";
+    }
     dl.innerHTML =
       "<dt>Adresse</dt><dd>" + (adresse ? adresse.label : "—") + "</dd>" +
       "<dt>Type</dt><dd>" + sousTypeLabel + " · " + (donnees.statut === "vefa" ? "VEFA (neuf)" : "Ancien") + "</dd>" +
       "<dt>Surface</dt><dd>" + donnees.surface + " m²</dd>" +
       "<dt>Pièces</dt><dd>" + (donnees.pieces || "—") + "</dd>" +
       "<dt>État</dt><dd>" + ({ a_renover: "À rénover", bon_etat: "Bon état", refait_a_neuf: "Refait à neuf" }[donnees.etatBien]) + "</dd>" +
+      lignesAchat +
       "<dt>Date du rapport</dt><dd>" + new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date()) + "</dd>";
   }
 
@@ -1156,6 +1255,7 @@ input:focus, select:focus, button:focus-visible {
     statutAdresse.className = "adresse-statut";
     $("rapport").hidden = true;
     $("note-exemple").style.display = "none";
+    $("carte-achat").hidden = true;
     delete $("pieces").dataset.modifieManuel;
     // Les boutons segmentés (type de bien, statut, état) ne sont pas des
     // contrôles natifs : on les remet explicitement sur leurs valeurs par défaut.
@@ -1190,6 +1290,8 @@ input:focus, select:focus, button:focus-visible {
     $("annee").value = 1935;
     $("crit-ascenseur").checked = false;
     $("crit-cave").checked = true;
+    $("prix-achat").value = 480000;
+    $("annee-achat").value = 2016;
 
     majCarte();
     $("form-estimation").requestSubmit ? $("form-estimation").requestSubmit() : lancerEstimation({ preventDefault: function () {} });
