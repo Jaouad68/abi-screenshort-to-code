@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estim'Immo France — Estimation immobilière DVF</title>
 <meta name="description" content="Estimation immobilière gratuite pour la France métropolitaine, basée sur les données DVF (Demandes de Valeurs Foncières) et l'API Adresse.">
+<link rel="icon" href="data:,">
+<!-- Défense en profondeur : même en cas de faille XSS non anticipée, ces
+     règles limitent où le navigateur peut envoyer des données ou charger du
+     contenu. 'unsafe-inline' est nécessaire ici car ce fichier est
+     volontairement autonome (CSS/JS inline, sans étape de build). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api-adresse.data.gouv.fr https://api.cquest.org; frame-src https://www.openstreetmap.org; base-uri 'none'; form-action 'self'; object-src 'none';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 
 <style>
 /* ==========================================================================
@@ -30,6 +37,14 @@
 }
 
 * { box-sizing: border-box; }
+/* Sans ce garde-fou, une règle de classe qui déclare `display` (ex.
+   `.ligne-champs { display: grid }`) l'emporte sur la règle par défaut du
+   navigateur pour l'attribut hidden, qui ne le cache plus du tout. */
+[hidden] { display: none !important; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 html, body { margin: 0; padding: 0; }
 body {
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -199,6 +214,16 @@ input:focus, select:focus, button:focus-visible {
 
 /* ---------- Carte ---------- */
 .map-panel iframe { width: 100%; height: 260px; border: 1px solid var(--gris-bordure); border-radius: 8px; }
+
+/* ---------- Méthodologie ---------- */
+.methodo-panel { margin-top: 20px; }
+.methodo-panel summary {
+  cursor: pointer; font-weight: 700; color: var(--bleu-nuit); font-size: 1.02rem; outline-offset: 2px;
+}
+.methodo-panel summary::marker { color: var(--or); }
+.methodo-panel ol { margin: 14px 0 10px; padding-left: 20px; }
+.methodo-panel li { margin-bottom: 10px; font-size: 0.9rem; color: #1b2438; }
+.methodo-panel li strong { color: var(--bleu-nuit-3); }
 .recap-adresse { margin-top: 12px; font-size: 0.88rem; color: var(--gris-texte-2); }
 .recap-adresse strong { color: var(--bleu-nuit); display: block; font-size: 0.95rem; margin-bottom: 2px; }
 
@@ -279,6 +304,10 @@ input:focus, select:focus, button:focus-visible {
 @keyframes tourner { to { transform: rotate(360deg); } }
 
 .site-footer { text-align: center; color: var(--gris-texte-2); font-size: 0.78rem; margin-top: 30px; }
+.mentions-legales { margin: 14px auto 0; max-width: 640px; text-align: left; }
+.mentions-legales summary { cursor: pointer; text-align: center; color: var(--bleu-nuit-3); }
+.mentions-legales div { margin-top: 10px; }
+.mentions-legales p { margin: 0 0 8px; }
 
 .exemple-note {
   background: #eef2fb; border: 1px solid #c7d3ee; color: var(--bleu-nuit-3);
@@ -309,7 +338,7 @@ input:focus, select:focus, button:focus-visible {
 
   <header class="site-header">
     <div class="brand"><span class="diamant">&#9670;</span> Estim'Immo <em>France</em></div>
-    <p class="tagline">Estimation immobilière pour la France métropolitaine — appuyée sur les données DVF (2022–2024)</p>
+    <p class="tagline">Estimation immobilière pour la France métropolitaine — appuyée sur les ventes réelles récentes (DVF, <span id="periode-dvf">données les plus récentes disponibles</span>)</p>
     <span class="badge-source">Appartements &amp; maisons · Ancien &amp; VEFA</span>
   </header>
 
@@ -320,7 +349,7 @@ input:focus, select:focus, button:focus-visible {
       <h2>Décrivez le bien à estimer</h2>
 
       <div class="exemple-note" id="note-exemple">
-        <span>Exemple pré-rempli : appartement T3 de 65&nbsp;m² dans le 11<sup>e</sup> arrondissement de Paris.</span>
+        <span>Exemple pré-rempli : appartement T3 de 65&nbsp;m² dans le 11<sup>e</sup> arrondissement de Paris. Cliquez sur « Estimer ce bien » pour voir le résultat.</span>
         <button type="button" id="btn-vider">Vider le formulaire</button>
       </div>
 
@@ -337,27 +366,28 @@ input:focus, select:focus, button:focus-visible {
             <label for="sous-type">Sous-type</label>
             <select id="sous-type" name="sousType"></select>
           </div>
+        </fieldset>
 
-          <div class="champ">
-            <label>Statut du bien</label>
-            <div class="segmented" id="groupe-statut" role="group" aria-label="Statut du bien">
-              <button type="button" data-statut="ancien" aria-pressed="true">Ancien</button>
-              <button type="button" data-statut="vefa" aria-pressed="false">VEFA (neuf)</button>
-            </div>
+        <fieldset>
+          <legend>Statut du bien</legend>
+          <div class="segmented" id="groupe-statut" role="group" aria-label="Statut du bien">
+            <button type="button" data-statut="ancien" aria-pressed="true">Ancien</button>
+            <button type="button" data-statut="vefa" aria-pressed="false">VEFA (neuf)</button>
           </div>
+          <p class="note-fieldset" id="note-vefa" hidden>En VEFA, une prime neuf est ajoutée au prix de secteur (voir « Comment cette estimation est calculée » ci-dessous) — les ventes comparables DVF affichées restent des ventes dans l'ancien, faute de données suffisantes sur le neuf.</p>
         </fieldset>
 
         <fieldset>
           <legend>Localisation</legend>
           <div class="champ adresse-wrap">
-            <label for="adresse">Adresse complète</label>
-            <input type="text" id="adresse" name="adresse" autocomplete="off" placeholder="Ex. 12 rue de la Roquette, Paris" aria-autocomplete="list" aria-expanded="false" role="combobox">
-            <ul class="adresse-suggestions" id="adresse-suggestions" hidden></ul>
+            <label for="adresse">Adresse complète <span aria-hidden="true">*</span><span class="sr-only"> (obligatoire)</span></label>
+            <input type="text" id="adresse" name="adresse" autocomplete="off" placeholder="Ex. 12 rue de la Roquette, Paris" aria-autocomplete="list" aria-expanded="false" aria-controls="adresse-suggestions" role="combobox" aria-required="true" aria-describedby="erreur-adresse">
+            <ul class="adresse-suggestions" id="adresse-suggestions" role="listbox" hidden></ul>
             <div class="adresse-actions">
               <button type="button" class="lien-geoloc" id="btn-geoloc">&#128205; Me géolocaliser</button>
             </div>
-            <p class="adresse-statut" id="adresse-statut"></p>
-            <p class="erreur-champ" id="erreur-adresse">Veuillez sélectionner une adresse dans la liste proposée.</p>
+            <p class="adresse-statut" id="adresse-statut" aria-live="polite"></p>
+            <p class="erreur-champ" id="erreur-adresse" role="alert">Veuillez sélectionner une adresse dans la liste proposée.</p>
           </div>
         </fieldset>
 
@@ -366,27 +396,21 @@ input:focus, select:focus, button:focus-visible {
           <div class="ligne-champs">
             <div class="champ">
               <label for="surface">Surface habitable (m²)</label>
-              <input type="number" id="surface" name="surface" min="8" max="1000" step="1" required>
-              <p class="erreur-champ" id="erreur-surface">Indiquez une surface entre 8 et 1000 m².</p>
+              <input type="number" id="surface" name="surface" min="8" max="1000" step="1" required aria-describedby="erreur-surface">
+              <p class="erreur-champ" id="erreur-surface" role="alert">Indiquez une surface entre 8 et 1000 m².</p>
             </div>
             <div class="champ">
               <label for="pieces">Nombre de pièces</label>
               <input type="number" id="pieces" name="pieces" min="1" max="15" step="1">
             </div>
           </div>
-          <div class="ligne-champs" id="ligne-etage">
-            <div class="champ">
-              <label for="etage">Étage (0 = rez-de-chaussée)</label>
-              <input type="number" id="etage" name="etage" min="0" max="40" step="1">
-            </div>
-            <div class="champ">
-              <label for="annee">Année de construction (approx.)</label>
-              <input type="number" id="annee" name="annee" min="1700" max="2026" step="1" placeholder="Optionnel">
-            </div>
+          <div class="champ" id="champ-etage">
+            <label for="etage">Étage (0 = rez-de-chaussée)</label>
+            <input type="number" id="etage" name="etage" min="0" max="40" step="1">
           </div>
-          <div class="champ" id="ligne-annee-seule" hidden>
-            <label for="annee-maison">Année de construction (approx.)</label>
-            <input type="number" id="annee-maison" min="1700" max="2026" step="1" placeholder="Optionnel">
+          <div class="champ" id="champ-annee">
+            <label for="annee">Année de construction (approx.)</label>
+            <input type="number" id="annee" name="annee" min="1700" max="2026" step="1" placeholder="Optionnel">
           </div>
 
           <div class="champ">
@@ -415,12 +439,13 @@ input:focus, select:focus, button:focus-visible {
           <div class="ligne-champs">
             <div class="champ">
               <label for="prix-achat">Prix d'achat initial (€)</label>
-              <input type="number" id="prix-achat" name="prixAchat" min="1000" step="1000" placeholder="Ex. 480000">
+              <input type="text" inputmode="numeric" id="prix-achat" name="prixAchat" placeholder="Ex. 480 000" aria-describedby="erreur-prix-achat">
+              <p class="erreur-champ" id="erreur-prix-achat" role="alert">Indiquez un prix d'achat positif.</p>
             </div>
             <div class="champ">
               <label for="annee-achat">Année d'achat</label>
-              <input type="number" id="annee-achat" name="anneeAchat" min="1950" max="2026" step="1" placeholder="Ex. 2016">
-              <p class="erreur-champ" id="erreur-annee-achat">Indiquez une année entre 1950 et aujourd'hui.</p>
+              <input type="number" id="annee-achat" name="anneeAchat" min="1950" max="2026" step="1" placeholder="Ex. 2016" aria-describedby="erreur-annee-achat">
+              <p class="erreur-champ" id="erreur-annee-achat" role="alert">Indiquez une année entre 1950 et aujourd'hui.</p>
             </div>
           </div>
         </fieldset>
@@ -437,6 +462,21 @@ input:focus, select:focus, button:focus-visible {
     </aside>
 
   </main>
+
+  <!-- ============================= MÉTHODOLOGIE ============================= -->
+  <section class="panel methodo-panel no-print">
+    <details id="methodologie">
+      <summary>Comment cette estimation est-elle calculée ?</summary>
+      <ol>
+        <li><strong>Prix de secteur.</strong> L'adresse est géolocalisée (API Adresse), puis les ventes réelles à proximité (500 m, étendu à 1&nbsp;km puis 2&nbsp;km si besoin) sont récupérées via l'API DVF. Le prix de secteur retenu est la <strong>médiane</strong> du prix au m² de ces ventes. Si aucune vente exploitable n'est trouvée, une moyenne de secteur (commune puis, à défaut, département) est utilisée à la place — l'indice de confiance en tient compte.</li>
+        <li><strong>Ajustements.</strong> Ce prix de secteur est ensuite pondéré selon les caractéristiques propres au bien : ancienneté, surface (effet taille), état général, étage/ascenseur, et confort (parking, cave, terrasse/balcon).</li>
+        <li><strong>Prime neuf (VEFA).</strong> Pour un bien vendu en VEFA, une prime de +15 à +25&nbsp;% est ajoutée (le taux dépend du niveau de prix du secteur : plus il est élevé, plus la prime relative est faible).</li>
+        <li><strong>Fourchette.</strong> La valeur estimée est encadrée par une fourchette basse/haute dont la largeur diminue quand l'indice de confiance augmente (environ ±10&nbsp;% en haute confiance, jusqu'à ±24&nbsp;% en confiance faible).</li>
+        <li><strong>Indice de confiance.</strong> Il dépend de la source du prix de secteur (ventes DVF réelles ou moyenne), du nombre de ventes trouvées à proximité, et de leur dispersion (des prix très hétérogènes autour de l'adresse réduisent la confiance).</li>
+      </ol>
+      <p class="note-fieldset">Cet outil est purement indicatif : il ne remplace ni l'avis d'un professionnel de l'immobilier, ni une visite du bien, ni une expertise notariale.</p>
+    </details>
+  </section>
 
   <!-- ============================= RÉSULTATS ============================= -->
   <section class="panel resultats-panel" id="rapport" hidden>
@@ -475,7 +515,7 @@ input:focus, select:focus, button:focus-visible {
           <h3>Indice de confiance de l'estimation</h3>
           <div class="gros jauge-pct"><span id="confiance-pct">—</span>%</div>
           <div class="jauge-track"><div class="jauge-fill" id="jauge-fill"></div></div>
-          <div class="sous" id="confiance-detail"></div>
+          <div class="sous" id="confiance-detail" aria-live="polite"></div>
         </div>
       </div>
 
@@ -501,7 +541,7 @@ input:focus, select:focus, button:focus-visible {
         </div>
       </div>
 
-      <h3 class="section-titre">Biens similaires vendus récemment (DVF)</h3>
+      <h3 class="section-titre" id="titre-comparables">Biens similaires vendus récemment (DVF)</h3>
       <div id="zone-comparables"></div>
 
       <p class="disclaimer">
@@ -519,9 +559,21 @@ input:focus, select:focus, button:focus-visible {
   </section>
 
   <footer class="site-footer no-print">
-    Données&nbsp;: API Adresse (api-adresse.data.gouv.fr) et API DVF (api.cquest.org, à partir des
-    fichiers DVF open data de la DGFiP). Application 100&nbsp;% front-end, aucune donnée n'est envoyée
-    à un serveur autre que ces API publiques.
+    <p>
+      Données&nbsp;: API Adresse (api-adresse.data.gouv.fr) et API DVF (api.cquest.org, à partir des
+      fichiers DVF open data de la DGFiP). Application 100&nbsp;% front-end, aucune donnée n'est envoyée
+      à un serveur autre que ces API publiques.
+    </p>
+    <details class="mentions-legales">
+      <summary>Mentions légales &amp; confidentialité</summary>
+      <div>
+        <p><strong>Éditeur</strong> — Jaouad Khamlach, en nom propre (immatriculation en cours), Argenteuil (95100), France. Contact&nbsp;: jaouad.khamlach.job@gmail.com.</p>
+        <p><strong>Hébergement</strong> — Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis.</p>
+        <p><strong>Confidentialité</strong> — Cette page ne dispose d'aucun serveur applicatif ni base de données&nbsp;: aucune donnée saisie (adresse, prix, caractéristiques du bien) n'est collectée, stockée ou transmise à l'éditeur. Les seules requêtes réseau effectuées sont des appels directs, depuis votre navigateur, vers l'API Adresse et l'API DVF (deux API publiques de l'État français) ainsi que, pour l'affichage de la carte, vers OpenStreetMap. Aucun cookie ni traceur n'est déposé par cette page.</p>
+        <p><strong>Propriété intellectuelle</strong> — Le contenu de cette page (textes, mise en forme) est protégé par le droit d'auteur ; toute reproduction non autorisée est interdite.</p>
+        <p><strong>Droit applicable</strong> — Droit français ; tribunaux français seuls compétents en cas de litige.</p>
+      </div>
+    </details>
   </footer>
 
 </div>
@@ -548,8 +600,8 @@ input:focus, select:focus, button:focus-visible {
    * ------------------------------------------------------------------ */
 
   // Prix moyen €/m² (appartement ancien) par code INSEE, pour les grandes
-  // villes et arrondissements. Valeurs indicatives 2023-2024, ordre de
-  // grandeur — utilisées uniquement si l'API DVF ne répond pas.
+  // villes et arrondissements. Valeurs indicatives (ordre de grandeur),
+  // utilisées uniquement si l'API DVF ne répond pas ou pas assez.
   var PRIX_M2_VILLES = {};
   (function batirParis() {
     var prix = [12800, 11200, 12200, 12900, 11800, 14500, 13800, 11500, 10800, 9700,
@@ -655,6 +707,15 @@ input:focus, select:focus, button:focus-visible {
   function formatNombre(valeur) {
     return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(valeur);
   }
+  // Reformate un champ montant en direct (espaces milliers) pendant la saisie.
+  function formaterChampMontant(input) {
+    var brut = input.value.replace(/\D/g, "");
+    input.value = brut ? Number(brut).toLocaleString("fr-FR") : "";
+  }
+  function valeurChampMontant(input) {
+    var brut = input.value.replace(/\s/g, "");
+    return brut === "" ? null : Number(brut);
+  }
   function formatDate(iso) {
     if (!iso) return "date inconnue";
     var d = new Date(iso);
@@ -676,6 +737,14 @@ input:focus, select:focus, button:focus-visible {
     return Math.sqrt(variance) / m;
   }
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  // Les libellés d'adresse/commune viennent d'API externes : on les échappe
+  // avant toute insertion via innerHTML pour éviter tout risque d'injection.
+  function echapperHtml(s) {
+    var div = document.createElement("div");
+    div.textContent = String(s == null ? "" : s);
+    return div.innerHTML;
+  }
 
   /* ------------------------------------------------------------------ *
    * 3. ÉTAT DE L'APPLICATION
@@ -720,7 +789,8 @@ input:focus, select:focus, button:focus-visible {
   }
 
   var lancerRecherche = debounce(function (q) {
-    if (!q || q.trim().length < 3) { fermerSuggestions(); return; }
+    q = (q || "").trim();
+    if (q.length < 3) { fermerSuggestions(); return; }
     rechercherAdresse(q).then(function (features) {
       suggestionsCourantes = features;
       afficherSuggestions(features);
@@ -746,7 +816,9 @@ input:focus, select:focus, button:focus-visible {
     features.forEach(function (f, i) {
       var li = document.createElement("li");
       li.textContent = f.properties.label;
+      li.id = "suggestion-opt-" + i;
       li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
       li.dataset.index = i;
       li.addEventListener("click", function () { choisirAdresse(f); });
       listeSuggestions.appendChild(li);
@@ -759,6 +831,7 @@ input:focus, select:focus, button:focus-visible {
     listeSuggestions.hidden = true;
     listeSuggestions.innerHTML = "";
     champAdresse.setAttribute("aria-expanded", "false");
+    champAdresse.removeAttribute("aria-activedescendant");
   }
 
   function choisirAdresse(feature) {
@@ -776,7 +849,7 @@ input:focus, select:focus, button:focus-visible {
     fermerSuggestions();
     statutAdresse.textContent = "Adresse localisée : " + p.city + " (" + p.postcode + ")";
     statutAdresse.className = "adresse-statut ok";
-    $("erreur-adresse").style.display = "none";
+    definirErreurChamp(champAdresse, $("erreur-adresse"), false);
     majCarte();
   }
 
@@ -794,17 +867,25 @@ input:focus, select:focus, button:focus-visible {
     if (!items.length) return;
     if (e.key === "ArrowDown") { e.preventDefault(); indexActif = clamp(indexActif + 1, 0, items.length - 1); }
     else if (e.key === "ArrowUp") { e.preventDefault(); indexActif = clamp(indexActif - 1, 0, items.length - 1); }
-    else if (e.key === "Enter" && indexActif >= 0) { e.preventDefault(); choisirAdresse(suggestionsCourantes[indexActif]); return; }
+    else if (e.key === "Enter") {
+      // Liste ouverte : Entrée valide la suggestion surlignée, ou la première
+      // par défaut, plutôt que de soumettre le formulaire prématurément.
+      e.preventDefault();
+      choisirAdresse(suggestionsCourantes[indexActif >= 0 ? indexActif : 0]);
+      return;
+    }
     else if (e.key === "Escape") { fermerSuggestions(); return; }
     else return;
-    items.forEach(function (li, i) { li.classList.toggle("actif", i === indexActif); });
+    items.forEach(function (li, i) { li.classList.toggle("actif", i === indexActif); li.setAttribute("aria-selected", i === indexActif ? "true" : "false"); });
+    if (indexActif >= 0) champAdresse.setAttribute("aria-activedescendant", items[indexActif].id);
   });
 
   document.addEventListener("click", function (e) {
     if (!champAdresse.parentElement.contains(e.target)) fermerSuggestions();
   });
 
-  $("btn-geoloc").addEventListener("click", function () {
+  var btnGeoloc = $("btn-geoloc");
+  btnGeoloc.addEventListener("click", function () {
     if (!navigator.geolocation) {
       statutAdresse.textContent = "La géolocalisation n'est pas disponible sur cet appareil.";
       statutAdresse.className = "adresse-statut erreur";
@@ -812,10 +893,14 @@ input:focus, select:focus, button:focus-visible {
     }
     statutAdresse.textContent = "Localisation en cours…";
     statutAdresse.className = "adresse-statut";
+    btnGeoloc.disabled = true;
+
+    function terminer() { btnGeoloc.disabled = false; }
+
     navigator.geolocation.getCurrentPosition(function (pos) {
       var lat = pos.coords.latitude, lon = pos.coords.longitude;
       fetch(API_ADRESSE + "/reverse/?lon=" + lon + "&lat=" + lat + "&limit=1")
-        .then(function (r) { return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
         .then(function (data) {
           if (data.features && data.features.length) {
             choisirAdresse(data.features[0]);
@@ -825,13 +910,17 @@ input:focus, select:focus, button:focus-visible {
           }
         })
         .catch(function () {
-          statutAdresse.textContent = "Impossible de contacter l'API Adresse.";
+          statutAdresse.textContent = "Impossible de contacter l'API Adresse. Réessayez, ou saisissez l'adresse manuellement.";
           statutAdresse.className = "adresse-statut erreur";
-        });
-    }, function () {
-      statutAdresse.textContent = "Géolocalisation refusée ou indisponible.";
+        })
+        .finally(terminer);
+    }, function (err) {
+      statutAdresse.textContent = err && err.code === 1
+        ? "Géolocalisation refusée. Autorisez-la dans les réglages du navigateur, ou saisissez l'adresse manuellement."
+        : "Position indisponible pour le moment. Saisissez l'adresse manuellement.";
       statutAdresse.className = "adresse-statut erreur";
-    });
+      terminer();
+    }, { timeout: 10000, maximumAge: 60000 });
   });
 
   /* ------------------------------------------------------------------ *
@@ -846,7 +935,7 @@ input:focus, select:focus, button:focus-visible {
     var delta = 0.006;
     var bbox = [a.lon - delta, a.lat - delta * 0.7, a.lon + delta, a.lat + delta * 0.7].join(",");
     carte.src = "https://www.openstreetmap.org/export/embed.html?bbox=" + bbox + "&layer=mapnik&marker=" + a.lat + "," + a.lon;
-    recap.innerHTML = "<strong>" + a.label + "</strong>Code INSEE " + (a.citycode || "—") + " · " + (a.postcode || "—");
+    recap.innerHTML = "<strong>" + echapperHtml(a.label) + "</strong>Code INSEE " + echapperHtml(a.citycode || "—") + " · " + echapperHtml(a.postcode || "—");
   }
 
   /* ------------------------------------------------------------------ *
@@ -865,14 +954,25 @@ input:focus, select:focus, button:focus-visible {
     });
   }
 
+  // Un seul champ "année de construction", partagé entre appartement et
+  // maison (il n'y a aucune raison d'avoir deux champs distincts pour la
+  // même information). Il est masqué uniquement en VEFA, où l'année de
+  // construction n'entre pas dans le calcul (prime neuf appliquée à la place).
+  function majVisibiliteAnnee() {
+    var estVefa = etat.statut === "vefa";
+    $("champ-annee").hidden = estVefa;
+    $("note-vefa").hidden = !estVefa;
+  }
+
   initSegmented("groupe-type-bien", "typeBien", function (valeur) {
     remplirSousTypes(valeur);
     var estAppart = valeur === "appartement";
-    $("ligne-etage").hidden = !estAppart;
-    $("ligne-annee-seule").hidden = estAppart;
+    $("champ-etage").hidden = !estAppart;
     $("crit-ascenseur").closest("label").style.display = estAppart ? "" : "none";
   });
-  initSegmented("groupe-statut", "statut");
+  initSegmented("groupe-statut", "statut", function () {
+    majVisibiliteAnnee();
+  });
   initSegmented("groupe-etat", "etat");
 
   function remplirSousTypes(typeBien) {
@@ -890,8 +990,18 @@ input:focus, select:focus, button:focus-visible {
     if (opt && !$("pieces").dataset.modifieManuel) $("pieces").value = opt.dataset.pieces;
   });
   $("pieces").addEventListener("input", function () { $("pieces").dataset.modifieManuel = "1"; });
+  $("prix-achat").addEventListener("input", function () { formaterChampMontant(this); });
 
   remplirSousTypes("appartement");
+  majVisibiliteAnnee();
+  // La période DVF affichée est calculée dynamiquement (jamais codée en dur)
+  // pour ne jamais devenir fausse au fil du temps. Les fichiers DVF publiés
+  // par la DGFiP ont environ un an de retard : on affiche donc une fenêtre
+  // glissante des 3 dernières années probablement disponibles.
+  (function () {
+    var anneeCourante = new Date().getFullYear();
+    $("periode-dvf").textContent = (anneeCourante - 3) + "–" + (anneeCourante - 1);
+  })();
   $("annee-achat").max = new Date().getFullYear();
 
   /* ------------------------------------------------------------------ *
@@ -1024,38 +1134,43 @@ input:focus, select:focus, button:focus-visible {
       surface: Number($("surface").value),
       pieces: Number($("pieces").value) || null,
       etage: typeBien === "appartement" ? $("etage").value : "",
-      annee: typeBien === "appartement" ? $("annee").value : $("annee-maison").value,
+      annee: $("annee").value,
       etatBien: etat.etat,
       ascenseur: $("crit-ascenseur").checked,
       parking: $("crit-parking").checked,
       cave: $("crit-cave").checked,
       terrasse: $("crit-terrasse").checked,
-      prixAchat: Number($("prix-achat").value) || null,
+      prixAchat: valeurChampMontant($("prix-achat")),
       anneeAchat: Number($("annee-achat").value) || null
     };
   }
 
+  // Affiche/masque un message d'erreur et synchronise aria-invalid sur le
+  // champ associé, pour que les lecteurs d'écran annoncent l'état invalide.
+  function definirErreurChamp(champInput, erreurEl, enErreur) {
+    erreurEl.style.display = enErreur ? "block" : "none";
+    if (champInput) champInput.setAttribute("aria-invalid", enErreur ? "true" : "false");
+  }
+
   function validerFormulaire(donnees) {
     var ok = true;
-    if (!etat.adresseSelectionnee) {
-      $("erreur-adresse").style.display = "block";
-      ok = false;
-    }
-    var erreurSurface = $("erreur-surface");
-    if (!donnees.surface || donnees.surface < 8 || donnees.surface > 1000) {
-      erreurSurface.style.display = "block";
-      ok = false;
-    } else {
-      erreurSurface.style.display = "none";
-    }
-    var erreurAnneeAchat = $("erreur-annee-achat");
+    var adresseInvalide = !etat.adresseSelectionnee;
+    definirErreurChamp(champAdresse, $("erreur-adresse"), adresseInvalide);
+    if (adresseInvalide) ok = false;
+
+    var surfaceInvalide = !donnees.surface || donnees.surface < 8 || donnees.surface > 1000;
+    definirErreurChamp($("surface"), $("erreur-surface"), surfaceInvalide);
+    if (surfaceInvalide) ok = false;
+
+    var prixAchatInvalide = donnees.prixAchat !== null && donnees.prixAchat <= 0;
+    definirErreurChamp($("prix-achat"), $("erreur-prix-achat"), prixAchatInvalide);
+    if (prixAchatInvalide) ok = false;
+
     var anneeCourante = new Date().getFullYear();
-    if (donnees.anneeAchat && (donnees.anneeAchat < 1950 || donnees.anneeAchat > anneeCourante)) {
-      erreurAnneeAchat.style.display = "block";
-      ok = false;
-    } else {
-      erreurAnneeAchat.style.display = "none";
-    }
+    var anneeAchatInvalide = !!donnees.anneeAchat && (donnees.anneeAchat < 1950 || donnees.anneeAchat > anneeCourante);
+    definirErreurChamp($("annee-achat"), $("erreur-annee-achat"), anneeAchatInvalide);
+    if (anneeAchatInvalide) ok = false;
+
     return ok;
   }
 
@@ -1188,6 +1303,13 @@ input:focus, select:focus, button:focus-visible {
   }
 
   function afficherComparables(resultat, donnees) {
+    // Le statut VEFA ne change pas la nature des ventes DVF affichées : les
+    // biens neufs sont trop rarement présents dans les données DVF, les
+    // comparables restent donc des ventes dans l'ancien. On le précise pour
+    // éviter toute confusion avec le bien estimé (qui, lui, est neuf).
+    $("titre-comparables").textContent = donnees.statut === "vefa"
+      ? "Ventes comparables dans l'ancien (référence de secteur, DVF)"
+      : "Biens similaires vendus récemment (DVF)";
     var zone = $("zone-comparables");
     if (resultat.source !== "dvf" || !resultat.mutations.length) {
       zone.innerHTML = '<p class="aucun-comparable">Aucune vente DVF exploitable n\'a été trouvée à proximité immédiate de cette adresse. '
@@ -1202,7 +1324,7 @@ input:focus, select:focus, button:focus-visible {
       carte.className = "comparable-card";
       carte.innerHTML =
         '<div class="prix">' + formatEuro(m.valeur) + '</div>' +
-        '<div class="adresse">' + (m.adresse || m.commune || "Adresse non précisée") + '</div>' +
+        '<div class="adresse">' + echapperHtml(m.adresse || m.commune || "Adresse non précisée") + '</div>' +
         '<dl>' +
         '<dt>Surface</dt><dd>' + formatNombre(m.surface) + ' m²</dd>' +
         '<dt>Prix/m²</dt><dd>' + formatNombre(m.prixM2) + ' €</dd>' +
@@ -1224,7 +1346,7 @@ input:focus, select:focus, button:focus-visible {
         "<dt>Plus-value</dt><dd>" + (plusValue >= 0 ? "+" : "") + formatEuro(plusValue) + "</dd>";
     }
     dl.innerHTML =
-      "<dt>Adresse</dt><dd>" + (adresse ? adresse.label : "—") + "</dd>" +
+      "<dt>Adresse</dt><dd>" + echapperHtml(adresse ? adresse.label : "—") + "</dd>" +
       "<dt>Type</dt><dd>" + sousTypeLabel + " · " + (donnees.statut === "vefa" ? "VEFA (neuf)" : "Ancien") + "</dd>" +
       "<dt>Surface</dt><dd>" + donnees.surface + " m²</dd>" +
       "<dt>Pièces</dt><dd>" + (donnees.pieces || "—") + "</dd>" +
@@ -1290,11 +1412,13 @@ input:focus, select:focus, button:focus-visible {
     $("annee").value = 1935;
     $("crit-ascenseur").checked = false;
     $("crit-cave").checked = true;
-    $("prix-achat").value = 480000;
+    $("prix-achat").value = (480000).toLocaleString("fr-FR");
     $("annee-achat").value = 2016;
 
     majCarte();
-    $("form-estimation").requestSubmit ? $("form-estimation").requestSubmit() : lancerEstimation({ preventDefault: function () {} });
+    // Le formulaire est pré-rempli mais volontairement PAS soumis
+    // automatiquement : rien (loader, résultat) ne doit apparaître avant une
+    // action explicite de l'utilisateur.
   }
 
   chargerExemple();
