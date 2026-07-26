@@ -330,6 +330,13 @@ input:focus, select:focus, button:focus-visible {
   .recap-bien { display: block; margin-bottom: 16px; font-size: 0.85rem; color: #333; }
   .recap-bien dl { display: grid; grid-template-columns: repeat(2, auto 1fr); gap: 4px 14px; margin: 6px 0 0; }
   .site-header { border-radius: 0; margin: 0 0 16px; }
+  /* Sans ceci, un saut de page peut couper une carte au milieu (ex. le
+     titre "Comparaison avec le prix d'achat" en bas d'une page, son
+     contenu en haut de la suivante) : le rapport a alors l'air incomplet. */
+  .metric-card, .carte-achat, .comparable-card, .estimation-hero, .aucun-comparable, .disclaimer {
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  h2, h3, .section-titre { break-after: avoid; page-break-after: avoid; }
 }
 </style>
 </head>
