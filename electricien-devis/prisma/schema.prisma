@@ -1,0 +1,146 @@
+// Schéma de base de données — Application de devis MELLADO Électricité
+// Base : PostgreSQL (Supabase). Client Prisma généré dans src/generated/prisma.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Compte de connexion (email + mot de passe). Un artisan = un compte.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  company     Company?
+  clients     Client[]
+  prestations Prestation[]
+  devis       Devis[]
+  compteurs   CompteurDevis[]
+}
+
+/// Paramètres de l'entreprise, imprimés dans l'en-tête du devis PDF.
+model Company {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nom             String   @default("")
+  adresse         String   @default("")
+  codePostal      String   @default("")
+  ville           String   @default("")
+  telephone       String   @default("")
+  email           String   @default("")
+  siret           String   @default("")
+  tvaIntra        String   @default("")
+  assurance       String   @default("")
+  iban            String   @default("")
+  prefixeDevis    String   @default("DEV")
+  tauxTvaDefaut   Int      @default(20)
+  dureeValidite   Int      @default(30)
+  mentionsLegales String   @default("")
+  updatedAt       DateTime @updatedAt
+}
+
+/// Fiche client.
+model Client {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nom        String
+  adresse    String   @default("")
+  codePostal String   @default("")
+  ville      String   @default("")
+  telephone  String   @default("")
+  email      String   @default("")
+  notes      String   @default("")
+  createdAt  DateTime @default(now())
+
+  devis Devis[]
+
+  @@index([userId])
+}
+
+/// Bibliothèque de prestations pré-enregistrées (prix catalogue HT).
+model Prestation {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  libelle           String
+  description       String   @default("")
+  unite             String   @default("u")
+  prixUnitaireCents Int      @default(0)
+  tauxTva           Int      @default(20)
+  actif             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum DevisStatut {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  FACTURE
+}
+
+/// Devis. Les totaux sont dénormalisés (en centimes) pour l'affichage rapide
+/// des listes et du tableau de bord ; ils sont recalculés à chaque sauvegarde.
+model Devis {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  numero        String
+  clientId      String
+  client        Client      @relation(fields: [clientId], references: [id])
+  statut        DevisStatut @default(BROUILLON)
+  dateDevis     DateTime    @default(now())
+  dureeValidite Int         @default(30)
+  objet         String      @default("")
+  notes         String      @default("")
+  conditions    String      @default("")
+  totalHtCents  Int         @default(0)
+  totalTvaCents Int         @default(0)
+  totalTtcCents Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  lignes DevisLigne[]
+
+  @@unique([userId, numero])
+  @@index([userId])
+  @@index([clientId])
+}
+
+/// Ligne de devis. quantiteMilli = quantité × 1000 (permet 1,5 ml, 0,5 h…)
+/// tout en gardant des calculs 100 % entiers, comme les montants en centimes.
+model DevisLigne {
+  id                String @id @default(cuid())
+  devisId           String
+  devis             Devis  @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  libelle           String
+  description       String @default("")
+  quantiteMilli     Int    @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int    @default(0)
+  tauxTva           Int    @default(20)
+  ordre             Int    @default(0)
+
+  @@index([devisId])
+}
+
+/// Compteur de numérotation, un par (utilisateur, année) → DEV-2026-001, -002…
+model CompteurDevis {
+  id            String @id @default(cuid())
+  userId        String
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  annee         Int
+  dernierNumero Int    @default(0)
+
+  @@unique([userId, annee])
+}
