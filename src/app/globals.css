@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #14211d;
+  --ink-2: #243430;
+  --sage: #527e6d;
+  --sage-d: #3a5e51;
+  --sage-l: #ebf1ee;
+  --sage-line: #c3d5cd;
+  --brass: #ab7a26;
+  --brass-l: #f5eacf;
+  --cream: #f4f0e7;
+  --paper: #fbf9f3;
+  --white: #ffffff;
+  --muted: #6c7772;
+  --line: #e5e2d6;
+  --danger: #b94a3d;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-sage: var(--sage);
+  --color-sage-d: var(--sage-d);
+  --color-sage-l: var(--sage-l);
+  --color-sage-line: var(--sage-line);
+  --color-brass: var(--brass);
+  --color-brass-l: var(--brass-l);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-white: var(--white);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-danger: var(--danger);
+
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+
+  --radius-card: 22px;
+  --radius-pill: 99px;
+  --radius-control: 13px;
+
+  --shadow-hero: 0 44px 90px -46px rgba(20, 33, 29, 0.44);
+  --shadow-proof: 0 40px 76px -48px rgba(20, 33, 29, 0.4);
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: var(--font-serif);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-glow {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-glow::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 140%;
+  z-index: -1;
+  background:
+    radial-gradient(38rem 22rem at 18% 0%, var(--sage-l) 0%, transparent 60%),
+    radial-gradient(30rem 20rem at 85% 15%, var(--brass-l) 0%, transparent 55%);
+}
+
+.brand-panel {
+  background:
+    radial-gradient(34rem 24rem at 15% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(28rem 22rem at 90% 90%, rgba(255, 255, 255, 0.06) 0%, transparent 55%),
+    linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 100%);
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-proof);
+}
+
+.glass-nav {
+  background: color-mix(in srgb, var(--cream) 82%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
