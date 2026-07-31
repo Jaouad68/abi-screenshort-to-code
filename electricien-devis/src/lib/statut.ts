@@ -1,4 +1,4 @@
-import type { DevisStatut } from "@/generated/prisma/client";
+import type { DevisStatut, FactureStatut } from "@/generated/prisma/client";
 
 /** Ordre logique du cycle de vie d'un devis. */
 export const STATUTS: DevisStatut[] = [
@@ -33,4 +33,16 @@ export const TRANSITIONS: Record<DevisStatut, DevisStatut[]> = {
   ACCEPTE: ["FACTURE", "REFUSE"],
   REFUSE: ["ENVOYE"],
   FACTURE: [],
+};
+
+export const FACTURE_STATUT_LABEL: Record<FactureStatut, string> = {
+  EMISE: "Émise",
+  PAYEE: "Payée",
+  ANNULEE: "Annulée",
+};
+
+export const FACTURE_STATUT_CLASSES: Record<FactureStatut, string> = {
+  EMISE: "bg-brand-l text-brand-d",
+  PAYEE: "bg-ok-l text-ok",
+  ANNULEE: "bg-line text-muted",
 };

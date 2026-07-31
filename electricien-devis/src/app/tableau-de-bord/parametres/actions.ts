@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth";
 
 const schema = z.object({
   nom: z.string().trim().min(1, "Le nom de l'entreprise est obligatoire."),
+  prefixeFacture: z.string().trim().min(1).max(10),
   adresse: z.string().trim(),
   codePostal: z.string().trim(),
   ville: z.string().trim(),
@@ -46,4 +47,35 @@ export async function enregistrerParametres(
   revalidatePath("/tableau-de-bord/parametres");
   revalidatePath("/tableau-de-bord");
   return { ok: true };
+}
+
+/** Enregistre le logo (data URL image) après contrôle du type et de la taille. */
+export async function mettreAJourLogo(dataUrl: string): Promise<{ error?: string }> {
+  const { company } = await requireUser();
+
+  if (!dataUrl.startsWith("data:image/")) {
+    return { error: "Format d'image non reconnu." };
+  }
+  // ~1,5 Mo de base64 ≈ ~1,1 Mo d'image : largement suffisant pour un logo.
+  if (dataUrl.length > 1_500_000) {
+    return { error: "Image trop lourde (max ~1 Mo). Réduisez sa taille." };
+  }
+
+  await prisma.company.update({
+    where: { id: company.id },
+    data: { logoDataUrl: dataUrl },
+  });
+  revalidatePath("/tableau-de-bord/parametres");
+  revalidatePath("/tableau-de-bord");
+  return {};
+}
+
+export async function retirerLogo() {
+  const { company } = await requireUser();
+  await prisma.company.update({
+    where: { id: company.id },
+    data: { logoDataUrl: "" },
+  });
+  revalidatePath("/tableau-de-bord/parametres");
+  revalidatePath("/tableau-de-bord");
 }

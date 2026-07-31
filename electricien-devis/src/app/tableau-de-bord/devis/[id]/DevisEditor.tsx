@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from "react";
 import { enregistrerDevis, type DevisPayload } from "../actions";
-import { calculerTotaux, TAUX_TVA, UNITES } from "@/lib/calcul";
+import { calculerTotaux, calculerAcompte, TAUX_TVA, UNITES } from "@/lib/calcul";
 import { formatCents, eurosToCents, quantiteToMilli } from "@/lib/money";
 import { champ, label, btnPrimaire, btnSecondaire } from "@/lib/ui";
 
@@ -29,6 +29,7 @@ export type DevisInitial = {
   objet: string;
   dateDevis: string; // yyyy-mm-dd
   dureeValidite: number;
+  acomptePct: number;
   notes: string;
   conditions: string;
   lignes: LigneUI[];
@@ -51,6 +52,7 @@ export function DevisEditor({
   const [objet, setObjet] = useState(initial.objet);
   const [dateDevis, setDateDevis] = useState(initial.dateDevis);
   const [dureeValidite, setDureeValidite] = useState(initial.dureeValidite);
+  const [acomptePct, setAcomptePct] = useState(initial.acomptePct);
   const [notes, setNotes] = useState(initial.notes);
   const [conditions, setConditions] = useState(initial.conditions);
   // Les lignes initiales portent déjà leur clé (l'id en base, fourni par la page
@@ -123,6 +125,7 @@ export function DevisEditor({
       objet,
       dateDevis,
       dureeValidite,
+      acomptePct,
       notes,
       conditions,
       lignes: lignes
@@ -163,7 +166,7 @@ export function DevisEditor({
             placeholder="Rénovation électrique appartement"
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div>
             <label className={label} htmlFor="dateDevis">
               Date du devis
@@ -191,6 +194,24 @@ export function DevisEditor({
               value={dureeValidite}
               onChange={(e) => {
                 setDureeValidite(Number(e.target.value));
+                marquerModifie();
+              }}
+              className={champ}
+              inputMode="numeric"
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className={label} htmlFor="acomptePct">
+              Acompte (%)
+            </label>
+            <input
+              id="acomptePct"
+              type="number"
+              min={0}
+              max={100}
+              value={acomptePct}
+              onChange={(e) => {
+                setAcomptePct(Number(e.target.value));
                 marquerModifie();
               }}
               className={champ}
@@ -332,6 +353,22 @@ export function DevisEditor({
               {formatCents(totaux.totalTtcCents)}
             </dd>
           </div>
+          {acomptePct > 0 &&
+            (() => {
+              const a = calculerAcompte(totaux.totalTtcCents, acomptePct);
+              return (
+                <div className="mt-2 pt-2 border-t border-line grid gap-1.5">
+                  <div className="flex justify-between">
+                    <dt className="text-muted">Acompte à la commande ({acomptePct} %)</dt>
+                    <dd className="tabular-nums font-semibold">{formatCents(a.acompteCents)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-muted">Solde à la livraison</dt>
+                    <dd className="tabular-nums font-semibold">{formatCents(a.soldeCents)}</dd>
+                  </div>
+                </div>
+              );
+            })()}
         </dl>
       </section>
 

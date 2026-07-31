@@ -25,6 +25,15 @@ pensée pour un usage quotidien sur chantier (mobile-first) par un artisan non-t
   validité (« Devis valable 30 jours… »), zone « Bon pour accord ».
 - **Réglages** : toutes les coordonnées de l'entreprise sont modifiables (SIRET,
   TVA, préfixe des devis, TVA par défaut, durée de validité, mentions légales).
+- **Factures** : conversion d'un devis accepté en facture (numérotation `FAC-2026-001`,
+  copie figée des lignes, PDF facture avec mentions légales de facturation), suivi
+  du statut **Émise → Payée**, tableau « encaissé / en attente ».
+- **Acompte** : pourcentage d'acompte par devis, avec calcul automatique du montant
+  à la commande et du solde, repris dans le PDF et la facture.
+- **Logo** : téléversement d'un logo (Réglages) affiché dans l'interface et les PDF.
+- **Envoi par email** : bouton « Envoyer par email » qui adresse le devis au client
+  (via Resend) et le passe automatiquement en « Envoyé ». Sans clé configurée,
+  l'envoi est simulé (voir variables d'environnement).
 
 Les coordonnées de MELLADO Électricité et le catalogue sont **pré-remplis à la
 création du compte** — rien à saisir pour démarrer.
@@ -43,7 +52,8 @@ création du compte** — rien à saisir pour démarrer.
 | `Prestation`     | Bibliothèque de prestations (prix catalogue HT). |
 | `Devis`          | Devis + totaux dénormalisés (centimes) + statut. |
 | `DevisLigne`     | Lignes d'un devis (`quantiteMilli` = quantité × 1000). |
-| `CompteurDevis`  | Numérotation atomique par (utilisateur, année). |
+| `Facture` / `FactureLigne` | Facture issue d'un devis (copie figée des lignes) + statut. |
+| `CompteurDevis` / `CompteurFacture` | Numérotation atomique par (utilisateur, année). |
 
 > **Précision comptable :** tous les montants sont stockés et calculés **en centimes
 > (entiers)** et les quantités en millièmes, pour éviter toute erreur d'arrondi de
@@ -59,6 +69,7 @@ création du compte** — rien à saisir pour démarrer.
 | `/tableau-de-bord/devis/nouveau` | Création (choix du client). |
 | `/tableau-de-bord/devis/[id]` | Éditeur (lignes, calculs en direct, statuts, duplication). |
 | `/tableau-de-bord/devis/[id]/imprimer` | Document PDF imprimable. |
+| `/tableau-de-bord/factures`, `/factures/[id]`, `/factures/[id]/imprimer` | Factures + PDF. |
 | `/tableau-de-bord/clients`, `/clients/[id]` | Clients + historique. |
 | `/tableau-de-bord/prestations`, `/prestations/[id]` | Catalogue. |
 | `/tableau-de-bord/parametres` | Réglages société. |
@@ -101,6 +112,8 @@ Au premier lancement, l'application redirige vers `/inscription` : créez le com
 2. **Environment Variables** :
    - `DATABASE_URL` = l'URI Supabase (port 5432)
    - `SESSION_SECRET` = une longue chaîne aléatoire (`openssl rand -base64 32`)
+   - *(optionnel)* `RESEND_API_KEY` + `EMAIL_FROM` pour l'envoi réel des devis par
+     email. Sans elles, l'app fonctionne mais l'envoi est simulé.
 3. Déployez. Le script de build (`prisma migrate deploy && next build`) crée
    automatiquement les tables dans Supabase au premier déploiement.
 4. Ouvrez l'URL Vercel → `/inscription` → créez le compte. C'est prêt.

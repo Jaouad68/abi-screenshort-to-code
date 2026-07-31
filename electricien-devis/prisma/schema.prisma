@@ -17,11 +17,13 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  company     Company?
-  clients     Client[]
-  prestations Prestation[]
-  devis       Devis[]
-  compteurs   CompteurDevis[]
+  company         Company?
+  clients         Client[]
+  prestations     Prestation[]
+  devis           Devis[]
+  factures        Facture[]
+  compteurs       CompteurDevis[]
+  compteursFacture CompteurFacture[]
 }
 
 /// Paramètres de l'entreprise, imprimés dans l'en-tête du devis PDF.
@@ -39,7 +41,9 @@ model Company {
   tvaIntra        String   @default("")
   assurance       String   @default("")
   iban            String   @default("")
+  logoDataUrl     String   @default("")
   prefixeDevis    String   @default("DEV")
+  prefixeFacture  String   @default("FAC")
   tauxTvaDefaut   Int      @default(20)
   dureeValidite   Int      @default(30)
   mentionsLegales String   @default("")
@@ -60,7 +64,8 @@ model Client {
   notes      String   @default("")
   createdAt  DateTime @default(now())
 
-  devis Devis[]
+  devis    Devis[]
+  factures Facture[]
 
   @@index([userId])
 }
@@ -104,13 +109,15 @@ model Devis {
   objet         String      @default("")
   notes         String      @default("")
   conditions    String      @default("")
+  acomptePct    Int         @default(0)
   totalHtCents  Int         @default(0)
   totalTvaCents Int         @default(0)
   totalTtcCents Int         @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  lignes DevisLigne[]
+  lignes   DevisLigne[]
+  factures Facture[]
 
   @@unique([userId, numero])
   @@index([userId])
@@ -134,8 +141,71 @@ model DevisLigne {
   @@index([devisId])
 }
 
-/// Compteur de numérotation, un par (utilisateur, année) → DEV-2026-001, -002…
+/// Compteur de numérotation des devis, un par (utilisateur, année) → DEV-2026-001…
 model CompteurDevis {
+  id            String @id @default(cuid())
+  userId        String
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  annee         Int
+  dernierNumero Int    @default(0)
+
+  @@unique([userId, annee])
+}
+
+enum FactureStatut {
+  EMISE
+  PAYEE
+  ANNULEE
+}
+
+/// Facture, généralement issue d'un devis accepté (copie figée des lignes au
+/// moment de la conversion, pour ne pas être modifiée par une édition ultérieure).
+model Facture {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  numero        String
+  devisId       String?
+  devis         Devis?        @relation(fields: [devisId], references: [id], onDelete: SetNull)
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  statut        FactureStatut @default(EMISE)
+  dateFacture   DateTime      @default(now())
+  objet         String        @default("")
+  notes         String        @default("")
+  conditions    String        @default("")
+  acomptePct    Int           @default(0)
+  totalHtCents  Int           @default(0)
+  totalTvaCents Int           @default(0)
+  totalTtcCents Int           @default(0)
+  datePaiement  DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  lignes FactureLigne[]
+
+  @@unique([userId, numero])
+  @@index([userId])
+  @@index([clientId])
+}
+
+model FactureLigne {
+  id                String  @id @default(cuid())
+  factureId         String
+  facture           Facture @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  libelle           String
+  description       String  @default("")
+  quantiteMilli     Int     @default(1000)
+  unite             String  @default("u")
+  prixUnitaireCents Int     @default(0)
+  tauxTva           Int     @default(20)
+  ordre             Int     @default(0)
+
+  @@index([factureId])
+}
+
+/// Compteur de numérotation des factures → FAC-2026-001…
+model CompteurFacture {
   id            String @id @default(cuid())
   userId        String
   user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)

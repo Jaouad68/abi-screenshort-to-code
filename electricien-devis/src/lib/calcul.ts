@@ -60,6 +60,13 @@ export function calculerTotaux(lignes: LigneCalcul[]): Totaux {
   };
 }
 
+/** Acompte à la commande + solde restant, à partir du TTC et d'un pourcentage. */
+export function calculerAcompte(totalTtcCents: number, pct: number) {
+  const p = Math.max(0, Math.min(100, pct));
+  const acompteCents = Math.round((totalTtcCents * p) / 100);
+  return { acompteCents, soldeCents: totalTtcCents - acompteCents };
+}
+
 /** Taux de TVA proposés dans l'interface. */
 export const TAUX_TVA = [20, 10, 5.5, 0] as const;
 

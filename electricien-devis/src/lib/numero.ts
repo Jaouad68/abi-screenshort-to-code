@@ -19,3 +19,19 @@ export async function genererNumeroDevis(
   const suffixe = String(compteur.dernierNumero).padStart(3, "0");
   return `${prefixe}-${annee}-${suffixe}`;
 }
+
+/** Même principe pour les factures : FAC-2026-001, -002… */
+export async function genererNumeroFacture(
+  userId: string,
+  prefixe: string,
+  annee: number,
+): Promise<string> {
+  const compteur = await prisma.compteurFacture.upsert({
+    where: { userId_annee: { userId, annee } },
+    create: { userId, annee, dernierNumero: 1 },
+    update: { dernierNumero: { increment: 1 } },
+  });
+
+  const suffixe = String(compteur.dernierNumero).padStart(3, "0");
+  return `${prefixe}-${annee}-${suffixe}`;
+}

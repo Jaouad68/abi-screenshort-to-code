@@ -2,10 +2,12 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { deconnecter } from "./actions";
 import { BottomNav } from "./BottomNav";
+import { Logo } from "@/components/Logo";
 
 const NAV = [
   { href: "/tableau-de-bord", label: "Accueil" },
   { href: "/tableau-de-bord/devis", label: "Devis" },
+  { href: "/tableau-de-bord/factures", label: "Factures" },
   { href: "/tableau-de-bord/clients", label: "Clients" },
   { href: "/tableau-de-bord/prestations", label: "Catalogue" },
   { href: "/tableau-de-bord/parametres", label: "Réglages" },
@@ -23,8 +25,8 @@ export default async function DashboardLayout({
       <header className="no-print sticky top-0 z-10 border-b border-line bg-card/90 backdrop-blur">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <Link href="/tableau-de-bord" className="flex items-center gap-2 min-w-0">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-brand text-white text-sm font-bold">
-              M
+            <span className="shrink-0">
+              <Logo logoDataUrl={company.logoDataUrl} nom={company.nom} size={32} />
             </span>
             <span className="font-bold text-ink truncate">{company.nom}</span>
           </Link>

@@ -4,11 +4,11 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculerTotaux, montantLigneHtCents, calculerAcompte } from "@/lib/calcul";
 import { formatCents, formatQuantite } from "@/lib/money";
-import { formatDate, ajouterJours } from "@/lib/date";
+import { formatDate } from "@/lib/date";
 import { Logo } from "@/components/Logo";
 import { PrintButton } from "@/components/PrintButton";
 
-export default async function ImprimerDevisPage({
+export default async function ImprimerFacturePage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -16,36 +16,33 @@ export default async function ImprimerDevisPage({
   const { user, company } = await requireUser();
   const { id } = await params;
 
-  const devis = await prisma.devis.findFirst({
+  const facture = await prisma.facture.findFirst({
     where: { id, userId: user.id },
     include: {
       client: true,
+      devis: { select: { numero: true } },
       lignes: { orderBy: { ordre: "asc" } },
     },
   });
-  if (!devis) notFound();
+  if (!facture) notFound();
 
-  const totaux = calculerTotaux(devis.lignes);
-  const echeance = ajouterJours(devis.dateDevis, devis.dureeValidite);
+  const totaux = calculerTotaux(facture.lignes);
   const acompte =
-    devis.acomptePct > 0 ? calculerAcompte(totaux.totalTtcCents, devis.acomptePct) : null;
+    facture.acomptePct > 0 ? calculerAcompte(totaux.totalTtcCents, facture.acomptePct) : null;
 
   return (
     <div>
-      {/* Barre d'action (masquée à l'impression) */}
       <div className="no-print flex items-center justify-between gap-3 mb-5">
         <Link
-          href={`/tableau-de-bord/devis/${devis.id}`}
+          href={`/tableau-de-bord/factures/${facture.id}`}
           className="text-sm text-muted hover:text-brand"
         >
-          ← Retour au devis
+          ← Retour à la facture
         </Link>
         <PrintButton className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]" />
       </div>
 
-      {/* Document */}
       <article className="mx-auto max-w-[210mm] bg-white text-ink rounded-card border border-line print:border-0 print:rounded-none p-6 sm:p-10 print:p-0 text-[13px] leading-relaxed">
-        {/* En-tête */}
         <header className="flex flex-wrap justify-between gap-6 border-b-2 border-ink pb-5">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -64,16 +61,15 @@ export default async function ImprimerDevisPage({
             </div>
           </div>
           <div className="text-right">
-            <h1 className="text-2xl font-bold tracking-tight">DEVIS</h1>
-            <div className="mt-1 font-semibold">{devis.numero}</div>
+            <h1 className="text-2xl font-bold tracking-tight">FACTURE</h1>
+            <div className="mt-1 font-semibold">{facture.numero}</div>
             <div className="text-muted mt-2">
-              <div>Date : {formatDate(devis.dateDevis)}</div>
-              <div>Validité : {formatDate(echeance)}</div>
+              <div>Date : {formatDate(facture.dateFacture)}</div>
+              {facture.devis && <div>Réf. devis : {facture.devis.numero}</div>}
             </div>
           </div>
         </header>
 
-        {/* Émetteur légal + client */}
         <div className="flex flex-wrap justify-between gap-6 py-5">
           <div className="text-muted text-[12px]">
             {company.siret && <div>SIRET : {company.siret}</div>}
@@ -82,32 +78,33 @@ export default async function ImprimerDevisPage({
           </div>
           <div className="min-w-[60mm]">
             <div className="text-[11px] font-semibold uppercase text-muted tracking-wide mb-1">
-              Adressé à
+              Facturé à
             </div>
-            <div className="font-semibold">{devis.client.nom}</div>
+            <div className="font-semibold">{facture.client.nom}</div>
             <div className="text-muted">
-              {devis.client.adresse && <div>{devis.client.adresse}</div>}
-              {(devis.client.codePostal || devis.client.ville) && (
+              {facture.client.adresse && <div>{facture.client.adresse}</div>}
+              {(facture.client.codePostal || facture.client.ville) && (
                 <div>
-                  {devis.client.codePostal} {devis.client.ville}
+                  {facture.client.codePostal} {facture.client.ville}
                 </div>
               )}
-              {devis.client.telephone && <div>Tél. {devis.client.telephone}</div>}
             </div>
           </div>
         </div>
 
-        {devis.objet && (
+        {facture.objet && (
           <p className="mb-3">
-            <span className="font-semibold">Objet :</span> {devis.objet}
+            <span className="font-semibold">Objet :</span> {facture.objet}
           </p>
         )}
 
-        {/* Tableau des prestations */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-[12px]">
             <thead>
-              <tr className="bg-brand text-white print:bg-brand" style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}>
+              <tr
+                className="bg-brand text-white"
+                style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
+              >
                 <th className="text-left font-semibold px-2 py-2">Désignation</th>
                 <th className="text-right font-semibold px-2 py-2 w-14">Qté</th>
                 <th className="text-left font-semibold px-2 py-2 w-14">Unité</th>
@@ -117,14 +114,7 @@ export default async function ImprimerDevisPage({
               </tr>
             </thead>
             <tbody>
-              {devis.lignes.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-2 py-4 text-center text-muted italic">
-                    Aucune prestation.
-                  </td>
-                </tr>
-              )}
-              {devis.lignes.map((l) => (
+              {facture.lignes.map((l) => (
                 <tr key={l.id} className="border-b border-line align-top">
                   <td className="px-2 py-2">
                     <div className="font-medium">{l.libelle}</div>
@@ -149,7 +139,6 @@ export default async function ImprimerDevisPage({
           </table>
         </div>
 
-        {/* Totaux */}
         <div className="flex justify-end mt-4">
           <dl className="w-full max-w-[80mm] text-[12px]">
             <div className="flex justify-between py-1">
@@ -169,31 +158,26 @@ export default async function ImprimerDevisPage({
             {acompte && (
               <>
                 <div className="flex justify-between py-1 mt-1 border-t border-line">
-                  <dt className="font-semibold">Acompte à la commande ({devis.acomptePct} %)</dt>
+                  <dt className="font-semibold">Acompte déjà versé ({facture.acomptePct} %)</dt>
                   <dd className="tabular-nums font-semibold">{formatCents(acompte.acompteCents)}</dd>
                 </div>
                 <div className="flex justify-between py-1">
-                  <dt className="text-muted">Solde à la livraison</dt>
-                  <dd className="tabular-nums">{formatCents(acompte.soldeCents)}</dd>
+                  <dt className="font-semibold">Net à payer</dt>
+                  <dd className="tabular-nums font-semibold">{formatCents(acompte.soldeCents)}</dd>
                 </div>
               </>
             )}
           </dl>
         </div>
 
-        {/* Conditions + signature */}
-        <div className="flex flex-wrap justify-between gap-6 mt-8">
-          <div className="max-w-[100mm] text-[11px] text-muted">
-            {devis.conditions && <p className="mb-2">{devis.conditions}</p>}
-            {company.iban && <p className="mb-2">IBAN : {company.iban}</p>}
-            {company.mentionsLegales && <p>{company.mentionsLegales}</p>}
-          </div>
-          <div className="w-[70mm]">
-            <div className="text-[11px] font-semibold mb-1">
-              Bon pour accord — Date et signature du client
-            </div>
-            <div className="h-24 rounded border border-line" />
-          </div>
+        <div className="mt-8 text-[11px] text-muted">
+          {facture.conditions && <p className="mb-2">{facture.conditions}</p>}
+          {company.iban && <p className="mb-2">Règlement par virement — IBAN : {company.iban}</p>}
+          <p className="mb-2">
+            En cas de retard de paiement, application de pénalités au taux légal en vigueur et
+            d’une indemnité forfaitaire pour frais de recouvrement de 40 €.
+          </p>
+          {company.mentionsLegales && <p>{company.mentionsLegales}</p>}
         </div>
       </article>
     </div>

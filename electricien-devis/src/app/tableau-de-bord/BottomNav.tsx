@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/tableau-de-bord", label: "Accueil", exact: true, icon: IconHome },
   { href: "/tableau-de-bord/devis", label: "Devis", icon: IconDoc },
+  { href: "/tableau-de-bord/factures", label: "Factures", icon: IconBill },
   { href: "/tableau-de-bord/clients", label: "Clients", icon: IconUsers },
-  { href: "/tableau-de-bord/prestations", label: "Catalogue", icon: IconTag },
+  { href: "/tableau-de-bord/prestations", label: "Tarifs", icon: IconTag },
   { href: "/tableau-de-bord/parametres", label: "Réglages", icon: IconGear },
 ];
 
@@ -16,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav className="no-print fixed bottom-0 inset-x-0 z-20 border-t border-line bg-card/95 backdrop-blur sm:hidden">
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-6">
         {ITEMS.map((item) => {
           const active = item.exact
             ? pathname === item.href
@@ -69,6 +70,14 @@ function IconDoc({ active }: IconProps) {
     <svg {...base(active)} aria-hidden>
       <path d="M7 3h7l4 4v14H7z" />
       <path d="M14 3v4h4M9.5 12h5M9.5 15.5h5" />
+    </svg>
+  );
+}
+function IconBill({ active }: IconProps) {
+  return (
+    <svg {...base(active)} aria-hidden>
+      <path d="M6 3h12v18l-3-1.6-3 1.6-3-1.6L6 21z" />
+      <path d="M9.5 8h5M9.5 12h5" />
     </svg>
   );
 }

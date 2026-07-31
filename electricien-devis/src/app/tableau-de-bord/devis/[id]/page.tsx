@@ -2,13 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { changerStatut, dupliquerDevis, supprimerDevis } from "../actions";
+import {
+  changerStatut,
+  dupliquerDevis,
+  supprimerDevis,
+  envoyerParEmail,
+  convertirEnFacture,
+} from "../actions";
 import { DevisEditor, type DevisInitial } from "./DevisEditor";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { StatutBadge } from "@/components/StatutBadge";
 import { STATUT_LABEL, TRANSITIONS } from "@/lib/statut";
 import { toInputDate } from "@/lib/date";
-import { btnSecondaire, btnDanger } from "@/lib/ui";
+import { btnPrimaire, btnSecondaire, btnDanger } from "@/lib/ui";
 
 const centsToEuros = (c: number) => (c / 100).toString().replace(".", ",");
 const milliToQuantite = (m: number) =>
@@ -16,11 +22,14 @@ const milliToQuantite = (m: number) =>
 
 export default async function DevisEditPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ email?: string; facture?: string }>;
 }) {
   const { user } = await requireUser();
   const { id } = await params;
+  const { email: emailStatut, facture: factureStatut } = await searchParams;
 
   const devis = await prisma.devis.findFirst({
     where: { id, userId: user.id },
@@ -48,6 +57,7 @@ export default async function DevisEditPage({
     objet: devis.objet,
     dateDevis: toInputDate(devis.dateDevis),
     dureeValidite: devis.dureeValidite,
+    acomptePct: devis.acomptePct,
     notes: devis.notes,
     conditions: devis.conditions,
     lignes: devis.lignes.map((l) => ({
@@ -82,14 +92,46 @@ export default async function DevisEditPage({
             {devis.client.nom}
           </Link>
         </div>
-        <Link
-          href={`/tableau-de-bord/devis/${devis.id}/imprimer`}
-          target="_blank"
-          className="no-print inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]"
-        >
-          Aperçu / PDF
-        </Link>
+        <div className="no-print flex flex-wrap gap-2">
+          <form action={envoyerParEmail.bind(null, devis.id)}>
+            <button type="submit" className={btnSecondaire}>
+              Envoyer par email
+            </button>
+          </form>
+          <Link
+            href={`/tableau-de-bord/devis/${devis.id}/imprimer`}
+            target="_blank"
+            className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]"
+          >
+            Aperçu / PDF
+          </Link>
+        </div>
       </div>
+
+      {/* Retour d'envoi email */}
+      {emailStatut && (
+        <div
+          className={`no-print mb-5 rounded-control px-4 py-3 text-sm ${
+            emailStatut === "ok"
+              ? "bg-ok-l text-ok"
+              : emailStatut === "simule"
+                ? "bg-brand-l text-brand-d"
+                : "bg-danger-l text-danger"
+          }`}
+        >
+          {emailStatut === "ok" && `Devis envoyé par email à ${devis.client.nom}.`}
+          {emailStatut === "simule" &&
+            "Envoi simulé : configurez RESEND_API_KEY et EMAIL_FROM pour un envoi réel. Le devis est passé en « Envoyé »."}
+          {emailStatut === "sans-adresse" &&
+            "Ce client n'a pas d'adresse email. Ajoutez-la dans sa fiche."}
+          {emailStatut === "erreur" && "L'envoi de l'email a échoué. Réessayez."}
+        </div>
+      )}
+      {factureStatut === "statut" && (
+        <div className="no-print mb-5 rounded-control bg-danger-l text-danger px-4 py-3 text-sm">
+          Seul un devis au statut « Accepté » peut être converti en facture.
+        </div>
+      )}
 
       {/* Actions de statut */}
       {transitions.length > 0 && (
@@ -106,6 +148,20 @@ export default async function DevisEditPage({
 
       {/* Éditeur */}
       <DevisEditor devisId={devis.id} initial={initial} prestations={prestations} />
+
+      {/* Conversion en facture (devis accepté) */}
+      {devis.statut === "ACCEPTE" && (
+        <section className="no-print mt-8 rounded-card border border-brand/30 bg-brand-l p-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-brand-d font-medium">
+            Ce devis est accepté : vous pouvez le convertir en facture.
+          </p>
+          <form action={convertirEnFacture.bind(null, devis.id)}>
+            <button type="submit" className={btnPrimaire}>
+              Convertir en facture
+            </button>
+          </form>
+        </section>
+      )}
 
       {/* Actions destructrices / duplication */}
       <section className="no-print border-t border-line mt-8 pt-6 flex flex-wrap gap-3">

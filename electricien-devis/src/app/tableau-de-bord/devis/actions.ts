@@ -6,9 +6,11 @@ import { redirect } from "next/navigation";
 import type { DevisStatut } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-import { genererNumeroDevis } from "@/lib/numero";
+import { genererNumeroDevis, genererNumeroFacture } from "@/lib/numero";
 import { calculerTotaux } from "@/lib/calcul";
 import { TRANSITIONS } from "@/lib/statut";
+import { envoyerEmail } from "@/lib/email";
+import { devisEnHtml } from "@/lib/devis-email";
 
 /* ------------------------------------------------------------------ */
 /*  Création : crée un brouillon puis ouvre l'éditeur                  */
@@ -60,6 +62,7 @@ const payloadSchema = z.object({
   objet: z.string().trim(),
   dateDevis: z.string().trim(),
   dureeValidite: z.number().int().min(1).max(365),
+  acomptePct: z.number().int().min(0).max(100),
   notes: z.string().trim(),
   conditions: z.string().trim(),
   lignes: z.array(ligneSchema),
@@ -94,6 +97,7 @@ export async function enregistrerDevis(
         objet: data.objet,
         dateDevis: isNaN(dateDevis.getTime()) ? devis.dateDevis : dateDevis,
         dureeValidite: data.dureeValidite,
+        acomptePct: data.acomptePct,
         notes: data.notes,
         conditions: data.conditions,
         totalHtCents: totaux.totalHtCents,
@@ -195,4 +199,99 @@ export async function supprimerDevis(id: string) {
   revalidatePath("/tableau-de-bord/devis");
   revalidatePath("/tableau-de-bord");
   redirect("/tableau-de-bord/devis");
+}
+
+/* ------------------------------------------------------------------ */
+/*  Envoi du devis par email                                           */
+/* ------------------------------------------------------------------ */
+
+export async function envoyerParEmail(id: string) {
+  const { user, company } = await requireUser();
+
+  const devis = await prisma.devis.findFirst({
+    where: { id, userId: user.id },
+    include: { client: true, lignes: { orderBy: { ordre: "asc" } } },
+  });
+  if (!devis) redirect("/tableau-de-bord/devis");
+
+  if (!devis.client.email) {
+    redirect(`/tableau-de-bord/devis/${id}?email=sans-adresse`);
+  }
+
+  const resultat = await envoyerEmail({
+    to: devis.client.email,
+    sujet: `Devis ${devis.numero} — ${company.nom}`,
+    html: devisEnHtml(company, devis.client, devis),
+  });
+
+  if (!resultat.ok) {
+    redirect(`/tableau-de-bord/devis/${id}?email=erreur`);
+  }
+
+  // Un devis envoyé passe automatiquement au statut « Envoyé ».
+  if (devis.statut === "BROUILLON") {
+    await prisma.devis.update({ where: { id }, data: { statut: "ENVOYE" } });
+  }
+
+  revalidatePath(`/tableau-de-bord/devis/${id}`);
+  revalidatePath("/tableau-de-bord/devis");
+  revalidatePath("/tableau-de-bord");
+  redirect(`/tableau-de-bord/devis/${id}?email=${resultat.simule ? "simule" : "ok"}`);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Conversion en facture                                              */
+/* ------------------------------------------------------------------ */
+
+export async function convertirEnFacture(id: string) {
+  const { user, company } = await requireUser();
+
+  const devis = await prisma.devis.findFirst({
+    where: { id, userId: user.id },
+    include: { lignes: { orderBy: { ordre: "asc" } } },
+  });
+  if (!devis) redirect("/tableau-de-bord/devis");
+
+  // La facturation part d'un devis accepté.
+  if (devis.statut !== "ACCEPTE") {
+    redirect(`/tableau-de-bord/devis/${id}?facture=statut`);
+  }
+
+  const annee = new Date().getFullYear();
+  const numero = await genererNumeroFacture(user.id, company.prefixeFacture, annee);
+
+  const facture = await prisma.facture.create({
+    data: {
+      userId: user.id,
+      clientId: devis.clientId,
+      devisId: devis.id,
+      numero,
+      objet: devis.objet,
+      notes: devis.notes,
+      conditions: devis.conditions,
+      acomptePct: devis.acomptePct,
+      totalHtCents: devis.totalHtCents,
+      totalTvaCents: devis.totalTvaCents,
+      totalTtcCents: devis.totalTtcCents,
+      lignes: {
+        create: devis.lignes.map((l) => ({
+          libelle: l.libelle,
+          description: l.description,
+          quantiteMilli: l.quantiteMilli,
+          unite: l.unite,
+          prixUnitaireCents: l.prixUnitaireCents,
+          tauxTva: l.tauxTva,
+          ordre: l.ordre,
+        })),
+      },
+    },
+  });
+
+  // Le devis passe au statut « Facturé ».
+  await prisma.devis.update({ where: { id }, data: { statut: "FACTURE" } });
+
+  revalidatePath("/tableau-de-bord/factures");
+  revalidatePath(`/tableau-de-bord/devis/${id}`);
+  revalidatePath("/tableau-de-bord");
+  redirect(`/tableau-de-bord/factures/${facture.id}`);
 }

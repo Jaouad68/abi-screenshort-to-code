@@ -48,8 +48,9 @@ export function ParametresForm({ company }: { company: Company }) {
       <section className={carte}>
         <h2 className="font-bold text-lg mb-4">Paramètres des devis</h2>
         <div className="grid gap-4">
-          <div className="grid grid-cols-3 gap-3">
-            <Field name="prefixeDevis" libelle="Préfixe" defaultValue={company.prefixeDevis} required />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Field name="prefixeDevis" libelle="Préfixe devis" defaultValue={company.prefixeDevis} required />
+            <Field name="prefixeFacture" libelle="Préfixe facture" defaultValue={company.prefixeFacture} required />
             <div>
               <label className={label} htmlFor="tauxTvaDefaut">
                 TVA par défaut (%)
