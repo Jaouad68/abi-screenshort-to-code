@@ -93,6 +93,14 @@ Générez un secret de session : `openssl rand -base64 32`.
 Au premier lancement, l'application redirige vers `/inscription` : créez le compte
 (email + mot de passe). Les coordonnées MELLADO et le catalogue sont alors pré-remplis.
 
+**Jeu de données de démonstration (optionnel).** Le script `scripts/setup-demo.mjs`
+applique les migrations et insère un compte de démo (`demo@mellado-electricite.fr` /
+`demo1234`) avec un client, deux devis et une facture d'exemple :
+
+```bash
+DATABASE_URL="postgresql://…" node scripts/setup-demo.mjs
+```
+
 ---
 
 ## 4. Déploiement (Supabase + Vercel)
