@@ -83,6 +83,22 @@ export function ParametresForm({ company }: { company: Company }) {
                 inputMode="numeric"
               />
             </div>
+            <div>
+              <label className={label} htmlFor="relanceJours">
+                Relance après (jours)
+              </label>
+              <input
+                id="relanceJours"
+                name="relanceJours"
+                type="number"
+                min={1}
+                max={90}
+                step={1}
+                defaultValue={company.relanceJours}
+                className={champ}
+                inputMode="numeric"
+              />
+            </div>
           </div>
           <div>
             <label className={label} htmlFor="mentionsLegales">

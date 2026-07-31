@@ -10,7 +10,9 @@ import { btnPrimaire } from "@/lib/ui";
 export default async function TableauDeBordPage() {
   const { user, company } = await requireUser();
 
-  const [stats, derniers, nbClients] = await Promise.all([
+  const seuilRelance = new Date(new Date().getTime() - company.relanceJours * 86_400_000);
+
+  const [stats, derniers, nbClients, aRelancer] = await Promise.all([
     prisma.devis.groupBy({
       by: ["statut"],
       where: { userId: user.id },
@@ -24,6 +26,11 @@ export default async function TableauDeBordPage() {
       include: { client: { select: { nom: true } } },
     }),
     prisma.client.count({ where: { userId: user.id } }),
+    prisma.devis.findMany({
+      where: { userId: user.id, statut: "ENVOYE", envoyeLe: { lte: seuilRelance } },
+      orderBy: { envoyeLe: "asc" },
+      include: { client: { select: { nom: true } } },
+    }),
   ]);
 
   const sommeTtc = (s: DevisStatut) =>
@@ -97,6 +104,36 @@ export default async function TableauDeBordPage() {
           ),
         )}
       </div>
+
+      {/* Devis à relancer */}
+      {aRelancer.length > 0 && (
+        <section className="mb-8 rounded-card border border-accent/40 bg-accent-l p-4">
+          <h2 className="font-bold text-accent-d mb-1">
+            À relancer ({aRelancer.length})
+          </h2>
+          <p className="text-sm text-accent-d/80 mb-3">
+            Devis envoyés il y a plus de {company.relanceJours} jours, sans réponse.
+          </p>
+          <ul className="grid gap-2">
+            {aRelancer.map((d) => (
+              <li key={d.id}>
+                <Link
+                  href={`/tableau-de-bord/devis/${d.id}`}
+                  className="flex items-center justify-between gap-3 rounded-control bg-white/70 px-3 py-2.5 hover:bg-white"
+                >
+                  <span className="min-w-0 truncate">
+                    <span className="font-semibold">{d.numero}</span>
+                    <span className="text-muted"> · {d.client.nom}</span>
+                  </span>
+                  <span className="shrink-0 font-semibold tabular-nums">
+                    {formatCents(d.totalTtcCents)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Derniers devis */}
       <div className="flex items-center justify-between mb-3">

@@ -63,6 +63,7 @@ const payloadSchema = z.object({
   dateDevis: z.string().trim(),
   dureeValidite: z.number().int().min(1).max(365),
   acomptePct: z.number().int().min(0).max(100),
+  numeroCommande: z.string().trim(),
   notes: z.string().trim(),
   conditions: z.string().trim(),
   lignes: z.array(ligneSchema),
@@ -98,6 +99,7 @@ export async function enregistrerDevis(
         dateDevis: isNaN(dateDevis.getTime()) ? devis.dateDevis : dateDevis,
         dureeValidite: data.dureeValidite,
         acomptePct: data.acomptePct,
+        numeroCommande: data.numeroCommande,
         notes: data.notes,
         conditions: data.conditions,
         totalHtCents: totaux.totalHtCents,
@@ -136,7 +138,16 @@ export async function changerStatut(id: string, statut: DevisStatut) {
 
   if (!TRANSITIONS[devis.statut].includes(statut)) return;
 
-  await prisma.devis.update({ where: { id }, data: { statut } });
+  // Horodatage : 1er passage en "Envoyé" (base des relances) et acceptation.
+  const data: {
+    statut: DevisStatut;
+    envoyeLe?: Date;
+    dateAcceptation?: Date;
+  } = { statut };
+  if (statut === "ENVOYE" && !devis.envoyeLe) data.envoyeLe = new Date();
+  if (statut === "ACCEPTE" && !devis.dateAcceptation) data.dateAcceptation = new Date();
+
+  await prisma.devis.update({ where: { id }, data });
   revalidatePath(`/tableau-de-bord/devis/${id}`);
   revalidatePath("/tableau-de-bord/devis");
   revalidatePath("/tableau-de-bord");
@@ -230,7 +241,10 @@ export async function envoyerParEmail(id: string) {
 
   // Un devis envoyé passe automatiquement au statut « Envoyé ».
   if (devis.statut === "BROUILLON") {
-    await prisma.devis.update({ where: { id }, data: { statut: "ENVOYE" } });
+    await prisma.devis.update({
+      where: { id },
+      data: { statut: "ENVOYE", envoyeLe: devis.envoyeLe ?? new Date() },
+    });
   }
 
   revalidatePath(`/tableau-de-bord/devis/${id}`);
@@ -270,6 +284,7 @@ export async function convertirEnFacture(id: string) {
       notes: devis.notes,
       conditions: devis.conditions,
       acomptePct: devis.acomptePct,
+      numeroCommande: devis.numeroCommande,
       totalHtCents: devis.totalHtCents,
       totalTvaCents: devis.totalTvaCents,
       totalTtcCents: devis.totalTtcCents,

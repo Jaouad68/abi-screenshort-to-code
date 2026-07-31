@@ -20,6 +20,7 @@ const schema = z.object({
   prefixeDevis: z.string().trim().min(1, "Le préfixe est obligatoire.").max(10),
   tauxTvaDefaut: z.coerce.number().int().min(0).max(20),
   dureeValidite: z.coerce.number().int().min(1).max(365),
+  relanceJours: z.coerce.number().int().min(1).max(90),
   mentionsLegales: z.string().trim(),
 });
 

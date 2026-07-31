@@ -93,8 +93,14 @@ export default async function ImprimerFacturePage({
         </div>
 
         {facture.objet && (
-          <p className="mb-3">
+          <p className="mb-1">
             <span className="font-semibold">Objet :</span> {facture.objet}
+          </p>
+        )}
+        {facture.numeroCommande && (
+          <p className="mb-3 text-muted">
+            <span className="font-semibold text-ink">N° commande client :</span>{" "}
+            {facture.numeroCommande}
           </p>
         )}
 

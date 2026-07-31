@@ -58,6 +58,7 @@ export default async function DevisEditPage({
     dateDevis: toInputDate(devis.dateDevis),
     dureeValidite: devis.dureeValidite,
     acomptePct: devis.acomptePct,
+    numeroCommande: devis.numeroCommande,
     notes: devis.notes,
     conditions: devis.conditions,
     lignes: devis.lignes.map((l) => ({

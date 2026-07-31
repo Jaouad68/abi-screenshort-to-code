@@ -30,6 +30,7 @@ export type DevisInitial = {
   dateDevis: string; // yyyy-mm-dd
   dureeValidite: number;
   acomptePct: number;
+  numeroCommande: string;
   notes: string;
   conditions: string;
   lignes: LigneUI[];
@@ -53,6 +54,7 @@ export function DevisEditor({
   const [dateDevis, setDateDevis] = useState(initial.dateDevis);
   const [dureeValidite, setDureeValidite] = useState(initial.dureeValidite);
   const [acomptePct, setAcomptePct] = useState(initial.acomptePct);
+  const [numeroCommande, setNumeroCommande] = useState(initial.numeroCommande);
   const [notes, setNotes] = useState(initial.notes);
   const [conditions, setConditions] = useState(initial.conditions);
   // Les lignes initiales portent déjà leur clé (l'id en base, fourni par la page
@@ -126,6 +128,7 @@ export function DevisEditor({
       dateDevis,
       dureeValidite,
       acomptePct,
+      numeroCommande,
       notes,
       conditions,
       lignes: lignes
@@ -164,6 +167,21 @@ export function DevisEditor({
             }}
             className={champ}
             placeholder="Rénovation électrique appartement"
+          />
+        </div>
+        <div>
+          <label className={label} htmlFor="numeroCommande">
+            N° de commande client (optionnel)
+          </label>
+          <input
+            id="numeroCommande"
+            value={numeroCommande}
+            onChange={(e) => {
+              setNumeroCommande(e.target.value);
+              marquerModifie();
+            }}
+            className={champ}
+            placeholder="Bon de commande / référence client"
           />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

@@ -34,6 +34,14 @@ pensée pour un usage quotidien sur chantier (mobile-first) par un artisan non-t
 - **Envoi par email** : bouton « Envoyer par email » qui adresse le devis au client
   (via Resend) et le passe automatiquement en « Envoyé ». Sans clé configurée,
   l'envoi est simulé (voir variables d'environnement).
+- **Relances automatiques** : les devis « Envoyés » sans réponse depuis N jours
+  (paramétrable) remontent dans une alerte « À relancer » du tableau de bord, et
+  une route cron quotidienne (`/api/cron/relances`, voir `vercel.json`) envoie une
+  relance par email au client.
+- **Export comptable CSV** : journal des devis et des factures exportable en CSV
+  (séparateur `;`, décimales FR, BOM UTF-8) par année, pour le comptable.
+- **Bon de commande client** : n° de commande et date d'acceptation sur le devis,
+  repris sur la facture et les PDF.
 
 Les coordonnées de MELLADO Électricité et le catalogue sont **pré-remplis à la
 création du compte** — rien à saisir pour démarrer.
@@ -122,6 +130,9 @@ DATABASE_URL="postgresql://…" node scripts/setup-demo.mjs
    - `SESSION_SECRET` = une longue chaîne aléatoire (`openssl rand -base64 32`)
    - *(optionnel)* `RESEND_API_KEY` + `EMAIL_FROM` pour l'envoi réel des devis par
      email. Sans elles, l'app fonctionne mais l'envoi est simulé.
+   - *(optionnel)* `CRON_SECRET` pour protéger la route de relances. Le fichier
+     `vercel.json` planifie déjà l'appel quotidien de `/api/cron/relances` ;
+     Vercel transmet automatiquement `CRON_SECRET` dans l'en-tête `Authorization`.
 3. Déployez. Le script de build (`prisma migrate deploy && next build`) crée
    automatiquement les tables dans Supabase au premier déploiement.
 4. Ouvrez l'URL Vercel → `/inscription` → créez le compte. C'est prêt.

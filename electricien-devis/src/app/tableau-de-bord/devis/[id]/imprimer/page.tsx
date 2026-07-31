@@ -98,8 +98,14 @@ export default async function ImprimerDevisPage({
         </div>
 
         {devis.objet && (
-          <p className="mb-3">
+          <p className="mb-1">
             <span className="font-semibold">Objet :</span> {devis.objet}
+          </p>
+        )}
+        {devis.numeroCommande && (
+          <p className="mb-3 text-muted">
+            <span className="font-semibold text-ink">N° commande client :</span>{" "}
+            {devis.numeroCommande}
           </p>
         )}
 

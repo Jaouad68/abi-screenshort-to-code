@@ -13,6 +13,7 @@ await client.connect();
 const migrations = [
   "prisma/migrations/0_init/migration.sql",
   "prisma/migrations/1_factures_logo_acompte/migration.sql",
+  "prisma/migrations/2_relances_commande/migration.sql",
 ];
 for (const m of migrations) {
   const sql = readFileSync(m, "utf8");
@@ -79,14 +80,15 @@ function totaux(lignes) {
   return { ht, tva, ttc: ht + tva };
 }
 
-async function insererDevis({ numero, statut, acompte, objet, lignes, joursAvant }) {
+async function insererDevis({ numero, statut, acompte, objet, lignes, joursAvant, numeroCommande = "", envoyeJoursAvant = null }) {
   const t = totaux(lignes);
   const id = uid();
   const date = new Date(Date.now() - joursAvant * 86400000);
+  const envoyeLe = envoyeJoursAvant == null ? null : new Date(Date.now() - envoyeJoursAvant * 86400000);
   await client.query(
-    `INSERT INTO "Devis" (id,"userId","clientId",numero,statut,"dateDevis","dureeValidite",objet,conditions,"acomptePct","totalHtCents","totalTvaCents","totalTtcCents","updatedAt")
-     VALUES ($1,$2,$3,$4,$5,$6,30,$7,$8,$9,$10,$11,$12,now())`,
-    [id, userId, clientId, numero, statut, date, objet, "Règlement à réception de facture.", acompte, t.ht, t.tva, t.ttc],
+    `INSERT INTO "Devis" (id,"userId","clientId",numero,statut,"dateDevis","dureeValidite",objet,conditions,"acomptePct","numeroCommande","envoyeLe","totalHtCents","totalTvaCents","totalTtcCents","updatedAt")
+     VALUES ($1,$2,$3,$4,$5,$6,30,$7,$8,$9,$10,$11,$12,$13,$14,now())`,
+    [id, userId, clientId, numero, statut, date, objet, "Règlement à réception de facture.", acompte, numeroCommande, envoyeLe, t.ht, t.tva, t.ttc],
   );
   let ordre = 0;
   for (const l of lignes) {
@@ -99,13 +101,15 @@ async function insererDevis({ numero, statut, acompte, objet, lignes, joursAvant
   return { id, ...t };
 }
 
-// Devis 1 — envoyé, avec acompte 30 %
+// Devis 1 — envoyé il y a 10 j (→ apparaît "à relancer"), acompte 30 %, n° commande
 await insererDevis({
   numero: "DEV-2026-001",
   statut: "ENVOYE",
   acompte: 30,
   objet: "Rénovation électrique séjour et cuisine",
-  joursAvant: 5,
+  joursAvant: 10,
+  envoyeJoursAvant: 10,
+  numeroCommande: "BC-DUPONT-2026-014",
   lignes: [
     { libelle: "Pose de prise de courant", unite: "u", pu: 3500, qtyMilli: 6000, tva: 20 },
     { libelle: "Installation tableau électrique", unite: "u", pu: 45000, qtyMilli: 1000, tva: 20 },

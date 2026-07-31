@@ -23,7 +23,15 @@ export default async function FacturesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-1">Factures</h1>
+      <div className="flex items-center justify-between gap-4 mb-1">
+        <h1 className="text-2xl font-bold">Factures</h1>
+        <Link
+          href="/tableau-de-bord/export"
+          className="text-sm font-semibold text-brand hover:underline"
+        >
+          Export comptable
+        </Link>
+      </div>
       <p className="text-muted mb-5">
         Une facture se crée depuis un devis accepté (bouton « Convertir en facture »).
       </p>

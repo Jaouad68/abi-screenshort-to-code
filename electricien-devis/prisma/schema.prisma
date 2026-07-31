@@ -46,6 +46,7 @@ model Company {
   prefixeFacture  String   @default("FAC")
   tauxTvaDefaut   Int      @default(20)
   dureeValidite   Int      @default(30)
+  relanceJours    Int      @default(7)
   mentionsLegales String   @default("")
   updatedAt       DateTime @updatedAt
 }
@@ -106,15 +107,19 @@ model Devis {
   statut        DevisStatut @default(BROUILLON)
   dateDevis     DateTime    @default(now())
   dureeValidite Int         @default(30)
-  objet         String      @default("")
-  notes         String      @default("")
-  conditions    String      @default("")
-  acomptePct    Int         @default(0)
-  totalHtCents  Int         @default(0)
-  totalTvaCents Int         @default(0)
-  totalTtcCents Int         @default(0)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  objet          String      @default("")
+  notes          String      @default("")
+  conditions     String      @default("")
+  acomptePct     Int         @default(0)
+  numeroCommande String      @default("")
+  envoyeLe       DateTime?
+  relanceLe      DateTime?
+  dateAcceptation DateTime?
+  totalHtCents   Int         @default(0)
+  totalTvaCents  Int         @default(0)
+  totalTtcCents  Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   lignes   DevisLigne[]
   factures Facture[]
@@ -171,10 +176,11 @@ model Facture {
   client        Client        @relation(fields: [clientId], references: [id])
   statut        FactureStatut @default(EMISE)
   dateFacture   DateTime      @default(now())
-  objet         String        @default("")
-  notes         String        @default("")
-  conditions    String        @default("")
-  acomptePct    Int           @default(0)
+  objet          String       @default("")
+  notes          String       @default("")
+  conditions     String       @default("")
+  acomptePct     Int          @default(0)
+  numeroCommande String       @default("")
   totalHtCents  Int           @default(0)
   totalTvaCents Int           @default(0)
   totalTtcCents Int           @default(0)
