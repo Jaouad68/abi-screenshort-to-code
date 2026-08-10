@@ -11,6 +11,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 2** : [`docs/plombeo/PHASE-2-SPECIFICATION.md`](../docs/plombeo/PHASE-2-SPECIFICATION.md)
 - **Spécification Phase 3** : [`docs/plombeo/PHASE-3-SPECIFICATION.md`](../docs/plombeo/PHASE-3-SPECIFICATION.md)
 - **Spécification Phase 4** : [`docs/plombeo/PHASE-4-SPECIFICATION.md`](../docs/plombeo/PHASE-4-SPECIFICATION.md)
+- **Spécification Phase 5** : [`docs/plombeo/PHASE-5-SPECIFICATION.md`](../docs/plombeo/PHASE-5-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -75,7 +76,23 @@ applicable ni ne rédige de mention légale. L'artisan saisit son taux par ligne
 rédige ses conditions. Un texte par défaut lui donnerait un faux sentiment de
 couverture (§15, §54).
 
-Les phases suivantes (factures, paiements…) ne sont pas commencées. Le
+**Phase 5 — Factures et paiements : terminée.**
+
+- Facture depuis un devis accepté, facture d'acompte, ou facture directe
+- **Une facture émise ne se modifie plus** : trois barrières — interdiction
+  applicative à chaque écriture, totaux figés en base, et empreinte SHA-256
+  permettant de détecter une altération faite hors application
+- Correction par **avoir** uniquement, jamais par réécriture
+- Encaissements réellement perçus (virement, chèque, espèces, carte), paiements
+  partiels, solde ; les états « partiellement payée » et « payée » sont **dérivés**
+  des paiements, jamais saisis
+- Facture imprimable, impayés et retards signalés sur l'accueil
+- La suppression d'un client porteur d'une facture émise est désormais **refusée**
+
+**Non livré, sans faux-semblant** : le paiement **en ligne** par lien sécurisé exige
+un prestataire configuré. Aucun bouton ne le propose et rien ne le simule (§76).
+
+Les phases suivantes (documents, signature, automatisations…) ne sont pas commencées. Le
 tableau de bord les annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Démarrer
@@ -104,7 +121,7 @@ Aucun secret réel ne doit être committé : `.env` est ignoré par git.
 ## Vérifications
 
 ```bash
-npm test        # Vitest : 153 tests, dont calculs, isolation, idempotence et états
+npm test        # Vitest : 188 tests, dont immuabilité, calculs, isolation et idempotence
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de production
@@ -126,6 +143,14 @@ TVA est arrondie **une seule fois par taux**, sur la base agrégée, et une remi
 est répartie au prorata sans perdre ni créer de centime. Ces propriétés sont
 testées, et la valeur des tests a été confirmée par mutation.
 
+### Sur l'immuabilité des factures
+
+Une facture émise ne se modifie plus, et cela ne repose pas sur un seul mécanisme :
+l'écriture est refusée côté serveur, les totaux sont figés en base plutôt que
+recalculés, et une empreinte SHA-256 permet de **détecter** une altération faite hors
+application. Une correction passe par un avoir. Les trois barrières ont été vérifiées
+par mutation : retirer l'une d'elles fait échouer le test correspondant.
+
 ### Sur le contraste
 
 Les couleurs ont été mesurées, pas supposées : l'orange de marque initial (`#d95f18`)
@@ -146,6 +171,7 @@ et compare chaque texte à son fond effectif.
 | `src/app/api/sync/route.ts` | Réception idempotente des mutations hors-ligne |
 | `src/lib/calcul.ts` | **Moteur de calcul** — arithmétique entière, TVA par taux, remise au prorata |
 | `src/lib/devis.ts` | Accès catalogue et devis, numérotation atomique |
+| `src/lib/facturation.ts` | **Intégrité des factures** — empreinte, soldes, états dérivés |
 | `src/lib/csv.ts` | Génération CSV (BOM UTF-8, neutralisation de l'injection de formule) |
 | `src/lib/libelles.ts` | Libellés affichés — aucun nom technique d'énumération dans l'interface |
 | `src/lib/auth.ts` | Hachage, ouverture et révocation de session |

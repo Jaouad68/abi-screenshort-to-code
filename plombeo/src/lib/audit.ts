@@ -59,7 +59,17 @@ export type ActionAuditee =
   | "quote.accepted"
   | "quote.declined"
   | "quote.expired"
-  | "quote.cancelled";
+  | "quote.cancelled"
+  // Phase 5 — facturation
+  | "invoice.created"
+  | "invoice.issued"
+  | "invoice.sent"
+  | "payment.recorded"
+  | "payment.removed"
+  | "invoice.paid"
+  | "credit_note.issued"
+  /// Empreinte d'intégrité qui ne correspond plus : c'est un INCIDENT.
+  | "invoice.integrity_failed";
 
 type EntreeAudit = {
   action: ActionAuditee;

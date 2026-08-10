@@ -42,6 +42,13 @@ export default function LayoutApplication({ children }: { children: React.ReactN
               Devis
             </Link>
             <Link
+              href="/app/factures"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Factures
+            </Link>
+            <Link
               href="/app/clients"
               className="inline-flex items-center min-h-11 px-3 rounded-controle
                          text-sm font-medium hover:bg-white/10"

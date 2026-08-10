@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { APrevoir, Badge, Bouton, Carte } from "@/components/ui";
 import { exigerSession, organisationCourante } from "@/lib/dal";
-import { compterClients } from "@/lib/crm";
 import { compterDevisEnCours } from "@/lib/devis";
+import { compterImpayees } from "@/lib/facturation";
 import {
   compterDemandesOuvertes,
   listerInterventionsEnCours,
@@ -11,6 +11,7 @@ import {
 } from "@/lib/terrain";
 import { adresseCourte } from "@/lib/libelles";
 import { formaterHeure } from "@/lib/format";
+import { formaterEuros } from "@/lib/calcul";
 import { demarrerIntervention } from "./agenda/actions";
 
 /**
@@ -26,14 +27,14 @@ export default async function TableauDeBord() {
   const contexte = await exigerSession();
   const organisation = await organisationCourante();
 
-  const [suivant, duJour, enCours, demandesOuvertes, nombreClients, devisEnCours] =
+  const [suivant, duJour, enCours, demandesOuvertes, devisEnCours, impayees] =
     await Promise.all([
       prochainRendezVous(),
       listerRendezVousDuJour(new Date()),
       listerInterventionsEnCours(),
       compterDemandesOuvertes(),
-      compterClients(),
       compterDevisEnCours(),
+      compterImpayees(),
     ]);
 
   const adresseSuivant = suivant?.property ? adresseCourte(suivant.property) : "";
@@ -138,14 +139,18 @@ export default async function TableauDeBord() {
           alerte={demandesOuvertes > 0}
         />
         <Raccourci href="/app/devis" titre="Devis" valeur={`${devisEnCours} en cours`} />
-        <Raccourci href="/app/clients" titre="Clients" valeur={`${nombreClients} fiches`} />
+        <Raccourci
+          href="/app/factures"
+          titre="Impayés"
+          valeur={impayees.nombre === 0 ? "À jour" : formaterEuros(impayees.montantCents)}
+          alerte={impayees.nombre > 0}
+        />
       </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-attenue">
           Prochainement
         </h2>
-        <APrevoir titre="Factures et paiements" phase="Phase 5" />
         <APrevoir titre="Photos et documents" phase="Phase 6" />
       </section>
     </div>

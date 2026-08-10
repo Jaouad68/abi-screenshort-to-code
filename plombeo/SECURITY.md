@@ -1,6 +1,6 @@
 # Sécurité — Plombéo
 
-État à la fin de la **Phase 4**. Ce document décrit ce qui est réellement en place et,
+État à la fin de la **Phase 5**. Ce document décrit ce qui est réellement en place et,
 tout aussi important, ce qui ne l'est pas encore.
 
 ## Modèle de menace retenu
@@ -138,6 +138,31 @@ point d'entrée réseau.
   (vérifié par mutation, avec 20 attributions concurrentes).
 - Un devis accepté ou refusé est figé : une correction passera par un nouveau
   devis, jamais par une réécriture (§14).
+
+### Intégrité des pièces comptables (Phase 5)
+
+Une facture émise ne se modifie plus. Trois barrières indépendantes, chacune
+rattrapant ce que la précédente laisserait passer :
+
+1. **Interdiction applicative** — toute écriture sur une facture ou ses lignes est
+   refusée hors état `BROUILLON`, vérifiée côté serveur à chaque écriture. Testé en
+   appelant les Server Actions avec des données forgées, c'est-à-dire exactement ce
+   que ferait quelqu'un contournant l'interface.
+2. **Totaux figés** — écrits en base à l'émission, jamais recalculés à l'affichage.
+   Une facture affiche demain ce qu'elle affichait le jour de son émission.
+3. **Empreinte SHA-256** — calculée à l'émission, vérifiée à chaque affichage. C'est
+   un mécanisme de **détection**, pas de protection : il n'empêche pas une écriture
+   directe en base, il empêche qu'elle passe inaperçue. Une divergence est journalisée
+   comme incident (`invoice.integrity_failed`).
+
+Correction : par **avoir** uniquement. La facture d'origine reste intacte.
+
+`facture:emettre` est une permission **distincte** de `facture:modifier` : émettre est
+l'acte irréversible qui engage l'entreprise.
+
+Un client porteur d'une facture émise ne peut plus être supprimé — les pièces
+comptables sont soumises à des obligations de conservation **[À VÉRIFIER — SOURCE
+OFFICIELLE]**.
 
 ### Responsabilité fiscale
 

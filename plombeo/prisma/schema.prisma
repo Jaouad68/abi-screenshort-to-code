@@ -75,6 +75,11 @@ model Organization {
   devisOptions  QuoteOption[]
   devisLignes   QuoteLine[]
   compteursDevis CompteurDevis[]
+  factures         Invoice[]
+  facturesLignes   InvoiceLine[]
+  avoirs           CreditNote[]
+  paiements        Payment[]
+  compteursFacture CompteurFacture[]
 }
 
 /// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
@@ -260,6 +265,7 @@ model Client {
   appointments  Appointment[]
   interventions Intervention[]
   devis         Quote[]
+  factures      Invoice[]
 
   @@index([organizationId, archivedAt])
   @@index([organizationId, nomAffichage])
@@ -306,6 +312,7 @@ model Property {
   appointments  Appointment[]
   interventions Intervention[]
   devis         Quote[]
+  factures      Invoice[]
 
   @@index([organizationId, archivedAt])
   @@index([clientId])
@@ -706,6 +713,7 @@ model Quote {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   options QuoteOption[]
+  factures Invoice[]
 
   @@unique([organizationId, numero])
   @@index([organizationId, statut])
@@ -781,6 +789,186 @@ model CompteurDevis {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, annee])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 5 — Factures, avoirs, paiements
+// ---------------------------------------------------------------------------
+//
+// RÈGLE CENTRALE (§14) : une facture ÉMISE ne se modifie plus. Une erreur se
+// corrige par un AVOIR, jamais par réécriture. Trois barrières :
+//   1. interdiction applicative de toute écriture hors état BROUILLON ;
+//   2. totaux FIGÉS en base à l'émission, plutôt que recalculés à l'affichage ;
+//   3. empreinte SHA-256 du contenu, pour DÉTECTER une altération faite hors
+//      application (accès direct à la base, restauration partielle).
+//
+// [À VÉRIFIER — SOURCE OFFICIELLE] Les obligations françaises exactes
+// (mentions, continuité de la numérotation, modalités de rectification, durée
+// de conservation) relèvent de sources officielles et de l'expert-comptable de
+// l'artisan. Plombéo fournit une structure ; il ne certifie aucune conformité.
+
+enum FactureStatut {
+  BROUILLON
+  /// Numérotée, totaux figés, empreinte calculée. Plus aucune modification.
+  EMISE
+  ENVOYEE
+  /// États DÉRIVÉS des paiements enregistrés, jamais saisis à la main.
+  PARTIELLEMENT_PAYEE
+  PAYEE
+}
+
+/// Une facture d'acompte doit être déductible de la facture de solde.
+enum FactureType {
+  STANDARD
+  ACOMPTE
+  SOLDE
+}
+
+enum MoyenPaiement {
+  VIREMENT
+  CHEQUE
+  ESPECES
+  CARTE
+  AUTRE
+}
+
+model Invoice {
+  id     String        @id @default(cuid())
+  numero String?
+  statut FactureStatut @default(BROUILLON)
+  type   FactureType   @default(STANDARD)
+
+  objet      String @default("")
+  conditions String @default("")
+  notes      String @default("")
+
+  dateFacture DateTime @default(now())
+  /// Échéance de paiement. Le DÉLAI applicable relève d'une source officielle
+  /// et du contrat : il est saisi, jamais déduit.
+  dateEcheance DateTime?
+
+  /// Totaux FIGÉS au moment de l'émission.
+  /// Recalculer à l'affichage ferait varier une facture émise le jour où le
+  /// moteur de calcul évolue — inacceptable pour une pièce comptable.
+  totalHtCents  Int @default(0)
+  totalTvaCents Int @default(0)
+  totalTtcCents Int @default(0)
+  /// Détail de la TVA par taux, figé lui aussi (tableau JSON).
+  detailTva     Json?
+
+  /// SHA-256 du contenu au moment de l'émission. Mécanisme de DÉTECTION :
+  /// il ne protège pas l'écriture, il empêche qu'une altération passe inaperçue.
+  empreinte String?
+  emiseLe   DateTime?
+  envoyeeLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  /// Devis d'origine, pour la traçabilité du cycle commercial.
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  lignes   InvoiceLine[]
+  paiements Payment[]
+  avoirs   CreditNote[]
+
+  @@unique([organizationId, numero])
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+/// Ligne de facture, figée à la copie comme les lignes de devis.
+model InvoiceLine {
+  id          String @id @default(cuid())
+  libelle     String
+  description String @default("")
+  quantiteMilli     Int @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+  ordre             Int @default(0)
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([organizationId])
+}
+
+/// Avoir : la SEULE façon de corriger une facture émise.
+model CreditNote {
+  id     String @id @default(cuid())
+  numero String?
+  motif  String @default("")
+  /// Montant TTC avoiré. Un avoir partiel est fréquent (geste commercial,
+  /// prestation non réalisée).
+  montantTtcCents Int @default(0)
+
+  dateAvoir DateTime @default(now())
+  empreinte String?
+
+  createdAt DateTime @default(now())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, numero])
+  @@index([invoiceId])
+}
+
+/// Encaissement réellement perçu.
+///
+/// Plombéo n'enregistre QUE des paiements constatés par l'artisan. Le paiement
+/// en ligne exige un prestataire configuré ; sans lui, aucune simulation n'est
+/// proposée (§76).
+model Payment {
+  id         String        @id @default(cuid())
+  montantCents Int
+  moyen      MoyenPaiement @default(VIREMENT)
+  datePaiement DateTime    @default(now())
+  reference  String        @default("")
+  notes      String        @default("")
+
+  createdAt DateTime @default(now())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([organizationId])
+}
+
+/// Compteurs de numérotation. Factures et avoirs ont des séquences DISTINCTES.
+model CompteurFacture {
+  id      String @id @default(cuid())
+  annee   Int
+  /// "FACTURE" ou "AVOIR".
+  serie   String
+  dernier Int    @default(0)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, annee, serie])
 }
 
 /// Tentatives de connexion, pour la protection anti-force brute (§46).

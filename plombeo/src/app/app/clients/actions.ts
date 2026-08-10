@@ -210,9 +210,9 @@ export async function restaurerClient(donnees: FormData): Promise<void> {
  * client : une suppression en cascade (logements, équipements) ne doit pas
  * pouvoir se déclencher par un clic malheureux sur un téléphone.
  *
- * ⚠️ À revoir en Phase 5 : lorsque des devis et factures seront rattachés, la
- * suppression devra être bloquée pour les clients porteurs de pièces soumises à
- * une obligation de conservation [À VÉRIFIER — SOURCE OFFICIELLE].
+ * Depuis la Phase 5, elle est REFUSÉE si le client porte au moins une facture
+ * émise : les pièces comptables sont soumises à des obligations de conservation
+ * [À VÉRIFIER — SOURCE OFFICIELLE], et la suppression en cascade les emporterait.
  */
 export async function supprimerClient(_precedent: EtatCrm, donnees: FormData): Promise<EtatCrm> {
   const { organizationId, userId } = await exigerPermission("client:supprimer");
@@ -227,6 +227,19 @@ export async function supprimerClient(_precedent: EtatCrm, donnees: FormData): P
 
   if (confirmation.toLowerCase() !== client.nomAffichage.trim().toLowerCase()) {
     return { erreur: "Saisissez exactement le nom du client pour confirmer la suppression." };
+  }
+
+  // Garde-fou comptable : une facture émise est une pièce à conserver.
+  // L'archivage reste possible, la suppression non.
+  const facturesEmises = await prisma.invoice.count({
+    where: { clientId: id, organizationId, statut: { not: "BROUILLON" } },
+  });
+  if (facturesEmises > 0) {
+    return {
+      erreur:
+        `Ce client porte ${facturesEmises} facture(s) émise(s), qui doivent être conservées. ` +
+        "Archivez-le plutôt que de le supprimer.",
+    };
   }
 
   await prisma.client.deleteMany({ where: { id, organizationId } });

@@ -8,6 +8,7 @@ import { roleAutorise } from "@/lib/permissions";
 import { transitionDevisAutorisee } from "@/lib/etats";
 import { adresseCourte } from "@/lib/libelles";
 import { changerEtatDevis, ajouterVariante } from "../actions";
+import { creerFactureAcompte, creerFactureDepuisDevis } from "../../factures/actions";
 import { LIBELLE_STATUT_DEVIS } from "../page";
 import { EditeurOption } from "./EditeurOption";
 import { EnteteDevis } from "./EnteteDevis";
@@ -135,6 +136,31 @@ export default async function PageDevis(props: PageProps<"/app/devis/[id]">) {
               + Ajouter une variante
             </Bouton>
           </form>
+        </Carte>
+      )}
+
+      {devis.statut === "ACCEPTE" && (
+        <Carte>
+          <h2 className="font-semibold mb-1">Facturer</h2>
+          <p className="text-sm text-attenue mb-3">
+            La facture reprendra les lignes de la proposition retenue. Elle restera en
+            brouillon tant que vous ne l&apos;aurez pas émise.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <form action={creerFactureDepuisDevis}>
+              <input type="hidden" name="quoteId" value={devis.id} />
+              <input type="hidden" name="optionId" value={devis.options[0]?.id ?? ""} />
+              <Bouton type="submit">Créer la facture</Bouton>
+            </form>
+            {totauxOption(devis.options[0]).acompteCents > 0 && (
+              <form action={creerFactureAcompte}>
+                <input type="hidden" name="quoteId" value={devis.id} />
+                <Bouton type="submit" variante="discret">
+                  Facturer l&apos;acompte
+                </Bouton>
+              </form>
+            )}
+          </div>
         </Carte>
       )}
 

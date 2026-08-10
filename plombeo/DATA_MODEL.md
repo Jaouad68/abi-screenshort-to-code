@@ -1,6 +1,6 @@
 # Modèle de données — Plombéo
 
-État à la fin de la **Phase 4**. Source de vérité : `prisma/schema.prisma`.
+État à la fin de la **Phase 5**. Source de vérité : `prisma/schema.prisma`.
 
 ## Principe fondateur
 
@@ -116,6 +116,21 @@ inexpliqués ; un compteur lu puis réécrit produirait des doublons en concurre
 Unités : montants en **centimes**, quantités en **milli-unités**, taux de TVA en
 **centièmes de pourcent** (2000 = 20 %, 550 = 5,5 %).
 
+### Invoice, InvoiceLine, CreditNote, Payment (Phase 5)
+
+`Invoice` porte ses **totaux figés** (`totalHtCents`, `totalTvaCents`, `totalTtcCents`,
+`detailTva`) et une **empreinte** SHA-256, tous écrits à l'émission. C'est la
+différence essentielle avec `Quote` : un devis se recalcule, une facture non.
+
+Il n'existe **aucun état « annulée »** après émission, et aucun retour vers
+`BROUILLON` : une facture se rectifie par `CreditNote`, jamais par réécriture (§14).
+
+`PARTIELLEMENT_PAYEE` et `PAYEE` sont **dérivés** des `Payment` enregistrés. Les
+laisser saisir à la main viderait de sens le suivi des impayés.
+
+`CompteurFacture` porte une séquence par organisation, année **et série** : factures
+et avoirs sont numérotés indépendamment.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -148,7 +163,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 5 | `Invoice`, `InvoiceLine`, `CreditNote`, `Payment` |
 | 6 | `Document`, `Signature` |
 | 7 | `AutomationRule`, `AutomationExecution`, `Notification` |
 | 8 | `Supplier`, `Purchase`, `StockItem`, `StockMovement`, `Expense` |

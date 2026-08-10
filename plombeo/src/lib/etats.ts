@@ -1,6 +1,7 @@
 import type {
   AppointmentStatut,
   DevisStatut,
+  FactureStatut,
   InterventionStatut,
   LeadStatut,
 } from "@/generated/prisma/enums";
@@ -64,6 +65,29 @@ const DEVIS: Record<DevisStatut, readonly DevisStatut[]> = {
   EXPIRE: ["ENVOYE", "ANNULE"],
   ANNULE: [],
 };
+
+/**
+ * Machine à états de la FACTURE.
+ *
+ * Différence essentielle avec le devis : il n'existe AUCUN retour vers
+ * BROUILLON, et aucun état « annulée ». Une facture émise ne s'annule pas et ne
+ * se réécrit pas — elle se rectifie par un avoir (§14). C'est ce qui distingue
+ * une pièce comptable d'une proposition commerciale.
+ *
+ * PARTIELLEMENT_PAYEE et PAYEE sont DÉRIVÉS des paiements enregistrés : ils ne
+ * sont jamais choisis à la main, d'où l'absence de transition manuelle vers eux.
+ */
+const FACTURE: Record<FactureStatut, readonly FactureStatut[]> = {
+  BROUILLON: ["EMISE"],
+  EMISE: ["ENVOYEE"],
+  ENVOYEE: [],
+  PARTIELLEMENT_PAYEE: [],
+  PAYEE: [],
+};
+
+export function transitionFactureAutorisee(de: FactureStatut, vers: FactureStatut): boolean {
+  return FACTURE[de].includes(vers);
+}
 
 export function transitionDevisAutorisee(de: DevisStatut, vers: DevisStatut): boolean {
   return DEVIS[de].includes(vers);

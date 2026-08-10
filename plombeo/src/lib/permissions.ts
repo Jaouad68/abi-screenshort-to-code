@@ -32,6 +32,13 @@ export const PERMISSIONS = [
   "devis:lire",
   "devis:modifier",
   "devis:supprimer",
+  // Phase 5 — facturation. `facture:emettre` est DISTINCTE de
+  // `facture:modifier` : émettre est l'acte irréversible qui engage
+  // l'entreprise.
+  "facture:lire",
+  "facture:modifier",
+  "facture:emettre",
+  "facture:encaisser",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -63,6 +70,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "devis:lire",
     "devis:modifier",
     "devis:supprimer",
+    "facture:lire",
+    "facture:modifier",
+    "facture:emettre",
+    "facture:encaisser",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -79,6 +90,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "catalogue:modifier",
     "devis:lire",
     "devis:modifier",
+    "facture:lire",
+    "facture:modifier",
+    "facture:emettre",
+    "facture:encaisser",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -110,6 +125,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "intervention:lire",
     "catalogue:lire",
     "devis:lire",
+    "facture:lire",
   ],
   LECTURE_SEULE: [
     "organisation:lire",
@@ -117,6 +133,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "intervention:lire",
     "catalogue:lire",
     "devis:lire",
+    "facture:lire",
   ],
 };
 
