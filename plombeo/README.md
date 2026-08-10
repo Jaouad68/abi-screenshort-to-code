@@ -15,6 +15,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 6** : [`docs/plombeo/PHASE-6-SPECIFICATION.md`](../docs/plombeo/PHASE-6-SPECIFICATION.md)
 - **Spécification Phase 7** : [`docs/plombeo/PHASE-7-SPECIFICATION.md`](../docs/plombeo/PHASE-7-SPECIFICATION.md)
 - **Spécification Phase 8** : [`docs/plombeo/PHASE-8-SPECIFICATION.md`](../docs/plombeo/PHASE-8-SPECIFICATION.md)
+- **Spécification Phase 9** : [`docs/plombeo/PHASE-9-SPECIFICATION.md`](../docs/plombeo/PHASE-9-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -187,8 +188,32 @@ laisserait croire à un chiffre opposable **[À VÉRIFIER — SOURCE OFFICIELLE 
 EXPERT-COMPTABLE]**. Une facture fournisseur est un document *reçu* : elle n'entre dans
 aucune numérotation Plombéo et ne porte aucune empreinte d'intégrité.
 
-Les phases suivantes (pilotage, portail client, IA…) ne sont pas commencées. Le tableau
-de bord les annonce explicitement plutôt que d'afficher des données fictives.
+**Phase 9 — Pilotage et pré-comptabilité : terminée.**
+
+- **Facturé** et **encaissé** affichés séparément, jamais fusionnés en un
+  « chiffre d'affaires » : sa détermination dépend du régime de l'entreprise
+- Rentabilité par chantier, encours, comparaison entre mois
+- Exports **journal des ventes** et **journal des achats** au format tableur
+
+**Le risque était la crédibilité des chiffres**, et la Phase 0 l'avait nommé :
+« indicateurs mal définis (confusion réel/estimation) ». Trois règles en découlent :
+
+- **le coût horaire est saisi, jamais déduit**. Il intègre charges, congés et temps non
+  facturable, dont Plombéo ne sait rien. Tant qu'il n'est pas renseigné, la rentabilité
+  n'est pas affichée et l'écran dit pourquoi. Une valeur par défaut produirait des
+  chiffres crédibles et faux ;
+- **aucune prévision, aucune tendance, aucun modèle.** Une courbe tracée sur trois mois
+  de données serait une invention graphique ;
+- **un chantier non calculable reste affiché** comme tel. L'écarter en silence donnerait
+  une moyenne flatteuse — ce sont justement les chantiers mal renseignés qui manquent.
+
+**L'export n'est pas un FEC.** Le fichier des écritures comptables répond à un format
+normé et suppose un plan comptable, que Plombéo n'a pas **[À VÉRIFIER — SOURCE
+OFFICIELLE]**. Sur les avoirs, les colonnes HT et TVA restent **vides** : Plombéo
+n'en connaît pas la ventilation et ne la déduit pas d'un taux supposé.
+
+Les phases suivantes (portail client, IA, contrats, SaaS…) ne sont pas commencées. Le
+tableau de bord les annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Intégration continue
 

@@ -59,6 +59,9 @@ export const PERMISSIONS = [
   "achat:modifier",
   "stock:lire",
   "stock:modifier",
+  // Phase 9 — pilotage. La rentabilité de l'entreprise n'est pas une donnée de
+  // chantier : le terrain ne la voit pas.
+  "pilotage:lire",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -105,6 +108,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "achat:modifier",
     "stock:lire",
     "stock:modifier",
+    "pilotage:lire",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -136,6 +140,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "achat:modifier",
     "stock:lire",
     "stock:modifier",
+    "pilotage:lire",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -149,6 +154,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "achat:modifier",
     "stock:lire",
     "stock:modifier",
+    "pilotage:lire",
   ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.
@@ -196,6 +202,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "notification:lire",
     "achat:lire",
     "stock:lire",
+    "pilotage:lire",
   ],
   LECTURE_SEULE: [
     "organisation:lire",
@@ -209,6 +216,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "notification:lire",
     "achat:lire",
     "stock:lire",
+    "pilotage:lire",
   ],
 };
 

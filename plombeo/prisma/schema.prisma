@@ -54,6 +54,14 @@ model Organization {
   tvaIntracommunautaire String @default("")
   assuranceDecennale    String @default("")
 
+  /// Coût horaire de revient, SAISI par l'artisan (Phase 9).
+  ///
+  /// Zéro signifie NON RENSEIGNÉ, jamais « gratuit » : tant qu'il vaut zéro, la
+  /// rentabilité n'est pas affichée. Le déduire du temps saisi produirait un
+  /// coût faux — il intègre charges, congés, temps non facturable et
+  /// amortissements, dont Plombéo ne sait rien.
+  coutHoraireCents Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

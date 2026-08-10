@@ -94,7 +94,9 @@ export type ActionAuditee =
   | "purchase.created"
   | "purchase.validated"
   | "stock.movement_recorded"
-  | "stock.corrected";
+  | "stock.corrected"
+  // Phase 9 — pilotage
+  | "export.accounting_generated";
 
 type EntreeAudit = {
   action: ActionAuditee;
