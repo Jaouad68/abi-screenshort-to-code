@@ -193,19 +193,41 @@ comme ceux d'une facture émise. `totalTvaCents` est **saisi**, jamais calculé.
 Ajouts sur `Product` : `prixAchatCents` (zéro = **inconnu**, pas gratuit),
 `suiviStock` (faux par défaut), `seuilAlerteMilli` (zéro = pas d'alerte), `supplierId`.
 
+### Invitation, Plan, Subscription (Phase 14)
+
+`Invitation` porte **l'empreinte** d'un jeton (`tokenHash`, unique), l'adresse invitée et
+le **rôle figé**. Le jeton en clair n'existe qu'une fois, à l'écran de celui qui invite :
+la base n'en garde jamais de quoi reconstituer un lien. `expiresAt`, `accepteeLe` et
+`revokeeLe` rendent l'invitation expirante, à usage unique et révocable ; `parEmail`
+répond à « qui a ouvert cette porte ».
+
+`Plan` et `Subscription` portent **un état d'abonnement, et rien d'autre**. Aucun montant
+n'est prélevé, aucun statut « payé » n'est produit par le code : la décision du
+prestataire de paiement n'est pas prise, et elle ne peut pas l'être par le code (§76).
+
+Ajouts sur `User` : `totpSecret` (**en clair** — le chiffrer suppose une clé, donc un
+secret à protéger ailleurs **[À VÉRIFIER — SOURCE OFFICIELLE]**), `totpActifLe` (l'absence
+de date vaut « facteur non activé » ; le secret seul n'active rien) et
+`codesRecuperation`, **hachés** : la base ne doit pas contenir de quoi contourner le
+facteur qu'elle protège.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
-résultat — **jamais le mot de passe**. Table purgeable.
+résultat — **jamais le mot de passe**. Depuis la Phase 14, il compte aussi les échecs à
+l'étape du **second facteur** : sans cela, cette étape serait le seul écran où l'on peut
+essayer sans limite. Table purgeable.
 
 ## Énumération `Role`
 
 `PROPRIETAIRE`, `ADMINISTRATEUR`, `ASSISTANT`, `TECHNICIEN`, `APPRENTI`,
 `SOUS_TRAITANT`, `COMPTABLE`, `LECTURE_SEULE`.
 
-Les huit rôles du cahier des charges (§49) existent en base dès la Phase 1 ; seuls les
-deux premiers sont exploités par l'interface V1. Les créer maintenant évite une
-migration de rupture à l'ouverture multi-utilisateurs (Phase 14).
+Les huit rôles du cahier des charges (§49) existent en base dès la Phase 1. Jusqu'à la
+Phase 14, seuls les deux premiers étaient exploités en pratique, faute d'un écran ouvrant
+un second compte ; les créer dès le départ a évité une migration de rupture à
+l'ouverture multi-utilisateurs. **Les huit sont désormais attribuables**, et l'interface
+ne propose à chacun que les écrans que son rôle autorise.
 
 Les **permissions** sont définies en code (`src/lib/permissions.ts`), pas en base : tant
 que les rôles ne sont pas personnalisables par l'artisan, une table `Permission` serait
@@ -221,12 +243,19 @@ de la sur-ingénierie.
 | **Soft delete** sur les entités à valeur documentaire | Obligations de conservation (§78) |
 | `organizationId` sur toute table métier | Cloisonnement |
 
+## Entités décrites dans leur spécification de phase
+
+Certaines tables livrées après la Phase 8 ne sont pas reprises ici en détail ; leur
+raison d'être est exposée dans la spécification de leur phase, qui fait foi.
+
+| Phase | Entités | Spécification |
+|---|---|---|
+| 10 | `ClientAccess` | `docs/plombeo/PHASE-10-SPECIFICATION.md` |
+| 11 | `AiAction` | `docs/plombeo/PHASE-11-SPECIFICATION.md` |
+| 13 | `MaintenanceContract`, `Warranty` | `docs/plombeo/PHASE-13-SPECIFICATION.md` |
+
 ## À venir
 
-| Phase | Entités |
-|---|---|
-| 11 | `AiAction` |
-| 13 | `MaintenanceContract`, `Warranty` |
-| 14 | `Subscription`, `Plan`, `Invitation`, `SupportTicket` |
-
-Le détail de chacune est arrêté au lancement de la phase concernée, pas d'avance.
+`SupportTicket`, envisagé en Phase 14, n'a pas été créé : une table de tickets sans
+personne pour y répondre serait un formulaire qui n'aboutit nulle part. Le détail des
+entités restantes est arrêté au lancement de la phase concernée, pas d'avance.

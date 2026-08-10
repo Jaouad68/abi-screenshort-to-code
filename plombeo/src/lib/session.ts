@@ -2,6 +2,8 @@ import { SignJWT, jwtVerify } from "jose";
 import { createHash, randomBytes } from "node:crypto";
 
 export const COOKIE_SESSION = "plombeo_session";
+/** Cookie du défi de second facteur (Phase 14). Voir `signerDefi`. */
+export const COOKIE_DEFI = "plombeo_defi";
 const ALG = "HS256";
 
 /** Durée de vie d'une session. L'artisan est sur chantier : le reconnecter
@@ -34,12 +36,68 @@ function clesAcceptees(): Uint8Array[] {
   return cles;
 }
 
+/**
+ * Type porté par le jeton.
+ *
+ * Deux jetons sont signés avec la même clé : la session, et le défi de second
+ * facteur (Phase 14). Sans marqueur, un défi — obtenu en ne connaissant que le
+ * mot de passe — serait un jeton valablement signé qu'on pourrait tenter de
+ * présenter comme cookie de session, c'est-à-dire exactement ce que le second
+ * facteur doit empêcher. Chaque vérificateur exige donc son type.
+ */
+const TYPE_SESSION = "session";
+const TYPE_DEFI = "defi";
+
 export type ContenuSession = {
   /** Identifiant unique de session, corrélé à la table Session. */
   sid: string;
   userId: string;
   organizationId: string;
 };
+
+/** Contenu du défi : il n'ouvre rien, il atteste seulement du premier facteur. */
+export type ContenuDefi = {
+  userId: string;
+  organizationId: string;
+  email: string;
+};
+
+/**
+ * Durée du défi de second facteur.
+ *
+ * Court : ce jeton atteste que le mot de passe a été fourni. Le laisser vivre
+ * longtemps reviendrait à garder une porte entrouverte après la saisie.
+ */
+export const DUREE_DEFI_MINUTES = 5;
+
+export async function signerDefi(contenu: ContenuDefi): Promise<string> {
+  return new SignJWT({ ...contenu, typ: TYPE_DEFI })
+    .setProtectedHeader({ alg: ALG })
+    .setIssuedAt()
+    .setExpirationTime(`${DUREE_DEFI_MINUTES}m`)
+    .sign(cleSecrete());
+}
+
+export async function verifierDefi(jeton: string): Promise<ContenuDefi | null> {
+  for (const cle of clesAcceptees()) {
+    try {
+      const { payload } = await jwtVerify(jeton, cle, { algorithms: [ALG] });
+      if (payload["typ"] !== TYPE_DEFI) return null;
+      const { userId, organizationId, email } = payload;
+      if (
+        typeof userId !== "string" ||
+        typeof organizationId !== "string" ||
+        typeof email !== "string"
+      ) {
+        return null;
+      }
+      return { userId, organizationId, email };
+    } catch {
+      // Clé suivante.
+    }
+  }
+  return null;
+}
 
 /** Identifiant de session opaque, imprévisible. */
 export function genererIdSession(): string {
@@ -57,7 +115,7 @@ export function hacherJeton(jeton: string): string {
 }
 
 export async function signerSession(contenu: ContenuSession): Promise<string> {
-  return new SignJWT({ ...contenu })
+  return new SignJWT({ ...contenu, typ: TYPE_SESSION })
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
     .setExpirationTime(`${DUREE_SESSION_JOURS}d`)
@@ -77,6 +135,11 @@ export async function verifierSession(jeton: string): Promise<ContenuSession | n
   for (const cle of clesAcceptees()) {
     try {
       const { payload } = await jwtVerify(jeton, cle, { algorithms: [ALG] });
+      // Un jeton d'un autre type — le défi de second facteur — n'est pas une
+      // session, même correctement signé. Les sessions émises avant la Phase 14
+      // ne portent pas de marqueur : leur absence reste acceptée, une valeur
+      // étrangère non.
+      if (payload["typ"] !== undefined && payload["typ"] !== TYPE_SESSION) return null;
       const { sid, userId, organizationId } = payload;
       if (
         typeof sid !== "string" ||

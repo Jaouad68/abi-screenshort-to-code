@@ -20,6 +20,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 11** : [`docs/plombeo/PHASE-11-SPECIFICATION.md`](../docs/plombeo/PHASE-11-SPECIFICATION.md)
 - **Spécification Phase 12** : [`docs/plombeo/PHASE-12-SPECIFICATION.md`](../docs/plombeo/PHASE-12-SPECIFICATION.md)
 - **Spécification Phase 13** : [`docs/plombeo/PHASE-13-SPECIFICATION.md`](../docs/plombeo/PHASE-13-SPECIFICATION.md)
+- **Spécification Phase 14** : [`docs/plombeo/PHASE-14-SPECIFICATION.md`](../docs/plombeo/PHASE-14-SPECIFICATION.md)
 - **Spécification Phase 15** : [`docs/plombeo/PHASE-15-SPECIFICATION.md`](../docs/plombeo/PHASE-15-SPECIFICATION.md)
 
 ## État d'avancement
@@ -316,12 +317,38 @@ pour cette raison.
 SOURCE OFFICIELLE ET CONSEIL JURIDIQUE]**. Aucune durée par défaut n'est proposée :
 suggérer « 2 ans » ou « 10 ans » serait déjà un conseil juridique.
 
-La phase 14 (SaaS, ouverture multi-utilisateurs) n'est pas commencée. Le tableau de bord
-l'annonce explicitement plutôt que d'afficher des données fictives.
+**Phase 14 — SaaS, ouverture multi-utilisateurs : terminée.**
+
+- Invitations par lien (jeton haché, expirant, à usage unique), rôle **figé à l'invitation**
+- Retrait d'un membre, avec révocation immédiate de ses sessions
+- Second facteur TOTP, vérifié **localement**, avec codes de récupération
+- Connexion en deux étapes, `Plan` / `Subscription` **sans aucun encaissement**
+
+**Aucun compte n'est créé avant acceptation.** Un compte créé d'avance est un compte
+sans mot de passe choisi, donc une porte ouverte en attente.
+
+**On n'invite jamais plus haut que soi.** Sans cette règle, l'invitation devient un
+mécanisme d'élévation de privilèges : il suffirait d'inviter un complice — ou soi-même
+sur une autre adresse — pour obtenir les pleins pouvoirs. L'écran borne la liste, le
+serveur revérifie.
+
+**Le mot de passe seul n'ouvre aucune session** quand le second facteur est actif : il
+pose un défi de cinq minutes, dans un cookie `httpOnly`, qui n'atteste que du premier
+facteur.
+
+**Rien n'encaisse.** Aucun bouton « payer », aucun montant prélevé, aucun statut « payé »
+qu'aucun paiement n'aurait produit (§76). Le nombre d'utilisateurs du plan n'est pas non
+plus bloqué tant que ce choix n'est pas fait.
+
+**Ce que l'ouverture des comptes a révélé.** Le premier compte non-propriétaire a montré
+que l'écran d'accueil était inaccessible à tout rôle sans `devis:lire` et `facture:lire`,
+que la barre de navigation proposait les quinze écrans à tout le monde, et qu'une erreur
+de rôle produisait une page blanche. Les trois sont corrigés — c'était précisément
+l'objet de la phase : *rendre les rôles réels*.
 
 ## Intégration continue
 
-`.github/workflows/plombeo-ci.yml` vérifie à chaque poussée : types, lint, **213
+`.github/workflows/plombeo-ci.yml` vérifie à chaque poussée : types, lint, **409
 tests** et build, contre une vraie base PostgreSQL.
 
 La base réelle n'est pas un confort : les tests d'isolation multi-tenant sont des tests

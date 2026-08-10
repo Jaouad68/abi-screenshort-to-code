@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { APrevoir, Badge, Bouton, Carte } from "@/components/ui";
+import { Badge, Bouton, Carte } from "@/components/ui";
 import { exigerSession, organisationCourante } from "@/lib/dal";
+import { roleAutorise } from "@/lib/permissions";
 import { compterDevisEnCours } from "@/lib/devis";
 import { compterImpayees } from "@/lib/facturation";
 import {
@@ -27,14 +28,29 @@ export default async function TableauDeBord() {
   const contexte = await exigerSession();
   const organisation = await organisationCourante();
 
+  /*
+   * Chaque bloc n'est CHARGÉ que si le rôle y a droit.
+   *
+   * Avant la Phase 14, cet écran appelait tout sans condition — ce qui allait
+   * tant qu'aucun compte autre que celui du propriétaire n'existait. Ouvrir les
+   * comptes l'a révélé aussitôt : un apprenti, dont le rôle ne donne ni
+   * `devis:lire` ni `facture:lire`, ne pouvait pas afficher son propre accueil.
+   * Le défaut n'était pas le contrôle de permission, qui a bien fonctionné,
+   * mais l'écran qui demandait plus que nécessaire.
+   */
+  const voitLeTerrain = roleAutorise(contexte.role, "intervention:lire");
+  const voitLesDevis = roleAutorise(contexte.role, "devis:lire");
+  const voitLesFactures = roleAutorise(contexte.role, "facture:lire");
+  const peutIntervenir = roleAutorise(contexte.role, "intervention:modifier");
+
   const [suivant, duJour, enCours, demandesOuvertes, devisEnCours, impayees] =
     await Promise.all([
-      prochainRendezVous(),
-      listerRendezVousDuJour(new Date()),
-      listerInterventionsEnCours(),
-      compterDemandesOuvertes(),
-      compterDevisEnCours(),
-      compterImpayees(),
+      voitLeTerrain ? prochainRendezVous() : null,
+      voitLeTerrain ? listerRendezVousDuJour(new Date()) : [],
+      voitLeTerrain ? listerInterventionsEnCours() : [],
+      voitLeTerrain ? compterDemandesOuvertes() : 0,
+      voitLesDevis ? compterDevisEnCours() : 0,
+      voitLesFactures ? compterImpayees() : { nombre: 0, montantCents: 0 },
     ]);
 
   const adresseSuivant = suivant?.property ? adresseCourte(suivant.property) : "";
@@ -68,6 +84,7 @@ export default async function TableauDeBord() {
         </Carte>
       )}
 
+      {voitLeTerrain && (
       <Carte>
         <h2 className="font-semibold mb-2">Prochain rendez-vous</h2>
         {suivant ? (
@@ -89,10 +106,14 @@ export default async function TableauDeBord() {
                   Ouvrir l&apos;intervention
                 </Link>
               ) : (
-                <form action={demarrerIntervention}>
-                  <input type="hidden" name="appointmentId" value={suivant.id} />
-                  <Bouton type="submit">Démarrer</Bouton>
-                </form>
+                // Démarrer une intervention est une écriture : proposer le
+                // bouton à qui n'y a pas droit ne donnerait qu'un refus.
+                peutIntervenir && (
+                  <form action={demarrerIntervention}>
+                    <input type="hidden" name="appointmentId" value={suivant.id} />
+                    <Bouton type="submit">Démarrer</Bouton>
+                  </form>
+                )
               )}
               {adresseSuivant && (
                 <a
@@ -118,41 +139,48 @@ export default async function TableauDeBord() {
           </>
         ) : (
           <p className="text-sm text-attenue">
-            Aucun rendez-vous à venir.{" "}
-            <Link href="/app/agenda/nouveau" className="text-encre underline font-semibold">
-              En planifier un
-            </Link>
+            Aucun rendez-vous à venir.
+            {peutIntervenir && (
+              <>
+                {" "}
+                <Link href="/app/agenda/nouveau" className="text-encre underline font-semibold">
+                  En planifier un
+                </Link>
+              </>
+            )}
           </p>
         )}
       </Carte>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
-        <Raccourci
-          href="/app/agenda"
-          titre="Aujourd'hui"
-          valeur={`${duJour.length} RDV`}
-        />
-        <Raccourci
-          href="/app/demandes"
-          titre="Demandes"
-          valeur={`${demandesOuvertes} en attente`}
-          alerte={demandesOuvertes > 0}
-        />
-        <Raccourci href="/app/devis" titre="Devis" valeur={`${devisEnCours} en cours`} />
-        <Raccourci
-          href="/app/factures"
-          titre="Impayés"
-          valeur={impayees.nombre === 0 ? "À jour" : formaterEuros(impayees.montantCents)}
-          alerte={impayees.nombre > 0}
-        />
+        {voitLeTerrain && (
+          <>
+            <Raccourci
+              href="/app/agenda"
+              titre="Aujourd'hui"
+              valeur={`${duJour.length} RDV`}
+            />
+            <Raccourci
+              href="/app/demandes"
+              titre="Demandes"
+              valeur={`${demandesOuvertes} en attente`}
+              alerte={demandesOuvertes > 0}
+            />
+          </>
+        )}
+        {voitLesDevis && (
+          <Raccourci href="/app/devis" titre="Devis" valeur={`${devisEnCours} en cours`} />
+        )}
+        {voitLesFactures && (
+          <Raccourci
+            href="/app/factures"
+            titre="Impayés"
+            valeur={impayees.nombre === 0 ? "À jour" : formaterEuros(impayees.montantCents)}
+            alerte={impayees.nombre > 0}
+          />
+        )}
       </div>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="font-semibold text-sm uppercase tracking-wide text-attenue">
-          Prochainement
-        </h2>
-        <APrevoir titre="Photos et documents" phase="Phase 6" />
-      </section>
     </div>
   );
 }

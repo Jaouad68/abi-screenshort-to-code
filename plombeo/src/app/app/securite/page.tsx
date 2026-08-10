@@ -1,6 +1,8 @@
 import { Bouton, Carte } from "@/components/ui";
 import { exigerSession, sessionsActives } from "@/lib/dal";
+import { prisma } from "@/lib/prisma";
 import { deconnecter, deconnecterTousLesAppareils } from "../actions";
+import { SecondFacteur } from "./SecondFacteur";
 
 export const metadata = { title: "Sécurité — Plombéo" };
 
@@ -22,15 +24,24 @@ function nommerAppareil(userAgent: string): string {
 export default async function PageSecurite() {
   const contexte = await exigerSession();
   const sessions = await sessionsActives();
+  const compte = await prisma.user.findUnique({
+    where: { id: contexte.userId },
+    select: { totpActifLe: true },
+  });
 
   return (
     <div className="flex flex-col gap-4">
       <header>
         <h1 className="text-2xl font-bold">Sécurité</h1>
         <p className="text-attenue mt-1">
-          Vos appareils connectés à Plombéo.
+          Votre second facteur et vos appareils connectés.
         </p>
       </header>
+
+      {/* L'activation reste VOLONTAIRE. L'imposer à un artisan seul, sans
+          gestionnaire de mots de passe, le pousserait à noter son secret sur un
+          papier près de l'ordinateur. */}
+      <SecondFacteur actif={Boolean(compte?.totpActifLe)} />
 
       <Carte>
         <h2 className="font-semibold mb-3">Appareils connectés</h2>

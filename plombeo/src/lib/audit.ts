@@ -112,7 +112,15 @@ export type ActionAuditee =
   | "contract.created"
   | "contract.updated"
   | "contract.visit_recorded"
-  | "warranty.created";
+  | "warranty.created"
+  // Phase 14 — SaaS et équipe
+  | "member.invited"
+  | "member.invitation_revoked"
+  | "member.joined"
+  | "member.removed"
+  | "user.mfa_enabled"
+  | "user.mfa_disabled"
+  | "user.mfa_failed";
 
 type EntreeAudit = {
   action: ActionAuditee;

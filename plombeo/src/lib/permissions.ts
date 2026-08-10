@@ -73,6 +73,9 @@ export const PERMISSIONS = [
   // engagement commercial.
   "contrat:lire",
   "contrat:modifier",
+  // Phase 14 — équipe. `membre:inviter` existait depuis la Phase 1 et devient
+  // enfin utile.
+  "membre:retirer",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -124,6 +127,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "ia:utiliser",
     "contrat:lire",
     "contrat:modifier",
+    "membre:retirer",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",

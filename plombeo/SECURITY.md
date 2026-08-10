@@ -317,6 +317,63 @@ marge ou prix d'achat n'y figure.
 Le portail vit **hors de `/app`** et ne réutilise aucun composant de l'espace connecté,
 pour qu'aucune donnée de gestion ne s'y invite par accident.
 
+### Équipe, invitations et second facteur (Phase 14)
+
+**C'est la phase qui change le modèle de menace.** Jusqu'ici, les huit rôles existaient
+en base et étaient vérifiés côté serveur, mais aucun écran n'ouvrait un second compte.
+Ouvrir les comptes, c'est multiplier les portes, rendre les rôles réellement opérants, et
+créer un chemin d'élévation de privilèges là où il n'y en avait pas.
+
+**L'invitation est un jeton, pas un compte pré-créé.** Aléatoire, **haché en base**,
+expirant (14 jours), à usage unique — exactement comme le lien du portail. Un compte créé
+d'avance serait un compte sans mot de passe choisi, donc une porte ouverte en attente.
+
+**Le rôle est figé à l'invitation**, jamais choisi par l'invité. Un test poste
+explicitement un champ `role` supplémentaire et vérifie qu'il n'a aucun effet.
+
+**On n'invite jamais plus haut que soi.** Un administrateur ne peut pas inviter un
+propriétaire. Sans cette règle, il suffirait d'inviter un complice — ou soi-même sur une
+autre adresse — pour obtenir les pleins pouvoirs. L'écran borne la liste proposée ; le
+serveur revérifie, un `<select>` se modifiant.
+
+**Le dernier propriétaire ne peut pas être retiré** : une organisation sans propriétaire
+est une organisation que plus personne ne peut administrer. Le refus est explicite.
+
+**Le retrait d'un membre supprime ses sessions.** Un retrait qui laisserait une session
+ouverte ne serait pas un retrait.
+
+**Acceptation par une adresse ayant déjà un compte** : le mot de passe de ce compte est
+exigé, et **aucune session n'est ouverte**. Sans cela, quiconque intercepterait le lien
+entrerait dans un compte existant sans jamais l'avoir connu — et contournerait son second
+facteur au passage. On rattache, puis on renvoie vers la connexion, porte unique.
+
+**Second facteur : TOTP (RFC 6238) vérifié localement.** Aucun prestataire, aucun SMS —
+un SMS suppose un contrat, un coût par message, et reste le second facteur le plus faible.
+Fenêtre de tolérance d'un pas, comparaison à temps constant, codes de récupération
+**hachés** et à usage unique. Activation **volontaire** : l'imposer à un artisan seul sans
+gestionnaire de mots de passe le pousserait à noter son secret sur un papier près de
+l'ordinateur.
+
+**Le mot de passe seul n'ouvre aucune session** quand le facteur est actif. Il pose un
+**défi** — jeton de cinq minutes, cookie `httpOnly` — qui atteste du premier facteur et de
+rien d'autre. Ouvrir la session dès le mot de passe, quitte à demander le code ensuite,
+donnerait un cookie exploitable à qui ne connaît que le mot de passe.
+
+Le défi est signé avec **la même clé** que la session. Chaque jeton porte donc un marqueur
+de type et chaque vérificateur exige le sien ; un test signe un jeton portant tous les
+champs des deux formes pour que seul le type puisse trancher.
+
+Le compteur d'échecs de la connexion s'applique **aussi** à l'étape du code : sans cela,
+le second facteur serait le seul écran où l'on peut essayer sans limite.
+
+**[À VÉRIFIER — SOURCE OFFICIELLE]** Le secret TOTP est stocké **en clair** en base. Le
+chiffrer suppose une clé, donc un secret à protéger ailleurs. Le point est signalé, pas
+tranché.
+
+**Abonnements : aucun encaissement.** `Plan` et `Subscription` portent un état. Aucun
+bouton « payer », aucun montant prélevé, aucun statut « payé » qu'aucun paiement n'aurait
+produit (§76).
+
 ### Mise à jour des dépendances
 
 `npm audit` fait partie de la vérification, pas d'une revue annuelle. En août 2026,
@@ -359,7 +416,7 @@ Dire « fait » sur ces points serait une fausse garantie (§76).
 
 | Point | Raison |
 |---|---|
-| **MFA / TOTP** | L'application est **mono-utilisateur en pratique** : aucun écran n'ouvre encore un second compte. Un second facteur protège surtout contre le vol de mot de passe, alors que la vraie exposition viendra de l'ouverture multi-utilisateurs. **À livrer avec la Phase 14**, pas avant |
+| ~~**MFA / TOTP**~~ | **Livré en Phase 14**, comme annoncé — voir ci-dessous |
 | **Réinitialisation du mot de passe** | L'adaptateur e-mail existe ; ce qui manque n'est pas technique. Un parcours de réinitialisation est un **contournement de l'authentification** et se conçoit avec le même soin qu'elle (jeton à usage unique, durée très courte, invalidation des sessions). Bâclé, il devient la porte la plus facile. **Assumé absent plutôt que mal fait** |
 | **Analyse antivirale des fichiers** | Suppose un prestataire, donc un contrat et un flux sortant. Les fichiers ne sont jamais servis exécutables (`attachment` + `nosniff`), ce qui limite le risque **pour Plombéo, pas pour le poste de l'artisan qui les ouvre** |
 | **Chiffrement au repos de colonnes sensibles** | **Sans objet** : aucune colonne bancaire n'existe dans le schéma |

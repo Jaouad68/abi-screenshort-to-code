@@ -94,6 +94,8 @@ model Organization {
   actionsIA        AiAction[]
   contrats         MaintenanceContract[]
   garanties        Warranty[]
+  invitations      Invitation[]
+  abonnement       Subscription?
   fournisseurs     Supplier[]
   achats           Purchase[]
   lignesAchat      PurchaseLine[]
@@ -118,6 +120,13 @@ model User {
   memberships Membership[]
   sessions    Session[]
   auditLogs   AuditLog[]
+  /// MFA (Phase 14). Le secret TOTP n'est pas chiffré : le chiffrer suppose une
+  /// clé, donc un secret à protéger ailleurs [À VÉRIFIER — SOURCE OFFICIELLE].
+  totpSecret        String?
+  totpActifLe       DateTime?
+  /// Codes de récupération HACHÉS, à usage unique. Sans eux, un téléphone perdu
+  /// fermerait définitivement le compte.
+  codesRecuperation String[]  @default([])
 }
 
 /// Lien User <-> Organization, porteur du rôle.
@@ -1659,4 +1668,77 @@ model Warranty {
 
   @@index([organizationId])
   @@index([equipmentId])
+}
+
+/* ========================================================================== */
+/* Phase 14 — SaaS : invitations, abonnements                                 */
+/* ========================================================================== */
+
+/// Invitation à rejoindre une organisation.
+///
+/// Le jeton est HACHÉ, expirant et à usage unique, comme le lien du portail
+/// (Phase 10). Aucun compte n'est créé avant acceptation : un compte créé
+/// d'avance est un compte sans mot de passe choisi, donc une porte ouverte en
+/// attente.
+///
+/// Le RÔLE est figé ici, jamais choisi par l'invité.
+model Invitation {
+  id        String @id @default(cuid())
+  tokenHash String @unique
+
+  email String
+  role  Role
+
+  expiresAt  DateTime
+  accepteeLe DateTime?
+  revokeeLe  DateTime?
+
+  createdAt DateTime @default(now())
+  /// Qui a invité : une invitation est un acte, elle doit avoir un auteur.
+  parEmail  String   @default("")
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, accepteeLe])
+}
+
+/// Offre d'abonnement.
+///
+/// Existe pour porter la structure. RIEN N'ENCAISSE : aucun prestataire de
+/// paiement n'est retenu, et prétendre le contraire serait la fausse garantie
+/// que le §76 interdit.
+model Plan {
+  id      String @id @default(cuid())
+  code    String @unique
+  libelle String
+
+  prixMensuelCents Int @default(0)
+  maxUtilisateurs  Int @default(1)
+
+  abonnements Subscription[]
+}
+
+enum EtatAbonnement {
+  ESSAI
+  ACTIF
+  SUSPENDU
+  RESILIE
+}
+
+model Subscription {
+  id   String         @id @default(cuid())
+  etat EtatAbonnement @default(ESSAI)
+
+  debutLe DateTime  @default(now())
+  finLe   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }

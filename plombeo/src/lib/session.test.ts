@@ -1,8 +1,11 @@
+import { SignJWT } from "jose";
 import { describe, expect, it } from "vitest";
 import {
   genererIdSession,
   hacherJeton,
+  signerDefi,
   signerSession,
+  verifierDefi,
   verifierSession,
   type ContenuSession,
 } from "@/lib/session";
@@ -38,6 +41,68 @@ describe("jetons de session", () => {
     process.env["SESSION_SECRET"] = secretOrigine;
 
     expect(await verifierSession(jetonEtranger)).toBeNull();
+  });
+});
+
+/*
+ * Le défi de second facteur (Phase 14) est signé avec la MÊME clé que la
+ * session. Sans séparation stricte, un jeton obtenu en ne connaissant que le
+ * mot de passe serait présentable comme cookie de session : le second facteur
+ * ne protégerait plus rien.
+ */
+describe("défi de second facteur", () => {
+  const defi = { userId: "user-123", organizationId: "org-123", email: "a@b.fr" };
+
+  it("signe puis relit le contenu", async () => {
+    expect(await verifierDefi(await signerDefi(defi))).toEqual(defi);
+  });
+
+  it("n'est PAS accepté comme jeton de session", async () => {
+    expect(await verifierSession(await signerDefi(defi))).toBeNull();
+  });
+
+  it("n'accepte PAS un jeton de session comme défi", async () => {
+    expect(await verifierDefi(await signerSession(contenu))).toBeNull();
+  });
+
+  /*
+   * Les deux tests ci-dessus passeraient encore si le marqueur `typ`
+   * disparaissait : un défi n'a pas de `sid`, une session n'a pas d'`email`, et
+   * chaque vérificateur échouerait sur le champ manquant. Ils ne prouvent donc
+   * rien du marqueur lui-même.
+   *
+   * Ceux qui suivent signent un jeton portant TOUS les champs des deux formes,
+   * et ne laissent plus que le type pour trancher. C'est le seul cas où
+   * supprimer la garde se voit.
+   */
+  it("refuse un jeton complet dont seul le type diffère", async () => {
+    const secret = new TextEncoder().encode(process.env["SESSION_SECRET"]!);
+    const complet = {
+      sid: "session-123",
+      userId: "user-123",
+      organizationId: "org-123",
+      email: "a@b.fr",
+    };
+
+    const marqueDefi = await new SignJWT({ ...complet, typ: "defi" })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("5m")
+      .sign(secret);
+    expect(await verifierSession(marqueDefi)).toBeNull();
+
+    const marqueSession = await new SignJWT({ ...complet, typ: "session" })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("5m")
+      .sign(secret);
+    expect(await verifierDefi(marqueSession)).toBeNull();
+
+    // Contrôle : sans marqueur, le même jeton reste lisible comme session — ce
+    // qui garde valides les sessions émises avant la Phase 14.
+    const sansMarqueur = await new SignJWT(complet)
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("5m")
+      .sign(secret);
+    expect(await verifierSession(sansMarqueur)).not.toBeNull();
   });
 });
 
