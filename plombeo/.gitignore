@@ -16,3 +16,6 @@ next-env.d.ts
 
 # Captures produites par les scripts d audit (regenerables)
 /*.png
+
+# Fichiers versés en développement (stockage disque)
+.donnees/
