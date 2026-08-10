@@ -392,7 +392,7 @@ Aucun secret réel ne doit être committé : `.env` est ignoré par git.
 ## Vérifications
 
 ```bash
-npm test        # Vitest : 188 tests, dont immuabilité, calculs, isolation et idempotence
+npm test        # Vitest : 409 tests, dont immuabilité, calculs, isolation et idempotence
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de production
