@@ -131,6 +131,26 @@ laisser saisir à la main viderait de sens le suivi des impayés.
 `CompteurFacture` porte une séquence par organisation, année **et série** : factures
 et avoirs sont numérotés indépendamment.
 
+### Document, Signature (Phase 6)
+
+`Document` couvre **aussi les photos**, distinguées par un champ `moment`
+(`AVANT`, `APRES`, `AUTRE`). Une table `Photo` distincte aurait dupliqué le stockage,
+les permissions et la recherche pour une seule colonne de différence.
+
+Le rattachement est **polymorphe et facultatif** : `clientId`, `propertyId`,
+`interventionId`, `quoteId`, `invoiceId` sont tous nullables. Une photo prise pendant
+une intervention est rattachée simultanément à l'intervention, au logement et au
+client — c'est dans le carnet du logement qu'on la cherchera dans deux ans.
+
+`cheminStockage` est une **clé produite par le serveur** (`organizationId/aléatoire.ext`),
+jamais dérivée du nom fourni. `nomFichier` conserve le nom d'origine pour l'affichage
+seulement, et ne sert jamais de chemin.
+
+`Signature` porte `empreinteContenu` (SHA-256) **et** `resumeContenu` en clair : garder
+le texte signé lisible sans dépendre de l'application est ce qui rend l'empreinte
+vérifiable plus tard. `appareil` est un user-agent tronqué ; **aucune adresse IP** n'est
+conservée. Le champ `trace` contient le tracé en `data:image/png;base64`.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -163,7 +183,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 6 | `Document`, `Signature` |
 | 7 | `AutomationRule`, `AutomationExecution`, `Notification` |
 | 8 | `Supplier`, `Purchase`, `StockItem`, `StockMovement`, `Expense` |
 | 11 | `AiAction` |

@@ -11,8 +11,17 @@ import { changerEtatIntervention } from "../../agenda/actions";
 import { creerDevisDepuisIntervention } from "../../devis/actions";
 import { SaisieTerrain } from "./SaisieTerrain";
 import { FormulaireCompteRendu } from "./FormulaireCompteRendu";
+import { SignaturePad } from "@/components/SignaturePad";
+import { Televersement } from "@/components/Televersement";
+import { GalerieDocuments } from "@/components/GalerieDocuments";
+import { listerDocuments, listerSignatures, resumerIntervention } from "@/lib/documents";
 
 export const metadata = { title: "Intervention — Plombéo" };
+
+const formatHorodatage = new Intl.DateTimeFormat("fr-FR", {
+  dateStyle: "long",
+  timeStyle: "short",
+});
 
 const LIBELLE_STATUT = {
   PLANIFIEE: "Planifiée",
@@ -34,6 +43,35 @@ export default async function PageIntervention(props: PageProps<"/app/interventi
   const modifiable = peutModifier && intervention.statut !== "CLOTUREE" && intervention.statut !== "ANNULEE";
 
   const adresse = intervention.property ? adresseCourte(intervention.property) : "";
+
+  const peutVerser = contexte ? roleAutorise(contexte.role, "document:modifier") : false;
+  const peutSupprimerDoc = contexte ? roleAutorise(contexte.role, "document:supprimer") : false;
+  const peutSigner = contexte ? roleAutorise(contexte.role, "document:signer") : false;
+
+  // Le logement et le client sont repris pour que la photo remonte aussi dans le
+  // carnet du logement : c'est là qu'on la cherchera dans deux ans.
+  const rattachementIntervention: Record<string, string> = {
+    interventionId: intervention.id,
+    clientId: intervention.client.id,
+    ...(intervention.property ? { propertyId: intervention.property.id } : {}),
+  };
+
+  const [documents, signatures] = await Promise.all([
+    listerDocuments({ interventionId: intervention.id }),
+    listerSignatures(intervention.id),
+  ]);
+
+  // Le même résumé que celui dont le serveur calculera l'empreinte : le client
+  // doit lire exactement ce qui sera figé.
+  const resume = resumerIntervention({
+    clientNom: intervention.client.nomAffichage,
+    adresse,
+    probleme: intervention.probleme,
+    diagnostic: intervention.diagnostic,
+    compteRendu: intervention.compteRendu,
+    minutes: totalMinutes(intervention.temps),
+    fournitures: intervention.fournitures,
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -143,6 +181,58 @@ export default async function PageIntervention(props: PageProps<"/app/interventi
           compteRendu: intervention.compteRendu,
         }}
       />
+
+      <Carte>
+        <h2 className="font-semibold mb-1">Photos et pièces</h2>
+        <p className="text-sm text-attenue mb-3">
+          Photographiez avant de commencer, puis après travaux : c&apos;est votre preuve de
+          l&apos;état initial comme du résultat.
+        </p>
+        <GalerieDocuments documents={documents} peutSupprimer={peutSupprimerDoc} />
+        {peutVerser && (
+          <div className="mt-3 flex flex-col gap-3">
+            <Televersement
+              rattachement={rattachementIntervention}
+              categorieParDefaut="PHOTO"
+              photo
+              titre="Ajouter une photo"
+            />
+            <Televersement rattachement={rattachementIntervention} titre="Ajouter un document" />
+          </div>
+        )}
+      </Carte>
+
+      {signatures.length > 0 && (
+        <Carte>
+          <h2 className="font-semibold mb-3">Signatures apposées</h2>
+          <ul className="flex flex-col gap-3">
+            {signatures.map((s) => (
+              <li key={s.id} className="border border-trait rounded-controle p-3">
+                <p className="font-medium">{s.signataireNom}</p>
+                <p className="text-sm text-attenue">
+                  Signé le {formatHorodatage.format(s.signeLe)}
+                </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.trace}
+                  alt={`Signature de ${s.signataireNom}`}
+                  className="mt-2 bg-white border border-trait rounded-controle max-h-32 w-auto"
+                />
+                <p className="text-xs text-attenue mt-2 break-all">
+                  Empreinte du texte signé : {s.empreinteContenu}
+                </p>
+                <p className="text-xs text-attenue mt-1">
+                  Signature simple. Plombéo ne qualifie pas sa valeur juridique.
+                </p>
+              </li>
+            ))}
+          </ul>
+        </Carte>
+      )}
+
+      {peutSigner && intervention.statut !== "ANNULEE" && (
+        <SignaturePad interventionId={intervention.id} resume={resume} />
+      )}
 
       {peutModifier && intervention.statut !== "PLANIFIEE" && (
         <Carte>

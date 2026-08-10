@@ -69,7 +69,11 @@ export type ActionAuditee =
   | "invoice.paid"
   | "credit_note.issued"
   /// Empreinte d'intégrité qui ne correspond plus : c'est un INCIDENT.
-  | "invoice.integrity_failed";
+  | "invoice.integrity_failed"
+  // Phase 6 — documents et signature
+  | "document.uploaded"
+  | "document.deleted"
+  | "signature.created";
 
 type EntreeAudit = {
   action: ActionAuditee;

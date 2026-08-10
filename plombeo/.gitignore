@@ -10,3 +10,9 @@ npm-debug.log*
 /src/generated
 next-env.d.ts
 /coverage
+
+# Fichiers versés en développement (jamais committés)
+.stockage-dev/
+
+# Captures produites par les scripts d audit (regenerables)
+/*.png

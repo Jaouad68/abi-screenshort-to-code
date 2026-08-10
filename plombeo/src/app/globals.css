@@ -30,7 +30,9 @@
   /* Couleurs d'état. Jamais utilisées seules : toujours accompagnées d'un
      libellé, car la couleur seule n'est pas accessible (§61). */
   --color-succes: #1c7c4a;
-  --color-alerte: #a8690a;
+  /* Mesuré, pas choisi à l'œil : #a8690a plafonnait à 4,07:1 sur le fond du
+     badge et 4,48:1 sur blanc — sous le seuil de 4,5:1 dans les deux cas. */
+  --color-alerte: #8f5808;
   --color-danger: #b3261e;
 
   --radius-carte: 0.75rem;

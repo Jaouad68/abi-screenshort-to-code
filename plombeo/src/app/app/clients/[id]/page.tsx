@@ -12,6 +12,9 @@ import {
 } from "@/lib/libelles";
 import { archiverClient, definirConsentement, restaurerClient } from "../actions";
 import { BlocSuppression } from "./BlocSuppression";
+import { Televersement } from "@/components/Televersement";
+import { GalerieDocuments } from "@/components/GalerieDocuments";
+import { listerDocuments } from "@/lib/documents";
 
 export const metadata = { title: "Fiche client — Plombéo" };
 
@@ -29,6 +32,10 @@ export default async function PageClient(props: PageProps<"/app/clients/[id]">) 
   const peutModifier = contexte ? roleAutorise(contexte.role, "client:modifier") : false;
   const peutArchiver = contexte ? roleAutorise(contexte.role, "client:archiver") : false;
   const peutSupprimer = contexte ? roleAutorise(contexte.role, "client:supprimer") : false;
+
+  const peutVerser = contexte ? roleAutorise(contexte.role, "document:modifier") : false;
+  const peutSupprimerDoc = contexte ? roleAutorise(contexte.role, "document:supprimer") : false;
+  const documents = await listerDocuments({ clientId: client.id });
 
   const consentements = new Map(client.consents.map((c) => [c.type, c]));
 
@@ -180,6 +187,19 @@ export default async function PageClient(props: PageProps<"/app/clients/[id]">) 
           Les rendez-vous, devis, factures et interventions de ce client apparaîtront ici
           au fur et à mesure de leur mise en service.
         </p>
+      </Carte>
+
+      <Carte>
+        <h2 className="font-semibold mb-1">Pièces du dossier</h2>
+        <p className="text-sm text-attenue mb-3">
+          Devis signés, attestations, notices : tout ce qui concerne ce client.
+        </p>
+        <GalerieDocuments documents={documents} peutSupprimer={peutSupprimerDoc} />
+        {peutVerser && (
+          <div className="mt-3">
+            <Televersement rattachement={{ clientId: client.id }} titre="Ajouter un document" />
+          </div>
+        )}
       </Carte>
 
       {peutArchiver && (

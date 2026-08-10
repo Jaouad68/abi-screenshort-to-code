@@ -56,6 +56,13 @@ export default function LayoutApplication({ children }: { children: React.ReactN
               Clients
             </Link>
             <Link
+              href="/app/documents"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Documents
+            </Link>
+            <Link
               href="/app/catalogue"
               className="inline-flex items-center min-h-11 px-3 rounded-controle
                          text-sm font-medium hover:bg-white/10"

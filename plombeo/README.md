@@ -12,6 +12,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 3** : [`docs/plombeo/PHASE-3-SPECIFICATION.md`](../docs/plombeo/PHASE-3-SPECIFICATION.md)
 - **Spécification Phase 4** : [`docs/plombeo/PHASE-4-SPECIFICATION.md`](../docs/plombeo/PHASE-4-SPECIFICATION.md)
 - **Spécification Phase 5** : [`docs/plombeo/PHASE-5-SPECIFICATION.md`](../docs/plombeo/PHASE-5-SPECIFICATION.md)
+- **Spécification Phase 6** : [`docs/plombeo/PHASE-6-SPECIFICATION.md`](../docs/plombeo/PHASE-6-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -92,8 +93,35 @@ couverture (§15, §54).
 **Non livré, sans faux-semblant** : le paiement **en ligne** par lien sécurisé exige
 un prestataire configuré. Aucun bouton ne le propose et rien ne le simule (§76).
 
-Les phases suivantes (documents, signature, automatisations…) ne sont pas commencées. Le
-tableau de bord les annonce explicitement plutôt que d'afficher des données fictives.
+**Phase 6 — Documents, photos et signature : terminée.**
+
+- Pièces versées sur un client, un logement, une intervention, un devis ou une
+  facture ; photos **avant / après travaux** prises depuis l'appareil
+- **Type de fichier vérifié sur les octets réels**, pas sur l'extension ni sur
+  l'en-tête déclaré : un exécutable renommé en `.jpg` est refusé
+- Chemin de stockage produit par le serveur à partir d'octets aléatoires : aucune
+  donnée cliente n'y entre, la traversée de répertoire est impossible par
+  construction
+- Aucun fichier public : tout passe par `/api/documents/[id]`, qui vérifie session,
+  organisation et permission, et sert en `attachment` + `nosniff`
+- **Signature manuscrite** du bon d'intervention, avec horodatage serveur, nom du
+  signataire, appareil (sans adresse IP) et **empreinte SHA-256 du contenu signé**,
+  reconstruit côté serveur depuis la base — jamais repris du formulaire
+
+**Sur la portée de la signature, l'interface le dit en toutes lettres** : il s'agit
+d'une signature *simple*. Plombéo ne la qualifie pas juridiquement et ne garantit pas
+qu'elle suffise pour un engagement donné ; une signature avancée ou qualifiée passe
+par un prestataire spécialisé (§76). Le niveau requis selon la nature et le montant de
+l'engagement reste **[À VÉRIFIER — SOURCE OFFICIELLE ET CONSEIL JURIDIQUE]**.
+
+**Non livré, sans faux-semblant** : sans `STOCKAGE_DISQUE_RACINE` ni
+`STOCKAGE_S3_BUCKET`, l'envoi de fichiers est **refusé avec un message clair**. Aucun
+adaptateur « Null » n'accepte un fichier pour le perdre ensuite. L'implémentation S3
+échoue explicitement tant qu'aucun fournisseur n'est retenu.
+
+Les phases suivantes (automatisations, notifications, envoi par e-mail…) ne sont pas
+commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
+données fictives.
 
 ## Démarrer
 
@@ -115,6 +143,12 @@ Ouvrir http://localhost:3000.
 | `DATABASE_URL` | Chaîne de connexion PostgreSQL |
 | `SESSION_SECRET` | Secret de signature des cookies de session (≥ 32 caractères aléatoires) |
 | `NEXT_PUBLIC_BASE_URL` | Base des liens absolus |
+| `STOCKAGE_DISQUE_RACINE` | Racine des fichiers versés (disque persistant) |
+| `STOCKAGE_S3_BUCKET` | Stockage objet compatible S3 — déclaré, pas encore implémenté |
+
+Sans l'une des deux variables de stockage, l'envoi de fichiers est refusé avec un
+message explicite : mieux vaut une fonctionnalité indisponible qu'une preuve de
+chantier silencieusement perdue.
 
 Aucun secret réel ne doit être committé : `.env` est ignoré par git.
 

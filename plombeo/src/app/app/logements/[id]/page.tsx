@@ -12,6 +12,9 @@ import {
 } from "@/lib/libelles";
 import { archiverLogement, supprimerEquipement } from "../../clients/actions";
 import { FormulaireEquipement } from "./FormulaireEquipement";
+import { Televersement } from "@/components/Televersement";
+import { GalerieDocuments } from "@/components/GalerieDocuments";
+import { listerDocuments } from "@/lib/documents";
 
 export const metadata = { title: "Carnet technique — Plombéo" };
 
@@ -23,6 +26,10 @@ export default async function PageLogement(props: PageProps<"/app/logements/[id]
   const contexte = await sessionCourante();
   const peutModifier = contexte ? roleAutorise(contexte.role, "client:modifier") : false;
   const peutArchiver = contexte ? roleAutorise(contexte.role, "client:archiver") : false;
+
+  const peutVerser = contexte ? roleAutorise(contexte.role, "document:modifier") : false;
+  const peutSupprimerDoc = contexte ? roleAutorise(contexte.role, "document:supprimer") : false;
+  const documents = await listerDocuments({ propertyId: logement.id });
 
   const adresse = adresseCourte(logement);
   const aDesInfosAcces =
@@ -183,6 +190,28 @@ export default async function PageLogement(props: PageProps<"/app/logements/[id]
 
         {peutModifier && <FormulaireEquipement propertyId={logement.id} />}
       </section>
+
+      <Carte>
+        <h2 className="font-semibold mb-1">Photos et pièces du logement</h2>
+        <p className="text-sm text-attenue mb-3">
+          Tout ce qui a été photographié ou versé ici, y compris depuis les interventions.
+        </p>
+        <GalerieDocuments documents={documents} peutSupprimer={peutSupprimerDoc} />
+        {peutVerser && (
+          <div className="mt-3 flex flex-col gap-3">
+            <Televersement
+              rattachement={{ propertyId: logement.id, clientId: logement.client.id }}
+              categorieParDefaut="PHOTO"
+              photo
+              titre="Ajouter une photo"
+            />
+            <Televersement
+              rattachement={{ propertyId: logement.id, clientId: logement.client.id }}
+              titre="Ajouter un document"
+            />
+          </div>
+        )}
+      </Carte>
 
       {logement.notes && (
         <Carte>

@@ -39,6 +39,12 @@ export const PERMISSIONS = [
   "facture:modifier",
   "facture:emettre",
   "facture:encaisser",
+  // Phase 6 — documents et signature. Le technicien SIGNE : c'est lui qui est
+  // sur place avec le client.
+  "document:lire",
+  "document:modifier",
+  "document:supprimer",
+  "document:signer",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -74,6 +80,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "facture:modifier",
     "facture:emettre",
     "facture:encaisser",
+    "document:lire",
+    "document:modifier",
+    "document:supprimer",
+    "document:signer",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -94,6 +104,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "facture:modifier",
     "facture:emettre",
     "facture:encaisser",
+    "document:lire",
+    "document:modifier",
+    "document:supprimer",
+    "document:signer",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -115,8 +129,14 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     // ne le modifie pas : le prix est une décision du chef d'entreprise.
     "devis:lire",
   ],
-  APPRENTI: ["organisation:lire", "client:lire", "intervention:lire", "catalogue:lire"],
-  SOUS_TRAITANT: ["organisation:lire", "client:lire", "intervention:lire"],
+  APPRENTI: [
+    "organisation:lire",
+    "client:lire",
+    "intervention:lire",
+    "catalogue:lire",
+    "document:lire",
+  ],
+  SOUS_TRAITANT: ["organisation:lire", "client:lire", "intervention:lire", "document:lire"],
   // L'expert-comptable lit et exporte, mais ne modifie jamais le fichier client.
   COMPTABLE: [
     "organisation:lire",
@@ -126,6 +146,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "catalogue:lire",
     "devis:lire",
     "facture:lire",
+    "document:lire",
   ],
   LECTURE_SEULE: [
     "organisation:lire",
@@ -134,6 +155,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "catalogue:lire",
     "devis:lire",
     "facture:lire",
+    "document:lire",
   ],
 };
 

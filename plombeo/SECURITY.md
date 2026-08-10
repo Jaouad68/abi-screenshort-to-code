@@ -164,6 +164,53 @@ Un client porteur d'une facture émise ne peut plus être supprimé — les piè
 comptables sont soumises à des obligations de conservation **[À VÉRIFIER — SOURCE
 OFFICIELLE]**.
 
+### Fichiers versés et signature (Phase 6)
+
+**Aucun bucket public, aucune URL devinable.** Un fichier n'est jamais servi
+directement : `GET /api/documents/[id]` vérifie la session, l'organisation et la
+permission avant de streamer le moindre octet. Comme partout, la lecture filtre sur
+`organizationId`, donc l'identifiant valide d'un autre artisan se comporte exactement
+comme un identifiant inexistant — la réponse ne confirme jamais l'existence d'une pièce
+chez quelqu'un d'autre.
+
+Contrôles à l'envoi :
+
+- **type déterminé sur les octets réels** (nombres magiques), jamais sur l'extension ni
+  sur l'en-tête `Content-Type` — tous deux fournis par le client. Un exécutable renommé
+  en `.jpg` passerait n'importe quel contrôle déclaratif ;
+- liste blanche stricte : JPEG, PNG, WebP, HEIC, PDF. Un type identifiable mais hors
+  liste (GIF, SVG) est refusé ;
+- plafond de 10 Mo par fichier ;
+- **chemin de stockage produit par le serveur** à partir de l'organisation et de 16
+  octets aléatoires. Aucune donnée cliente n'y entre : la traversée de répertoire est
+  impossible par construction, pas par filtrage — un filtre s'oublie, une absence
+  d'entrée non. Le nom d'origine est conservé pour l'affichage seulement ;
+- servi en `Content-Disposition: attachment` + `X-Content-Type-Options: nosniff` +
+  `Cache-Control: no-store, private` : un fichier versé ne s'exécute jamais dans le
+  navigateur et ne se met jamais en cache partagé.
+
+**Aucun adaptateur « Null ».** Sans stockage configuré, l'envoi est refusé avec un
+message explicite. Un adaptateur qui accepterait un fichier sans le conserver serait
+pire que l'absence de fonctionnalité : l'artisan croirait ses preuves de chantier
+enregistrées (§76).
+
+Signature :
+
+- l'**empreinte SHA-256 du contenu signé** est calculée sur un résumé **reconstruit
+  côté serveur depuis la base**, jamais repris du formulaire. Une empreinte portant sur
+  un texte envoyé par le navigateur n'attesterait que de ce que le client a bien voulu
+  transmettre ;
+- un tracé vide ou un nom vide sont refusés : mieux vaut aucune signature qu'une
+  signature blanche donnant l'illusion d'un accord ;
+- minimisation : user-agent tronqué à 180 caractères, **aucune adresse IP**.
+
+**Ce que Plombéo ne prétend pas.** Il s'agit d'une signature *simple*, annoncée comme
+telle en toutes lettres dans l'interface. Plombéo ne qualifie pas juridiquement sa
+valeur probatoire. Le niveau de signature requis selon la nature et le montant de
+l'engagement relève du règlement eIDAS et du droit français : **[À VÉRIFIER — SOURCE
+OFFICIELLE ET CONSEIL JURIDIQUE]**. Une signature avancée ou qualifiée exige un
+prestataire spécialisé (décision d'architecture n°4, toujours ouverte).
+
 ### Responsabilité fiscale
 
 Plombéo **ne détermine jamais** le taux de TVA applicable et **ne rédige aucune
@@ -201,11 +248,12 @@ sécurité complet :
 | Manque | Phase prévue |
 |---|---|
 | MFA / TOTP | Phase 15 (obligatoire pour le rôle Propriétaire dès que le paiement en ligne est réel) |
-| Réinitialisation du mot de passe | Phase 6 (avec l'adapter e-mail) |
+| Réinitialisation du mot de passe | Phase 7 (avec l'adaptateur e-mail) |
 | Rate limiting global (hors connexion) | Phase 15 |
 | Politique CSP | Phase 15 |
-| Chiffrement au repos de colonnes sensibles (IBAN…) | Phase 5 |
-| Blocage de la suppression d'un client porteur de pièces comptables | Phase 5 |
+| Chiffrement au repos de colonnes sensibles (IBAN…) | Phase 15 |
+| Analyse antivirale des fichiers versés | Phase 15 (prestataire à retenir ; aucun contrôle antiviral n'est fait aujourd'hui) |
+| Politique de rétention et purge des documents | Phase 7 (règles datées, obligations **[À VÉRIFIER — SOURCE OFFICIELLE]**) |
 | Purge planifiée des sessions et tentatives expirées | Phase 7 (la fonction existe, le cron non) |
 | Rotation du secret de session | Phase 15 |
 | Tests de restauration de sauvegarde | Phase 15 |

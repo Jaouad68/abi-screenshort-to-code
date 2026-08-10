@@ -80,6 +80,8 @@ model Organization {
   avoirs           CreditNote[]
   paiements        Payment[]
   compteursFacture CompteurFacture[]
+  documents        Document[]
+  signatures       Signature[]
 }
 
 /// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
@@ -266,6 +268,7 @@ model Client {
   interventions Intervention[]
   devis         Quote[]
   factures      Invoice[]
+  documents     Document[]
 
   @@index([organizationId, archivedAt])
   @@index([organizationId, nomAffichage])
@@ -313,6 +316,7 @@ model Property {
   interventions Intervention[]
   devis         Quote[]
   factures      Invoice[]
+  documents     Document[]
 
   @@index([organizationId, archivedAt])
   @@index([clientId])
@@ -536,6 +540,8 @@ model Intervention {
   temps       TimeEntry[]
   fournitures InterventionSupply[]
   devis       Quote[]
+  documents   Document[]
+  signatures  Signature[]
 
   @@index([organizationId, statut])
   @@index([clientId])
@@ -714,6 +720,8 @@ model Quote {
 
   options QuoteOption[]
   factures Invoice[]
+  documents  Document[]
+  signatures Signature[]
 
   @@unique([organizationId, numero])
   @@index([organizationId, statut])
@@ -878,9 +886,10 @@ model Invoice {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  lignes   InvoiceLine[]
+  lignes    InvoiceLine[]
   paiements Payment[]
-  avoirs   CreditNote[]
+  avoirs    CreditNote[]
+  documents Document[]
 
   @@unique([organizationId, numero])
   @@index([organizationId, statut])
@@ -969,6 +978,127 @@ model CompteurFacture {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, annee, serie])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 6 — Documents, photos et signature
+// ---------------------------------------------------------------------------
+
+enum DocumentCategorie {
+  PHOTO
+  DEVIS
+  FACTURE
+  ATTESTATION
+  CONTRAT
+  NOTICE
+  BON_INTERVENTION
+  AUTRE
+}
+
+/// Moment de prise d'une photo de chantier (§19 : photos avant / après).
+enum MomentPhoto {
+  AVANT
+  APRES
+  AUTRE
+}
+
+/// Pièce versée au dossier : photo, PDF, scan.
+///
+/// Les PHOTOS sont des Documents comme les autres, distingués par leur
+/// catégorie et leur `moment`. Une table dédiée aurait dupliqué le stockage,
+/// les permissions et la recherche pour une seule colonne de différence.
+model Document {
+  id        String            @id @default(cuid())
+  categorie DocumentCategorie @default(AUTRE)
+  moment    MomentPhoto?
+
+  /// Nom affiché à l'artisan. Le nom réel sur le disque est REGÉNÉRÉ côté
+  /// serveur : un nom fourni par le client ne sert jamais de chemin.
+  nomFichier   String
+  mimeType     String
+  tailleOctets Int
+  /// Clé de stockage, produite par le serveur à partir d'un identifiant
+  /// aléatoire. Aucune donnée client n'y entre : aucune traversée de
+  /// répertoire n'est possible.
+  cheminStockage String
+  legende        String   @default("")
+  tags           String[] @default([])
+
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  /// Rattachement polymorphe, tous facultatifs : un document peut être versé
+  /// au dossier d'un client, d'un logement, d'une intervention, d'un devis ou
+  /// d'une facture.
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  versePar String @default("")
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  signatures Signature[]
+
+  @@index([organizationId, categorie])
+  @@index([interventionId])
+  @@index([propertyId])
+  @@index([clientId])
+}
+
+/// Signature apposée sur un contenu.
+///
+/// SIGNATURE SIMPLE : trace manuscrite capturée sur l'appareil, horodatée, avec
+/// l'empreinte du contenu signé. Sa valeur probatoire est celle d'un
+/// commencement de preuve, appréciée au cas par cas.
+///
+/// [À VÉRIFIER — SOURCE OFFICIELLE ET CONSEIL JURIDIQUE] Le niveau requis
+/// (simple, avancée, qualifiée) selon la nature et le montant de l'engagement
+/// relève d'eIDAS et du droit français. Plombéo documente le mécanisme, il ne
+/// qualifie pas juridiquement la signature qu'il produit.
+model Signature {
+  id String @id @default(cuid())
+
+  signataireNom String
+  /// Tracé manuscrit, en data URL PNG.
+  trace         String
+  /// Empreinte SHA-256 du contenu au moment de la signature : c'est elle qui
+  /// permet de démontrer que le document n'a pas changé depuis.
+  empreinteContenu String
+  /// Ce qui a été signé, en clair, pour pouvoir le relire des années plus tard
+  /// sans dépendre de l'application.
+  resumeContenu String @default("")
+
+  signeLe  DateTime @default(now())
+  /// User-agent tronqué. Minimisation : aucune adresse IP conservée.
+  appareil String   @default("")
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([interventionId])
 }
 
 /// Tentatives de connexion, pour la protection anti-force brute (§46).
