@@ -389,6 +389,54 @@ chantier silencieusement perdue.
 
 Aucun secret réel ne doit être committé : `.env` est ignoré par git.
 
+## Jeu de démonstration (développement uniquement)
+
+L'application démarre vide, et c'est voulu : aucune donnée fictive ne doit se
+retrouver en production (§77). Pour l'explorer sans saisir une demi-heure de
+données, un script pose l'activité plausible d'un plombier sur quelques semaines :
+
+```bash
+npm run demo
+```
+
+| | |
+|---|---|
+| Propriétaire | `patron@demo.plombeo.test` |
+| Technicien | `technicien@demo.plombeo.test` |
+| Mot de passe | `demo-plombeo-2026` |
+
+Il crée 3 clients, 3 logements, 2 équipements, 6 références au catalogue, un achat
+validé et son entrée en stock, 2 demandes, 3 rendez-vous dont un aujourd'hui, une
+intervention clôturée, un devis à deux variantes, deux factures (une réglée, une
+échue), un contrat d'entretien, une garantie, et quatre règles d'automatisation
+**toutes inactives**.
+
+Se connecter avec le compte technicien montre concrètement ce qu'un rôle limité
+voit — et ne voit pas.
+
+**Trois garde-fous**, parce qu'un jeu de démonstration lâché dans une base réelle
+est une catastrophe silencieuse :
+
+1. il refuse de s'exécuter si `NODE_ENV` vaut `production` ;
+2. il refuse si la base contient la moindre entreprise qui ne soit pas la
+   démonstration — ce qui protège une base de production dont la variable
+   d'environnement aurait été oubliée ;
+3. tout ce qu'il crée est explicitement factice (`@demo.plombeo.test`), et les
+   mentions légales de l'entreprise portent un texte demandant à être remplacé,
+   qui s'imprimera tel quel sur un devis.
+
+Il **n'invente aucune règle fiscale** : toutes les lignes sont au taux par défaut
+de 20 %. Les taux réduits dépendent de la nature des travaux et du logement
+**[À VÉRIFIER — SOURCE OFFICIELLE]** ; les appliquer ici souillerait la
+démonstration d'une réponse fausse. Il ne crée pas non plus de notification (elles
+sont produites par le moteur), ni de consentement RGPD (un consentement est un
+fait juridique daté).
+
+Les numéros de pièces et l'empreinte d'intégrité des factures sont produits par
+**les mêmes fonctions que l'application** (`src/lib/numerotation.ts`) : un numéro
+forgé casserait la continuité de la numérotation, et une empreinte calculée
+autrement ferait signaler la facture comme altérée dès son affichage.
+
 ## Vérifications
 
 ```bash
@@ -442,7 +490,12 @@ et compare chaque texte à son fond effectif.
 | `src/app/api/sync/route.ts` | Réception idempotente des mutations hors-ligne |
 | `src/lib/calcul.ts` | **Moteur de calcul** — arithmétique entière, TVA par taux, remise au prorata |
 | `src/lib/devis.ts` | Accès catalogue et devis, numérotation atomique |
-| `src/lib/facturation.ts` | **Intégrité des factures** — empreinte, soldes, états dérivés |
+| `src/lib/facturation.ts` | **Intégrité des factures** — soldes, états dérivés, vérification d'empreinte |
+| `src/lib/numerotation.ts` | Numérotation atomique et **calcul de l'empreinte** — sans dépendance au DAL, donc utilisable hors requête HTTP |
+| `src/lib/navigation.ts` | Liens de l'espace connecté et permission attendue de chacun |
+| `src/lib/roles.ts` | Ce qu'autorise chaque rôle, en une phrase, pour l'écran d'invitation |
+| `src/lib/mfa.ts` | TOTP, codes de récupération, hiérarchie des rôles |
+| `src/lib/invitations.ts` | Résolution d'un jeton d'invitation |
 | `src/lib/csv.ts` | Génération CSV (BOM UTF-8, neutralisation de l'injection de formule) |
 | `src/lib/libelles.ts` | Libellés affichés — aucun nom technique d'énumération dans l'interface |
 | `src/lib/auth.ts` | Hachage, ouverture et révocation de session |
@@ -455,6 +508,7 @@ et compare chaque texte à son fond effectif.
 | `src/components/ui.tsx` | Design system |
 | `src/app/app/` | Espace connecté |
 | `prisma/schema.prisma` | Modèle de données |
+| `prisma/demo.ts` | Jeu de démonstration — **développement uniquement**, avec trois garde-fous |
 
 ## Règles à respecter dans les phases suivantes
 

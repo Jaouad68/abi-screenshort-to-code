@@ -1,5 +1,8 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+// Voir `numerotation.ts` : la numérotation vit à part pour rester utilisable
+// hors requête HTTP, sans pour autant cesser d'être exposée ici.
+export { attribuerNumeroDevis as attribuerNumero, formaterNumeroDevis } from "@/lib/numerotation";
 import { exigerPermission } from "@/lib/dal";
 import { calculerTotaux, type Totaux } from "@/lib/calcul";
 import type { DevisStatut } from "@/generated/prisma/enums";
@@ -93,35 +96,6 @@ export async function compterDevisEnCours(): Promise<number> {
 /* Numérotation                                                               */
 /* -------------------------------------------------------------------------- */
 
-/** Format du numéro : DEV-2026-001. Fonction pure, testée. */
-export function formaterNumeroDevis(annee: number, sequence: number): string {
-  return `DEV-${annee}-${String(sequence).padStart(3, "0")}`;
-}
-
-/**
- * Attribue le prochain numéro de devis.
- *
- * L'incrément se fait en base, dans une transaction, sur une ligne unique par
- * (organisation, année) : deux devis passés en PRET au même instant obtiennent
- * ainsi deux numéros distincts. Un compteur calculé par `count()` ou lu puis
- * réécrit en deux temps donnerait des doublons dès la moindre concurrence.
- *
- * La séquence repart à 1 chaque année.
- */
-export async function attribuerNumero(organizationId: string, date = new Date()): Promise<string> {
-  const annee = date.getFullYear();
-
-  const compteur = await prisma.compteurDevis.upsert({
-    where: { organizationId_annee: { organizationId, annee } },
-    create: { organizationId, annee, dernier: 1 },
-    // `increment` est atomique côté base : c'est ce qui rend l'opération sûre
-    // sans verrou applicatif.
-    update: { dernier: { increment: 1 } },
-    select: { dernier: true },
-  });
-
-  return formaterNumeroDevis(annee, compteur.dernier);
-}
 
 /* -------------------------------------------------------------------------- */
 /* Validité                                                                   */

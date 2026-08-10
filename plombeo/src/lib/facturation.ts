@@ -1,6 +1,15 @@
 import "server-only";
-import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+// Réexportées depuis `numerotation.ts` : ce module reste le point d'entrée de
+// la facturation, mais les fonctions qui ne dépendent que de la base y vivent
+// désormais séparément, pour rester utilisables hors requête HTTP.
+import { calculerEmpreinte } from "@/lib/numerotation";
+export {
+  attribuerNumeroFacture,
+  calculerEmpreinte,
+  formaterNumeroFacture,
+  type ContenuFacture,
+} from "@/lib/numerotation";
 import { exigerPermission } from "@/lib/dal";
 import { calculerTotaux, type Totaux } from "@/lib/calcul";
 import type { FactureStatut } from "@/generated/prisma/enums";
@@ -21,48 +30,6 @@ import type { FactureStatut } from "@/generated/prisma/enums";
 /* -------------------------------------------------------------------------- */
 /* Intégrité                                                                  */
 /* -------------------------------------------------------------------------- */
-
-export type ContenuFacture = {
-  numero: string;
-  dateFacture: Date;
-  clientNom: string;
-  totalHtCents: number;
-  totalTvaCents: number;
-  totalTtcCents: number;
-  lignes: {
-    libelle: string;
-    quantiteMilli: number;
-    prixUnitaireCents: number;
-    tauxTvaCentiemes: number;
-  }[];
-};
-
-/**
- * Empreinte d'intégrité d'une facture.
- *
- * Mécanisme de DÉTECTION, pas de protection : il n'empêche pas une écriture
- * directe en base, il empêche qu'elle passe inaperçue. Toute divergence entre
- * l'empreinte stockée et l'empreinte recalculée est un incident, pas une
- * donnée d'affichage.
- *
- * La sérialisation est explicite et ordonnée : sérialiser un objet sans en
- * fixer l'ordre produirait des empreintes différentes pour un même contenu.
- */
-export function calculerEmpreinte(contenu: ContenuFacture): string {
-  const canonique = [
-    contenu.numero,
-    contenu.dateFacture.toISOString(),
-    contenu.clientNom,
-    String(contenu.totalHtCents),
-    String(contenu.totalTvaCents),
-    String(contenu.totalTtcCents),
-    ...contenu.lignes.map((l) =>
-      [l.libelle, l.quantiteMilli, l.prixUnitaireCents, l.tauxTvaCentiemes].join("|"),
-    ),
-  ].join("\n");
-
-  return createHash("sha256").update(canonique, "utf8").digest("hex");
-}
 
 /* -------------------------------------------------------------------------- */
 /* Soldes                                                                     */
@@ -136,40 +103,6 @@ export function estEnRetard(
 /* -------------------------------------------------------------------------- */
 /* Numérotation                                                               */
 /* -------------------------------------------------------------------------- */
-
-export function formaterNumeroFacture(
-  serie: "FACTURE" | "AVOIR",
-  annee: number,
-  sequence: number,
-): string {
-  const prefixe = serie === "AVOIR" ? "AV" : "FAC";
-  return `${prefixe}-${annee}-${String(sequence).padStart(3, "0")}`;
-}
-
-/**
- * Attribue le prochain numéro. Factures et avoirs ont des séquences distinctes.
- *
- * Incrément atomique en base : deux émissions simultanées obtiennent deux
- * numéros différents. La continuité de la numérotation est une exigence
- * comptable [À VÉRIFIER — SOURCE OFFICIELLE], d'où l'attribution au moment de
- * l'émission seulement — numéroter des brouillons créerait des trous.
- */
-export async function attribuerNumeroFacture(
-  organizationId: string,
-  serie: "FACTURE" | "AVOIR",
-  date = new Date(),
-): Promise<string> {
-  const annee = date.getFullYear();
-
-  const compteur = await prisma.compteurFacture.upsert({
-    where: { organizationId_annee_serie: { organizationId, annee, serie } },
-    create: { organizationId, annee, serie, dernier: 1 },
-    update: { dernier: { increment: 1 } },
-    select: { dernier: true },
-  });
-
-  return formaterNumeroFacture(serie, annee, compteur.dernier);
-}
 
 /* -------------------------------------------------------------------------- */
 /* Accès                                                                      */
