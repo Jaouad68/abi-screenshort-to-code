@@ -123,6 +123,17 @@ Les phases suivantes (automatisations, notifications, envoi par e-mail…) ne so
 commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
 données fictives.
 
+## Intégration continue
+
+`.github/workflows/plombeo-ci.yml` vérifie à chaque poussée : types, lint, **213
+tests** et build, contre une vraie base PostgreSQL.
+
+La base réelle n'est pas un confort : les tests d'isolation multi-tenant sont des tests
+d'**intégration**, et sans base ils se mettent en veille et passeraient au vert sans
+rien vérifier. Une étape dédiée compte donc les tests d'isolation réellement exécutés
+et **échoue s'ils ont été sautés** — une CI qui saute silencieusement le test le plus
+important du projet serait pire que pas de CI.
+
 ## Démarrer
 
 Nécessite Node.js 20.9+ et une base PostgreSQL.

@@ -240,6 +240,20 @@ navigation et ne constitue donc pas une barrière fiable. La redirection présen
 Masquer un bouton dans l'interface ne protège rien : une Server Action est un point
 d'entrée réseau et vérifie systématiquement la permission côté serveur.
 
+### Mise à jour des dépendances
+
+`npm audit` fait partie de la vérification, pas d'une revue annuelle. En août 2026,
+Next.js 16.2.10 portait trois avis de sévérité haute, corrigés en 16.3.0 — dont un
+contournement de `proxy.ts` en App Router.
+
+Ce contournement **n'ouvrait rien ici** : la redirection de `proxy.ts` est
+délibérément optimiste et l'autorisation réelle vit dans le DAL, au plus près de la
+donnée. C'est précisément le bénéfice de ne jamais faire d'un middleware une barrière
+de sécurité. Les deux autres avis (déni de service sur les Server Actions, exposition
+non authentifiée de points d'entrée de fonctions serveur) étaient, eux, réellement
+applicables. La montée de version a été faite et vérifiée par les 213 tests et les six
+parcours navigateur.
+
 ## Ce qui n'est PAS encore en place
 
 À traiter aux phases indiquées — ne pas considérer les phases livrées comme un socle de
