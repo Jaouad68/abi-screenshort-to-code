@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Bouton, Carte } from "@/components/ui";
+import { EnvoiEmail } from "@/components/EnvoiEmail";
 import { estDepasse, lireDevis, listerFournitures, listerPrestations, totauxOption } from "@/lib/devis";
 import { sessionCourante } from "@/lib/dal";
 import { roleAutorise } from "@/lib/permissions";
@@ -67,7 +68,21 @@ export default async function PageDevis(props: PageProps<"/app/devis/[id]">) {
           >
             Voir / imprimer le devis
           </Link>
+          <a
+            href={`/api/pdf/devis/${devis.id}`}
+            className="inline-flex items-center justify-center min-h-11 px-4 rounded-controle
+                       font-semibold bg-white text-encre border border-trait hover:bg-fond"
+          >
+            Télécharger le PDF
+          </a>
         </div>
+      )}
+
+      {devis.numero && (
+        <Carte>
+          <h2 className="font-semibold mb-2">Envoyer au client</h2>
+          <EnvoiEmail type="devis" id={devis.id} emailClient={devis.client.email} />
+        </Carte>
       )}
 
       <EnteteDevis

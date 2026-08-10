@@ -6,7 +6,9 @@ import { prisma } from "@/lib/prisma";
  *
  * Les phases suivantes complètent cette liste (devis, factures, paiements,
  * signatures, actions IA...). En Phase 1 ces événements alimentent uniquement
- * le journal d'audit ; le bus d'événements du moteur de règles arrive en Phase 7.
+ * le journal d'audit ; le moteur de règles de la Phase 7 s'appuie sur un balayage périodique plutôt
+ * que sur ce journal : un événement manqué serait perdu à jamais, un balayage
+ * rattrape naturellement son retard.
  */
 export type ActionAuditee =
   // Phase 1 — comptes et organisation
@@ -73,7 +75,18 @@ export type ActionAuditee =
   // Phase 6 — documents et signature
   | "document.uploaded"
   | "document.deleted"
-  | "signature.created";
+  | "signature.created"
+  // Phase 7 — automatisation
+  | "automation.rule_enabled"
+  | "automation.rule_disabled"
+  | "automation.rule_updated"
+  | "automation.executed"
+  | "automation.failed"
+  | "automation.template_updated"
+  | "email.queued"
+  | "email.sent"
+  | "email.failed"
+  | "notification.created";
 
 type EntreeAudit = {
   action: ActionAuditee;

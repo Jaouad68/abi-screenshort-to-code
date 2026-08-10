@@ -15,6 +15,7 @@ import { BlocSuppression } from "./BlocSuppression";
 import { Televersement } from "@/components/Televersement";
 import { GalerieDocuments } from "@/components/GalerieDocuments";
 import { listerDocuments } from "@/lib/documents";
+import { basculerRelancesClient } from "../../automatisations/actions";
 
 export const metadata = { title: "Fiche client — Plombéo" };
 
@@ -188,6 +189,23 @@ export default async function PageClient(props: PageProps<"/app/clients/[id]">) 
           au fur et à mesure de leur mise en service.
         </p>
       </Carte>
+
+      {peutModifier && (
+        <Carte>
+          <h2 className="font-semibold mb-1">Relances automatiques</h2>
+          <p className="text-sm text-attenue mb-3">
+            {client.relancesDesactivees
+              ? "Ce client est exclu des relances automatiques. Vous le gérez vous-même."
+              : "Ce client peut recevoir des relances automatiques pour ses factures échues."}
+          </p>
+          <form action={basculerRelancesClient}>
+            <input type="hidden" name="id" value={client.id} />
+            <Bouton type="submit" variante="discret">
+              {client.relancesDesactivees ? "Réactiver les relances" : "Exclure des relances"}
+            </Bouton>
+          </form>
+        </Carte>
+      )}
 
       <Carte>
         <h2 className="font-semibold mb-1">Pièces du dossier</h2>

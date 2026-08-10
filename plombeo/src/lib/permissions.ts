@@ -45,6 +45,13 @@ export const PERMISSIONS = [
   "document:modifier",
   "document:supprimer",
   "document:signer",
+  // Phase 7 — automatisation. Configurer une automatisation, c'est décider ce
+  // qui part AU NOM DE L'ENTREPRISE : réservé aux deux rôles dirigeants.
+  // `notification:lire` est en revanche donnée à tous : une alerte que
+  // personne ne peut voir ne sert à rien.
+  "automatisation:lire",
+  "automatisation:configurer",
+  "notification:lire",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -84,6 +91,9 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "document:modifier",
     "document:supprimer",
     "document:signer",
+    "automatisation:lire",
+    "automatisation:configurer",
+    "notification:lire",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -108,6 +118,9 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "document:modifier",
     "document:supprimer",
     "document:signer",
+    "automatisation:lire",
+    "automatisation:configurer",
+    "notification:lire",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -115,6 +128,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "client:modifier",
     "intervention:lire",
     "intervention:modifier",
+    "automatisation:lire",
+    "notification:lire",
   ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.
@@ -128,6 +143,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     // Le technicien CONSULTE un devis (il doit savoir ce qui a été vendu) mais
     // ne le modifie pas : le prix est une décision du chef d'entreprise.
     "devis:lire",
+    "notification:lire",
   ],
   APPRENTI: [
     "organisation:lire",
@@ -135,8 +151,15 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "intervention:lire",
     "catalogue:lire",
     "document:lire",
+    "notification:lire",
   ],
-  SOUS_TRAITANT: ["organisation:lire", "client:lire", "intervention:lire", "document:lire"],
+  SOUS_TRAITANT: [
+    "organisation:lire",
+    "client:lire",
+    "intervention:lire",
+    "document:lire",
+    "notification:lire",
+  ],
   // L'expert-comptable lit et exporte, mais ne modifie jamais le fichier client.
   COMPTABLE: [
     "organisation:lire",
@@ -147,6 +170,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "devis:lire",
     "facture:lire",
     "document:lire",
+    "automatisation:lire",
+    "notification:lire",
   ],
   LECTURE_SEULE: [
     "organisation:lire",
@@ -156,6 +181,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "devis:lire",
     "facture:lire",
     "document:lire",
+    "automatisation:lire",
+    "notification:lire",
   ],
 };
 

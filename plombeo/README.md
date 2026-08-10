@@ -13,6 +13,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 4** : [`docs/plombeo/PHASE-4-SPECIFICATION.md`](../docs/plombeo/PHASE-4-SPECIFICATION.md)
 - **Spécification Phase 5** : [`docs/plombeo/PHASE-5-SPECIFICATION.md`](../docs/plombeo/PHASE-5-SPECIFICATION.md)
 - **Spécification Phase 6** : [`docs/plombeo/PHASE-6-SPECIFICATION.md`](../docs/plombeo/PHASE-6-SPECIFICATION.md)
+- **Spécification Phase 7** : [`docs/plombeo/PHASE-7-SPECIFICATION.md`](../docs/plombeo/PHASE-7-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -119,7 +120,41 @@ l'engagement reste **[À VÉRIFIER — SOURCE OFFICIELLE ET CONSEIL JURIDIQUE]**
 adaptateur « Null » n'accepte un fichier pour le perdre ensuite. L'implémentation S3
 échoue explicitement tant qu'aucun fournisseur n'est retenu.
 
-Les phases suivantes (automatisations, notifications, envoi par e-mail…) ne sont pas
+**Phase 7 — Automatisation, relances et notifications : terminée.**
+
+- **Moteur de règles** à quatre déclencheurs : facture échue, devis sans réponse,
+  rendez-vous du lendemain, intervention non clôturée
+- **Relance des impayés** : une relance part **une seule fois**, garantie par une
+  clé d'idempotence sous contrainte d'unicité en base — pas par un test applicatif,
+  que deux balayages concurrents contourneraient
+- **Envoi d'e-mails réel** (SMTP), avec le devis ou la facture **en PDF joint**,
+  généré côté serveur sans dépendre d'un navigateur
+- File d'attente en base : émettre une facture n'échoue jamais parce qu'un serveur
+  d'e-mail est lent, et chaque envoi reste traçable et rejouable
+- Centre de notifications, avec compteur dans l'en-tête
+- Point d'entrée `/api/cron/automatisations`, protégé par un secret comparé en
+  **temps constant** ; sans `CRON_SECRET`, la route est **fermée**, pas ouverte
+
+**Le dosage des relances est le cœur de cette phase** (§84). Garde-fous non
+désactivables : 3 relances maximum par facture, 7 jours minimum entre deux, envoi
+entre 8 h et 20 h hors week-end, arrêt immédiat dès qu'un paiement est enregistré,
+exclusion possible client par client. Et surtout : **aucune règle n'est active à
+l'installation**. Plombéo n'envoie rien tant que l'artisan ne l'a pas décidé.
+L'interface annonce ces limites, parce que c'est ce qui permet de faire confiance à
+une automatisation.
+
+**Les relances constatent un retard, elles ne mettent pas en demeure.** Aucun texte
+par défaut n'évoque intérêts de retard, indemnité forfaitaire ni pénalités : ces
+notions ont un régime précis **[À VÉRIFIER — SOURCE OFFICIELLE]**, et un défaut
+donnerait à l'artisan un faux sentiment de couverture (§15, §54). Un test vérifie
+l'absence de ces termes dans les modèles livrés.
+
+**Non livré, sans faux-semblant** : sans configuration SMTP, l'envoi est **refusé
+avec un message explicite**, l'option « e-mail au client » n'est même pas proposée
+dans les règles, et les échecs sont affichés. Aucun mode « console » qui écrirait
+l'e-mail dans les journaux : cela ressemble trop à un envoi réussi.
+
+Les phases suivantes (achats et stock, pilotage, portail client, IA…) ne sont pas
 commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
 données fictives.
 
@@ -156,6 +191,9 @@ Ouvrir http://localhost:3000.
 | `NEXT_PUBLIC_BASE_URL` | Base des liens absolus |
 | `STOCKAGE_DISQUE_RACINE` | Racine des fichiers versés (disque persistant) |
 | `STOCKAGE_S3_BUCKET` | Stockage objet compatible S3 — déclaré, pas encore implémenté |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | Serveur d'envoi d'e-mails |
+| `EMAIL_EXPEDITEUR` | Adresse d'expédition |
+| `CRON_SECRET` | Secret du point d'entrée de balayage. **Absent : la route est fermée.** |
 
 Sans l'une des deux variables de stockage, l'envoi de fichiers est refusé avec un
 message explicite : mieux vaut une fonctionnalité indisponible qu'une preuve de

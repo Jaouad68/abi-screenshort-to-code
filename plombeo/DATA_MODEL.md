@@ -151,6 +151,29 @@ le texte signé lisible sans dépendre de l'application est ce qui rend l'emprei
 vérifiable plus tard. `appareil` est un user-agent tronqué ; **aucune adresse IP** n'est
 conservée. Le champ `trace` contient le tracé en `data:image/png;base64`.
 
+### AutomationRule, AutomationExecution, Notification, EmailMessage, ModeleMessage (Phase 7)
+
+`AutomationRule` est **inactive à la création** (`active` par défaut à `false`) :
+c'est le modèle de données lui-même qui porte la garantie « Plombéo n'envoie rien
+tant que l'artisan ne l'a pas décidé » (§84). L'unicité
+`(organizationId, declencheur, delaiJours)` permet plusieurs échéances sur un même
+déclencheur — un échéancier de relance à 7, 21 et 45 jours — sans doublon.
+
+`AutomationExecution.cleIdempotence` est **unique globalement**, et non par
+organisation : l'identifiant d'entité qu'elle contient l'est déjà. C'est cette
+contrainte, et non du code applicatif, qui empêche la double relance.
+
+Les exécutions **écartées** sont conservées avec leur `motif`, pour que l'artisan
+puisse lire pourquoi rien n'est parti.
+
+`EmailMessage` est une **file d'attente**, pas un journal d'envoi : un envoi direct
+depuis une Server Action lierait la réussite de l'action à la disponibilité du serveur
+SMTP. La pièce jointe est une **référence** (`facture:<id>`), pas un fichier stocké —
+sur une pièce émise les totaux sont figés, donc le PDF régénéré dans six mois sera
+identique, et le conserver n'ajouterait qu'une copie à maintenir.
+
+`Client.relancesDesactivees` exclut un client des relances automatiques.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -183,7 +206,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 7 | `AutomationRule`, `AutomationExecution`, `Notification` |
 | 8 | `Supplier`, `Purchase`, `StockItem`, `StockMovement`, `Expense` |
 | 11 | `AiAction` |
 | 13 | `MaintenanceContract`, `Warranty` |

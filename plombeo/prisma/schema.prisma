@@ -82,6 +82,11 @@ model Organization {
   compteursFacture CompteurFacture[]
   documents        Document[]
   signatures       Signature[]
+  regles           AutomationRule[]
+  executions       AutomationExecution[]
+  notifications    Notification[]
+  emails           EmailMessage[]
+  modelesMessage   ModeleMessage[]
 }
 
 /// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
@@ -251,6 +256,9 @@ model Client {
 
   /// Note interne : ne doit jamais figurer sur un document remis au client.
   notes String @default("")
+
+  /// Certains clients se gèrent au téléphone, pas par relance automatique (§84).
+  relancesDesactivees Boolean @default(false)
 
   /// Archivage (§78) : le client sort des listes sans être détruit.
   archivedAt DateTime?
@@ -1112,4 +1120,168 @@ model LoginAttempt {
   createdAt   DateTime @default(now())
 
   @@index([identifiant, createdAt])
+}
+
+/* ========================================================================== */
+/* Phase 7 — Automatisation, relances et notifications                        */
+/* ========================================================================== */
+
+/// Ce qui déclenche une règle. Volontairement peu nombreux en V1 : chaque
+/// déclencheur est une promesse faite à l'artisan, mieux vaut quatre qui
+/// marchent que douze approximatifs.
+enum DeclencheurAutomatisation {
+  FACTURE_ECHUE
+  DEVIS_SANS_REPONSE
+  RENDEZ_VOUS_DEMAIN
+  INTERVENTION_A_CLOTURER
+}
+
+enum ActionAutomatisation {
+  NOTIFIER
+  ENVOYER_EMAIL
+}
+
+enum EtatExecution {
+  PLANIFIEE
+  REUSSIE
+  ECHOUEE
+  /// Écartée avant exécution : garde-fou déclenché, client exclu, facture payée
+  /// entre-temps. Conservée pour que l'artisan comprenne POURQUOI rien n'est parti.
+  ECARTEE
+}
+
+enum EtatEmail {
+  EN_ATTENTE
+  ENVOYE
+  ECHOUE
+}
+
+/// Règle d'automatisation. **Inactive à la création** : à l'installation,
+/// Plombéo n'envoie rien. L'artisan décide de ce qui part en son nom (§84).
+model AutomationRule {
+  id     String  @id @default(cuid())
+  active Boolean @default(false)
+
+  declencheur DeclencheurAutomatisation
+  action      ActionAutomatisation      @default(NOTIFIER)
+
+  /// Délai en jours après l'événement déclencheur. Plusieurs règles sur le même
+  /// déclencheur avec des délais différents forment un échéancier de relance.
+  delaiJours Int @default(0)
+
+  libelle String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  executions AutomationExecution[]
+
+  @@unique([organizationId, declencheur, delaiJours])
+  @@index([organizationId, active])
+}
+
+/// Une occurrence d'exécution.
+///
+/// `cleIdempotence` porte à elle seule la garantie « une relance part une seule
+/// fois » : elle est déterministe (règle + entité + occurrence) et **unique en
+/// base**. Un booléen « déjà envoyé » ne suffirait pas — entre la lecture et
+/// l'écriture, deux balayages concurrents verraient tous deux `false`.
+model AutomationExecution {
+  id  String        @id @default(cuid())
+  etat EtatExecution @default(PLANIFIEE)
+
+  /// Déterministe : `declencheur:entiteId:occurrence`. Contrainte d'unicité
+  /// GLOBALE et non par organisation — l'identifiant d'entité est déjà unique.
+  cleIdempotence String @unique
+
+  /// Pourquoi rien n'est parti, en français, quand l'état est ECARTEE ou ECHOUEE.
+  motif String @default("")
+
+  entiteType String @default("")
+  entiteId   String @default("")
+
+  executeeLe DateTime @default(now())
+
+  ruleId String
+  rule   AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, executeeLe])
+  @@index([entiteType, entiteId])
+}
+
+/// Alerte dans l'application.
+///
+/// Canal TOUJOURS disponible, contrairement à l'e-mail qui suppose un serveur
+/// SMTP configuré. C'est lui qui garantit que l'artisan finit par voir
+/// l'information, même si aucun envoi n'est possible.
+model Notification {
+  id      String    @id @default(cuid())
+  titre   String
+  corps   String    @default("")
+  lien    String    @default("")
+  lueLe   DateTime?
+
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, lueLe])
+  @@index([organizationId, createdAt])
+}
+
+/// File d'attente d'envoi.
+///
+/// Un envoi direct depuis une Server Action lierait la réussite de l'action à la
+/// disponibilité du serveur SMTP : émettre une facture échouerait parce qu'un
+/// serveur d'e-mail est lent. La file découple les deux, et rend chaque envoi
+/// traçable et rejouable.
+model EmailMessage {
+  id   String    @id @default(cuid())
+  etat EtatEmail @default(EN_ATTENTE)
+
+  destinataire String
+  sujet        String
+  corps        String
+
+  /// Pièce jointe produite à l'envoi, pas stockée : `devis:<id>` ou `facture:<id>`.
+  pieceJointe String @default("")
+
+  tentatives Int      @default(0)
+  erreur     String   @default("")
+  envoyeLe   DateTime?
+
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, etat])
+  @@index([organizationId, createdAt])
+}
+
+/// Modèle de texte, modifiable par l'artisan.
+///
+/// Le texte par défaut est FACTUEL : numéro, montant, échéance. Aucune mention
+/// d'intérêts de retard, d'indemnité forfaitaire ou de mise en demeure — ce sont
+/// des notions au régime précis [À VÉRIFIER — SOURCE OFFICIELLE], et un défaut
+/// donnerait à l'artisan un faux sentiment de couverture (§15, §54).
+model ModeleMessage {
+  id    String @id @default(cuid())
+  cle   String
+  sujet String
+  corps String
+
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, cle])
 }

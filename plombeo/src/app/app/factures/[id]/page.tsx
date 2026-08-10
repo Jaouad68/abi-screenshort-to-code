@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, Bouton, Carte, Message } from "@/components/ui";
+import { EnvoiEmail } from "@/components/EnvoiEmail";
 import {
   calculerSolde,
   estEnRetard,
@@ -105,7 +106,21 @@ export default async function PageFacture(props: PageProps<"/app/factures/[id]">
           >
             Voir / imprimer la facture
           </Link>
+          <a
+            href={`/api/pdf/facture/${facture.id}`}
+            className="inline-flex items-center justify-center min-h-11 px-4 rounded-controle
+                       font-semibold bg-white text-encre border border-trait hover:bg-fond"
+          >
+            Télécharger le PDF
+          </a>
         </div>
+      )}
+
+      {facture.numero && (
+        <Carte>
+          <h2 className="font-semibold mb-2">Envoyer au client</h2>
+          <EnvoiEmail type="facture" id={facture.id} emailClient={facture.client.email} />
+        </Carte>
       )}
 
       <BlocLignes

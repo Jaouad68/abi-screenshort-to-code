@@ -240,6 +240,48 @@ navigation et ne constitue donc pas une barrière fiable. La redirection présen
 Masquer un bouton dans l'interface ne protège rien : une Server Action est un point
 d'entrée réseau et vérifie systématiquement la permission côté serveur.
 
+### Automatisation et envoi d'e-mails (Phase 7)
+
+**Le balayage est la seule fonction du projet qui traverse les organisations.**
+C'est pourquoi son point d'entrée `/api/cron/automatisations` n'est pas protégé par
+une session — aucun humain ne l'appelle — mais par un **secret partagé comparé en
+temps constant** (`timingSafeEqual`) : une comparaison naïve fuit le secret octet par
+octet. Sans `CRON_SECRET` configuré, la route est **fermée (503)**, pas ouverte : le
+défaut sûr est de ne rien faire. Le refus renvoie le même message qu'il s'agisse d'un
+secret absent ou erroné.
+
+`contenuPdfPourOrganisation` est la seule fonction de lecture métier qui ne vérifie ni
+session ni permission — le balayage tourne sans utilisateur connecté. Son unique
+appelant légitime est la file d'e-mails, qui lit `organizationId` sur la ligne que le
+moteur a elle-même écrite, jamais sur une donnée reçue d'un client. Toutes les routes
+et Server Actions passent par `contenuPdf`, qui exige la permission.
+
+**Dosage des relances** (§84). Une automatisation mal calibrée abîme la relation que
+l'artisan a mis des années à construire. Garde-fous non désactivables : 3 relances
+maximum par facture, 7 jours minimum entre deux, envoi entre 8 h et 20 h hors
+week-end, arrêt immédiat sur paiement, exclusion par client. **Aucune règle n'est
+active à l'installation.**
+
+L'**idempotence** repose sur une clé déterministe (`déclencheur:entité:occurrence`)
+sous contrainte d'unicité en base, jamais sur un booléen « déjà envoyé » : entre la
+lecture et l'écriture, deux balayages concurrents verraient tous deux `false`. Le
+test qui la valide a d'abord été écrit de façon **vacueuse** — le délai minimum
+rattrapait le second balayage avant que la clé n'entre en jeu, et retirer la
+contrainte ne faisait échouer aucun test. Il a été refait avec deux balayages
+espacés de 30 jours, où tous les garde-fous applicatifs sont franchis et où seule la
+base peut encore arbitrer.
+
+**Aucun e-mail avalé en silence** (§76). Sans SMTP configuré, l'envoi est refusé avec
+un message explicite, l'option n'est pas proposée à la création d'une règle, et les
+échecs sont affichés à l'artisan. Pas de mode « console » : écrire l'e-mail dans les
+journaux ressemble trop à un envoi réussi. Au-delà de 5 tentatives, l'état devient
+définitivement `ECHOUE` plutôt que de rester « en cours » indéfiniment.
+
+Les exécutions **écartées** sont tracées avec leur motif en français : une
+automatisation qui ne fait rien sans dire pourquoi est indiscernable d'une
+automatisation en panne. Les motifs temporaires (hors plage d'envoi, délai non
+atteint) ne sont pas figés — les enregistrer bloquerait l'envoi pour toujours.
+
 ### Mise à jour des dépendances
 
 `npm audit` fait partie de la vérification, pas d'une revue annuelle. En août 2026,
@@ -262,13 +304,13 @@ sécurité complet :
 | Manque | Phase prévue |
 |---|---|
 | MFA / TOTP | Phase 15 (obligatoire pour le rôle Propriétaire dès que le paiement en ligne est réel) |
-| Réinitialisation du mot de passe | Phase 7 (avec l'adaptateur e-mail) |
+| Réinitialisation du mot de passe | Phase 15 (l'adaptateur e-mail existe depuis la Phase 7 ; le parcours de réinitialisation reste à écrire) |
 | Rate limiting global (hors connexion) | Phase 15 |
 | Politique CSP | Phase 15 |
 | Chiffrement au repos de colonnes sensibles (IBAN…) | Phase 15 |
 | Analyse antivirale des fichiers versés | Phase 15 (prestataire à retenir ; aucun contrôle antiviral n'est fait aujourd'hui) |
 | Politique de rétention et purge des documents | Phase 7 (règles datées, obligations **[À VÉRIFIER — SOURCE OFFICIELLE]**) |
-| Purge planifiée des sessions et tentatives expirées | Phase 7 (la fonction existe, le cron non) |
+| Purge planifiée des sessions et tentatives expirées | Phase 15 (la fonction et le point d'entrée cron existent ; le branchement reste à faire) |
 | Rotation du secret de session | Phase 15 |
 | Tests de restauration de sauvegarde | Phase 15 |
 

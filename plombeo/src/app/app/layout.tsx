@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { compterNotificationsNonLues } from "@/lib/notifications";
 
 /**
  * Coquille de l'espace connecté.
@@ -8,7 +9,11 @@ import Link from "next/link";
  * barrière fiable. Chaque page appelle le DAL (`exigerSession`), qui vérifie la
  * session au plus près de la donnée.
  */
-export default function LayoutApplication({ children }: { children: React.ReactNode }) {
+export default async function LayoutApplication({ children }: { children: React.ReactNode }) {
+  // Compteur seulement : aucune donnée sensible ici, et `compterNotifications`
+  // ne lève jamais — l'en-tête est rendu sur toutes les pages.
+  const nonLues = await compterNotificationsNonLues();
+
   return (
     <div className="flex-1 flex flex-col">
       <header className="bg-encre text-white no-print">
@@ -54,6 +59,29 @@ export default function LayoutApplication({ children }: { children: React.ReactN
                          text-sm font-medium hover:bg-white/10"
             >
               Clients
+            </Link>
+            <Link
+              href="/app/notifications"
+              className="inline-flex items-center gap-1.5 min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Alertes
+              {nonLues > 0 && (
+                <span
+                  className="inline-flex items-center justify-center min-w-5 h-5 px-1.5
+                             rounded-full bg-action text-white text-xs font-bold"
+                  aria-label={`${nonLues} non lues`}
+                >
+                  {nonLues > 99 ? "99+" : nonLues}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/app/automatisations"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Automatisations
             </Link>
             <Link
               href="/app/documents"
