@@ -278,9 +278,25 @@ plutôt que bâclée — c'est un contournement de l'authentification), analyse 
 et tests de restauration. `SECURITY.md` en donne la raison point par point, et décrit
 la procédure de sauvegarde attendue de l'exploitant.
 
-Les phases 12 (hors-ligne avancé), 13 (contrats) et 14 (SaaS) ne sont pas commencées.
-Le tableau de bord les annonce explicitement plutôt que d'afficher des données
-fictives.
+**Phase 12 — Hors-ligne avancé : terminée.**
+
+Le compte rendu ne peut plus être écrasé en silence. Deux appareils, ou un appareil
+revenu du hors-ligne, déclenchent un **conflit affiché** plutôt qu'une perte : les deux
+versions sont montrées, l'artisan tranche. Fusionner automatiquement produirait une
+phrase que personne n'a écrite, sur un document remis au client.
+
+Le problème était **plus petit qu'il n'y paraît**, et par construction : la saisie de
+chantier de la Phase 3 est en **ajout** (temps, fournitures, tâches, photos), donc elle
+ne peut pas entrer en conflit. Seuls trois champs texte le peuvent. Bâtir un mécanisme
+général de fusion pour trois champs aurait été la sur-ingénierie que la Phase 8 a appris
+à éviter.
+
+Le **mode dégradé du devis** n'avait rien à livrer : un devis suppose le catalogue et
+des compteurs atomiques ; le rendre hors ligne exigerait des numéros provisoires, ce qui
+heurte la continuité de numérotation. L'interface signale déjà l'absence de réseau.
+
+Les phases 13 (contrats d'entretien) et 14 (SaaS) ne sont pas commencées. Le tableau de
+bord les annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Intégration continue
 

@@ -182,6 +182,7 @@ export default async function PageIntervention(props: PageProps<"/app/interventi
           diagnostic: intervention.diagnostic,
           compteRendu: intervention.compteRendu,
         }}
+        vuLe={intervention.updatedAt.toISOString()}
       />
 
       {modifiable && contexte && roleAutorise(contexte.role, "ia:utiliser") && (

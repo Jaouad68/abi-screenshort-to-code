@@ -28,6 +28,20 @@ export type EtatTerrain = {
   succes?: string;
   valeurs?: Record<string, string>;
   tentative?: number;
+  /**
+   * Conflit de concurrence (Phase 12).
+   *
+   * Présent quand l'intervention a changé entre l'affichage du formulaire et
+   * l'envoi. RIEN n'a été écrit : les deux versions sont retournées pour que
+   * l'artisan tranche. Fusionner automatiquement produirait une phrase que
+   * personne n'a écrite, sur un document remis au client.
+   */
+  conflit?: {
+    champ: string;
+    versionServeur: string;
+    versionLocale: string;
+    vuLe: string;
+  }[];
 };
 
 const INTROUVABLE = "Cette fiche est introuvable.";
@@ -411,12 +425,69 @@ export async function enregistrerCompteRendu(
     ]);
   }
 
+  // Jeton de version (Phase 12). Son absence est REFUSÉE plutôt que tolérée :
+  // accepter un appel sans jeton rouvrirait la faille du « dernier écrit
+  // gagne » au premier formulaire qui l'oublie.
+  const vuLe = texte(donnees, "vuLe");
+  if (!vuLe) {
+    return { erreur: "Rechargez la page avant d'enregistrer." };
+  }
+
+  const actuelle = await prisma.intervention.findFirst({
+    where: { id, organizationId },
+    select: { updatedAt: true, probleme: true, diagnostic: true, compteRendu: true },
+  });
+  if (!actuelle) return { erreur: "Cette intervention est introuvable." };
+
+  // Concurrence optimiste : l'écriture n'est appliquée que si l'intervention
+  // n'a pas bougé depuis l'affichage du formulaire.
+  if (actuelle.updatedAt.toISOString() !== vuLe) {
+    const champs = ["probleme", "diagnostic", "compteRendu"] as const;
+    const conflit = champs
+      .filter((champ) => actuelle[champ] !== saisie.data[champ])
+      .map((champ) => ({
+        champ,
+        versionServeur: actuelle[champ],
+        versionLocale: saisie.data[champ],
+        vuLe: actuelle.updatedAt.toISOString(),
+      }));
+
+    // Modifiée entre-temps, mais sans divergence sur ces champs : rien à
+    // arbitrer, on laisse passer avec le jeton rafraîchi.
+    if (conflit.length > 0) {
+      return {
+        erreur:
+          "Cette intervention a été modifiée ailleurs entre-temps. " +
+          "Rien n'a été écrasé : choisissez la version à conserver.",
+        conflit,
+        valeurs: saisie.data,
+      };
+    }
+  }
+
   const resultat = await prisma.intervention.updateMany({
-    where: { id, organizationId, statut: { notIn: ["CLOTUREE", "ANNULEE"] } },
+    where: {
+      id,
+      organizationId,
+      statut: { notIn: ["CLOTUREE", "ANNULEE"] },
+      // Le jeton est REVÉRIFIÉ dans la clause d'écriture : entre la lecture
+      // ci-dessus et cette mise à jour, une autre écriture a pu passer. C'est
+      // la base qui arbitre, pas la lecture applicative.
+      updatedAt: actuelle.updatedAt,
+    },
     data: saisie.data,
   });
   if (resultat.count === 0) {
-    return { erreur: "Cette intervention est clôturée : son compte rendu ne peut plus être modifié." };
+    const encore = await prisma.intervention.findFirst({
+      where: { id, organizationId },
+      select: { statut: true },
+    });
+    if (encore && (encore.statut === "CLOTUREE" || encore.statut === "ANNULEE")) {
+      return {
+        erreur: "Cette intervention est clôturée : son compte rendu ne peut plus être modifié.",
+      };
+    }
+    return { erreur: "Une autre modification est arrivée pendant l'envoi. Rechargez la page." };
   }
 
   await journaliser({

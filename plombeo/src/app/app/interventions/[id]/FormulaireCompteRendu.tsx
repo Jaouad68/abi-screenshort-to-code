@@ -14,14 +14,27 @@ const etatInitial: EtatTerrain = {};
  * d'intervention, et sa saisie hors-ligne passe par la file de synchronisation
  * (mutation `compteRendu`) lorsque le réseau manque.
  */
+const LIBELLE_CHAMP: Record<string, string> = {
+  probleme: "Problème signalé",
+  diagnostic: "Diagnostic",
+  compteRendu: "Travaux réalisés",
+};
+
 export function FormulaireCompteRendu({
   interventionId,
   modifiable,
   valeurs,
+  vuLe,
 }: {
   interventionId: string;
   modifiable: boolean;
   valeurs: { probleme: string; diagnostic: string; compteRendu: string };
+  /**
+   * Jeton de version (Phase 12) : date de dernière modification lue au moment
+   * du rendu. Il permet au serveur de refuser d'écraser une modification
+   * arrivée entre-temps.
+   */
+  vuLe: string;
 }) {
   const [etat, envoyer, enCours] = useActionState(enregistrerCompteRendu, etatInitial);
   const v = { ...valeurs, ...(etat.valeurs ?? {}) };
@@ -48,6 +61,9 @@ export function FormulaireCompteRendu({
       <h2 className="font-semibold mb-3">Compte rendu</h2>
       <form key={cle} action={envoyer} className="flex flex-col gap-4" noValidate>
         <input type="hidden" name="id" value={interventionId} />
+        {/* Sans ce jeton, le serveur REFUSE l'écriture : c'est ce qui empêche le
+            « dernier écrit gagne » silencieux. */}
+        <input type="hidden" name="vuLe" value={etat.conflit?.[0]?.vuLe ?? vuLe} />
         <ZoneTexte
           id="probleme"
           name="probleme"
@@ -71,6 +87,27 @@ export function FormulaireCompteRendu({
 
         {etat.erreur && <Message ton="erreur">{etat.erreur}</Message>}
         {etat.succes && <Message ton="succes">{etat.succes}</Message>}
+
+        {/* Conflit : les DEUX versions sont montrées. Fusionner
+            automatiquement produirait une phrase que personne n'a écrite, sur
+            un document qui peut être remis au client. */}
+        {etat.conflit?.map((c) => (
+          <div key={c.champ} className="border border-trait rounded-controle p-3 bg-fond">
+            <p className="font-semibold text-sm">{LIBELLE_CHAMP[c.champ] ?? c.champ}</p>
+            <p className="text-sm text-attenue mt-2">Version enregistrée ailleurs :</p>
+            <pre className="text-sm whitespace-pre-wrap font-sans bg-white border border-trait rounded-controle p-2 mt-1">
+              {c.versionServeur || "(vide)"}
+            </pre>
+            <p className="text-sm text-attenue mt-2">La vôtre, conservée dans le champ :</p>
+            <pre className="text-sm whitespace-pre-wrap font-sans bg-white border border-trait rounded-controle p-2 mt-1">
+              {c.versionLocale || "(vide)"}
+            </pre>
+            <p className="text-sm text-attenue mt-2">
+              Rien n&apos;a été écrasé. Modifiez le champ ci-dessus si besoin, puis
+              enregistrez à nouveau : c&apos;est votre version qui sera conservée.
+            </p>
+          </div>
+        ))}
 
         <Bouton type="submit" disabled={enCours}>
           {enCours ? "Enregistrement…" : "Enregistrer le compte rendu"}
