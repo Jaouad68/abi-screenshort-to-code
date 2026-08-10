@@ -17,6 +17,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 8** : [`docs/plombeo/PHASE-8-SPECIFICATION.md`](../docs/plombeo/PHASE-8-SPECIFICATION.md)
 - **Spécification Phase 9** : [`docs/plombeo/PHASE-9-SPECIFICATION.md`](../docs/plombeo/PHASE-9-SPECIFICATION.md)
 - **Spécification Phase 10** : [`docs/plombeo/PHASE-10-SPECIFICATION.md`](../docs/plombeo/PHASE-10-SPECIFICATION.md)
+- **Spécification Phase 11** : [`docs/plombeo/PHASE-11-SPECIFICATION.md`](../docs/plombeo/PHASE-11-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -234,7 +235,31 @@ deux règles strictes :
 Un jeton inconnu, révoqué ou expiré reçoit **la même réponse** : distinguer
 renseignerait sur l'existence d'un lien.
 
-Les phases suivantes (IA, hors-ligne avancé, contrats, SaaS, durcissement) ne sont pas
+**Phase 11 — Assistant IA : terminée.**
+
+- Mise au propre d'un compte rendu, adaptateur générique, trace de chaque appel
+- **Aucun fournisseur retenu** : la décision n°9 engage un contrat de sous-traitance
+  sur des données personnelles et ne peut pas être tranchée par le code. Sans
+  configuration, l'assistant est **indisponible et le dit** — rien n'est simulé
+
+**Le §22 est traité comme une contrainte de conception, pas comme une mention en bas
+d'écran.** Un assistant qui écrit « il s'agit probablement d'un joint défectueux » a
+franchi la ligne, quel que soit l'avertissement qui l'entoure. Trois garanties, toutes
+vérifiées par des tests qui tombent si on les retire :
+
+- **toutes** les consignes envoyées portent l'interdiction explicite de diagnostiquer,
+  d'émettre une hypothèse de panne et de proposer un prix ;
+- les lignes proposées ont un prix **forcé à zéro dans le code** — la garantie ne repose
+  pas sur l'espoir que la consigne soit respectée ;
+- l'IA n'écrit **jamais** dans le champ `diagnostic`, qui porte depuis la Phase 3 la
+  mention « jamais généré ni déduit par l'application ». Même acceptée, une proposition
+  n'entre que dans le compte rendu.
+
+Rien ne s'enregistre sans validation explicite. Le texte est **caviardé** avant envoi
+(téléphone, e-mail, code postal, IBAN) — et l'interface précise que **cela ne garantit
+pas l'anonymat**, un texte libre pouvant toujours contenir un nom.
+
+Les phases suivantes (hors-ligne avancé, contrats, SaaS, durcissement) ne sont pas
 commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
 données fictives.
 

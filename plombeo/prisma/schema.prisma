@@ -91,6 +91,7 @@ model Organization {
   documents        Document[]
   signatures       Signature[]
   accesPortail     ClientAccess[]
+  actionsIA        AiAction[]
   fournisseurs     Supplier[]
   achats           Purchase[]
   lignesAchat      PurchaseLine[]
@@ -566,6 +567,7 @@ model Intervention {
   documents   Document[]
   signatures  Signature[]
   mouvements  StockMovement[]
+  actionsIA   AiAction[]
 
   @@index([organizationId, statut])
   @@index([clientId])
@@ -1504,4 +1506,48 @@ model ClientAccess {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, clientId])
+}
+
+/* ========================================================================== */
+/* Phase 11 — Assistant IA                                                    */
+/* ========================================================================== */
+
+enum TypeActionIA {
+  MISE_AU_PROPRE
+  STRUCTURER_DEVIS
+}
+
+enum DecisionIA {
+  PROPOSEE
+  ACCEPTEE
+  REJETEE
+}
+
+/// Trace d'un appel à l'assistant.
+///
+/// Sans elle, il serait impossible de répondre à la question « d'où vient cette
+/// phrase ? » sur un document remis à un client. La proposition est conservée
+/// telle quelle, y compris rejetée : c'est le rejet qui documente le jugement
+/// professionnel de l'artisan (§22).
+model AiAction {
+  id       String       @id @default(cuid())
+  type     TypeActionIA
+  decision DecisionIA   @default(PROPOSEE)
+
+  /// Texte réellement transmis au fournisseur, APRÈS caviardage.
+  demandeEnvoyee String
+  proposition    String @default("")
+  /// Renseigné quand l'appel a échoué : l'échec est une donnée, pas un silence.
+  erreur         String @default("")
+
+  createdAt DateTime  @default(now())
+  decideLe  DateTime?
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
 }

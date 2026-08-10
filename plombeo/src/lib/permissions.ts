@@ -65,6 +65,9 @@ export const PERMISSIONS = [
   // Phase 10 — portail. Ouvrir un accès client engage l'entreprise : réservé
   // aux rôles qui gèrent la relation commerciale.
   "portail:gerer",
+  // Phase 11 — assistant. Le technicien l'utilise : c'est lui qui rédige les
+  // comptes rendus sur le chantier.
+  "ia:utiliser",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -113,6 +116,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:modifier",
     "pilotage:lire",
     "portail:gerer",
+    "ia:utiliser",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -146,6 +150,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:modifier",
     "pilotage:lire",
     "portail:gerer",
+    "ia:utiliser",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -161,6 +166,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:modifier",
     "pilotage:lire",
     "portail:gerer",
+    "ia:utiliser",
   ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.
@@ -177,6 +183,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "notification:lire",
     "stock:lire",
     "stock:modifier",
+    "ia:utiliser",
   ],
   APPRENTI: [
     "organisation:lire",

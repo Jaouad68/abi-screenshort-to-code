@@ -101,7 +101,13 @@ export type ActionAuditee =
   | "portal.access_created"
   | "portal.access_revoked"
   | "portal.viewed"
-  | "quote.accepted_by_client";
+  | "quote.accepted_by_client"
+  // Phase 11 — assistant IA
+  | "ai.requested"
+  | "ai.proposed"
+  | "ai.accepted"
+  | "ai.rejected"
+  | "ai.unavailable";
 
 type EntreeAudit = {
   action: ActionAuditee;

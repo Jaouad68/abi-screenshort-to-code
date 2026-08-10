@@ -12,6 +12,8 @@ import { creerDevisDepuisIntervention } from "../../devis/actions";
 import { SaisieTerrain } from "./SaisieTerrain";
 import { FormulaireCompteRendu } from "./FormulaireCompteRendu";
 import { SignaturePad } from "@/components/SignaturePad";
+import { AssistantRedaction } from "./AssistantRedaction";
+import { iaDisponible } from "@/lib/ia";
 import { Televersement } from "@/components/Televersement";
 import { GalerieDocuments } from "@/components/GalerieDocuments";
 import { listerDocuments, listerSignatures, resumerIntervention } from "@/lib/documents";
@@ -181,6 +183,14 @@ export default async function PageIntervention(props: PageProps<"/app/interventi
           compteRendu: intervention.compteRendu,
         }}
       />
+
+      {modifiable && contexte && roleAutorise(contexte.role, "ia:utiliser") && (
+        <AssistantRedaction
+          interventionId={intervention.id}
+          disponible={iaDisponible()}
+          texteActuel={intervention.compteRendu}
+        />
+      )}
 
       <Carte>
         <h2 className="font-semibold mb-1">Photos et pièces</h2>
