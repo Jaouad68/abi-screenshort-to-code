@@ -18,6 +18,13 @@ export default function LayoutApplication({ children }: { children: React.ReactN
           </Link>
           <nav aria-label="Navigation principale" className="flex items-center gap-1">
             <Link
+              href="/app/clients"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Clients
+            </Link>
+            <Link
               href="/app/entreprise"
               className="inline-flex items-center min-h-11 px-3 rounded-controle
                          text-sm font-medium hover:bg-white/10"

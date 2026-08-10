@@ -1,6 +1,6 @@
 # Modèle de données — Plombéo
 
-État à la fin de la **Phase 1**. Source de vérité : `prisma/schema.prisma`.
+État à la fin de la **Phase 2**. Source de vérité : `prisma/schema.prisma`.
 
 ## Principe fondateur
 
@@ -57,6 +57,28 @@ Journal immuable. Pas de colonne `updatedAt` : ces lignes ne se modifient pas.
 `organizationId` et `actorUserId` sont **nullables** — un échec de connexion sur un
 e-mail inconnu n'est rattachable ni à un utilisateur ni à une organisation.
 
+### Client, Property, Equipment, Consent (Phase 2)
+
+`Client` (particulier ou professionnel) → `Property` (logement / site d'intervention,
+porteur du carnet technique) → `Equipment` (matériel installé). `Consent` porte l'état
+courant du consentement aux communications commerciales.
+
+**`Address` a été supprimée du modèle esquissé en Phase 0.** Dans ce métier une adresse
+n'existe jamais indépendamment : c'est soit l'adresse de facturation d'un client, soit
+celle d'un site d'intervention — c'est-à-dire un `Property`. Une table générique aurait
+imposé un discriminant de type et une jointure sur chaque écran, sans bénéfice.
+
+**`organizationId` est répété sur `Property`, `Equipment` et `Consent`** alors qu'il
+serait déductible depuis `Client`. Dénormalisation volontaire : elle permet de filtrer
+par tenant sans jointure (y compris pour la recherche) et rend le cloisonnement
+vérifiable table par table plutôt que dépendant d'une chaîne de jointures correcte. Le
+risque d'incohérence est neutralisé en écriture, la couche d'accès vérifiant
+l'appartenance du parent avant d'écrire.
+
+Contrainte produit assumée sur `Equipment` : **aucun champ obligatoire hors la
+catégorie**. Le matériel rencontré est trop divers pour qu'exiger une marque ou un
+numéro de série produise autre chose que des fiches vides ou du faux.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -89,7 +111,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 2 | `Client`, `Address`, `Property`, `Equipment`, `Consent` |
 | 3 | `Lead`, `Appointment`, `Intervention`, `InterventionTask`, `TimeEntry`, `Photo` |
 | 4 | `Service`, `Product`, `Quote`, `QuoteOption`, `QuoteLine` |
 | 5 | `Invoice`, `InvoiceLine`, `CreditNote`, `Payment` |

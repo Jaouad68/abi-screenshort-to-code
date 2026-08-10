@@ -20,14 +20,18 @@ const etatInitial: EtatFormulaire = {};
 export function FormulaireEntreprise({ organisation }: { organisation: Organisation }) {
   const [etat, action, enCours] = useActionState(mettreAJourOrganisation, etatInitial);
 
+  // Voir EtatFormulaire : React 19 réinitialise le formulaire après l'action.
+  const v = { ...organisation, ...(etat.valeurs ?? {}) } as Organisation;
+  const cle = etat.tentative ?? 0;
+
   return (
     <Carte>
-      <form action={action} className="flex flex-col gap-4" noValidate>
+      <form key={cle} action={action} className="flex flex-col gap-4" noValidate>
         <Champ
           id="nom"
           name="nom"
           libelle="Nom commercial"
-          defaultValue={organisation.nom}
+          defaultValue={v.nom}
           required
         />
         <Champ
@@ -35,7 +39,7 @@ export function FormulaireEntreprise({ organisation }: { organisation: Organisat
           name="formeJuridique"
           libelle="Forme juridique"
           aide="Par exemple : entreprise individuelle, SASU, EURL."
-          defaultValue={organisation.formeJuridique}
+          defaultValue={v.formeJuridique}
         />
         <Champ
           id="siret"
@@ -43,14 +47,14 @@ export function FormulaireEntreprise({ organisation }: { organisation: Organisat
           libelle="SIRET"
           aide="14 chiffres."
           inputMode="numeric"
-          defaultValue={organisation.siret}
+          defaultValue={v.siret}
         />
         <Champ
           id="adresse"
           name="adresse"
           libelle="Adresse"
           autoComplete="street-address"
-          defaultValue={organisation.adresse}
+          defaultValue={v.adresse}
         />
         {/* 9rem : en dessous, « Code postal » passe sur deux lignes sur un
             écran de 390 px de large. */}
@@ -61,14 +65,14 @@ export function FormulaireEntreprise({ organisation }: { organisation: Organisat
             libelle="Code postal"
             inputMode="numeric"
             autoComplete="postal-code"
-            defaultValue={organisation.codePostal}
+            defaultValue={v.codePostal}
           />
           <Champ
             id="ville"
             name="ville"
             libelle="Ville"
             autoComplete="address-level2"
-            defaultValue={organisation.ville}
+            defaultValue={v.ville}
           />
         </div>
         <Champ
@@ -78,7 +82,7 @@ export function FormulaireEntreprise({ organisation }: { organisation: Organisat
           type="tel"
           inputMode="tel"
           autoComplete="tel"
-          defaultValue={organisation.telephone}
+          defaultValue={v.telephone}
         />
         <Champ
           id="email"
@@ -86,7 +90,7 @@ export function FormulaireEntreprise({ organisation }: { organisation: Organisat
           libelle="E-mail de contact"
           type="email"
           inputMode="email"
-          defaultValue={organisation.email}
+          defaultValue={v.email}
         />
 
         {etat.erreur && <Message ton="erreur">{etat.erreur}</Message>}

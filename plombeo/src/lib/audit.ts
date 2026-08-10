@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
  * le journal d'audit ; le bus d'événements du moteur de règles arrive en Phase 7.
  */
 export type ActionAuditee =
+  // Phase 1 — comptes et organisation
   | "organization.created"
   | "organization.updated"
   | "user.registered"
@@ -16,7 +17,21 @@ export type ActionAuditee =
   | "user.login_failed"
   | "user.login_blocked"
   | "user.logged_out"
-  | "user.sessions_revoked";
+  | "user.sessions_revoked"
+  // Phase 2 — CRM
+  | "client.created"
+  | "client.updated"
+  | "client.archived"
+  | "client.restored"
+  | "client.deleted"
+  | "client.exported"
+  | "property.created"
+  | "property.updated"
+  | "property.archived"
+  | "equipment.created"
+  | "equipment.updated"
+  | "equipment.deleted"
+  | "consent.updated";
 
 type EntreeAudit = {
   action: ActionAuditee;

@@ -8,7 +8,23 @@ import { journaliser } from "@/lib/audit";
 import { exigerPermission, exigerSession } from "@/lib/dal";
 import { premiereErreur, schemaOrganisation } from "@/lib/validation";
 
-export type EtatFormulaire = { erreur?: string; succes?: string };
+/**
+ * État renvoyé par les Server Actions de formulaire.
+ *
+ * `valeurs` et `tentative` compensent la réinitialisation automatique du
+ * formulaire par React 19 après l'exécution d'une action : sans réémission de
+ * la saisie, une erreur de validation viderait tous les champs déjà remplis.
+ */
+export type EtatFormulaire = {
+  erreur?: string;
+  succes?: string;
+  valeurs?: Record<string, string>;
+  tentative?: number;
+};
+
+const CHAMPS_ORGANISATION = [
+  "nom", "formeJuridique", "siret", "adresse", "codePostal", "ville", "telephone", "email",
+] as const;
 
 export async function deconnecter(): Promise<void> {
   const { sessionId, userId, organizationId } = await exigerSession();
@@ -47,7 +63,15 @@ export async function mettreAJourOrganisation(
     telephone: donnees.get("telephone") ?? "",
     email: donnees.get("email") ?? "",
   });
-  if (!saisie.success) return { erreur: premiereErreur(saisie.error) };
+  if (!saisie.success) {
+    return {
+      erreur: premiereErreur(saisie.error),
+      valeurs: Object.fromEntries(
+        CHAMPS_ORGANISATION.map((c) => [c, String(donnees.get(c) ?? "")]),
+      ),
+      tentative: (_precedent.tentative ?? 0) + 1,
+    };
+  }
 
   // L'identifiant de l'organisation vient de la session, jamais du formulaire :
   // c'est ce qui empêche de modifier l'entreprise d'un autre artisan.

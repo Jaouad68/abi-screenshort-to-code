@@ -6,7 +6,24 @@ import { hacherMotDePasse, ouvrirSession } from "@/lib/auth";
 import { journaliser } from "@/lib/audit";
 import { premiereErreur, schemaInscription } from "@/lib/validation";
 
-export type EtatInscription = { erreur?: string };
+/** `valeurs`/`tentative` : voir EtatCrm — React 19 réinitialise le formulaire
+ *  après l'action. Le mot de passe n'est délibérément jamais réémis. */
+export type EtatInscription = {
+  erreur?: string;
+  valeurs?: Record<string, string>;
+  tentative?: number;
+};
+
+function rejouer(precedent: EtatInscription, erreur: string, donnees: FormData): EtatInscription {
+  return {
+    erreur,
+    valeurs: {
+      email: String(donnees.get("email") ?? ""),
+      nomEntreprise: String(donnees.get("nomEntreprise") ?? ""),
+    },
+    tentative: (precedent.tentative ?? 0) + 1,
+  };
+}
 
 export async function inscrire(
   _precedent: EtatInscription,
@@ -17,14 +34,18 @@ export async function inscrire(
     motDePasse: donnees.get("motDePasse"),
     nomEntreprise: donnees.get("nomEntreprise"),
   });
-  if (!saisie.success) return { erreur: premiereErreur(saisie.error) };
+  if (!saisie.success) return rejouer(_precedent, premiereErreur(saisie.error), donnees);
 
   const { email, motDePasse, nomEntreprise } = saisie.data;
 
   const existant = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existant) {
     // Message volontairement neutre : il n'annonce pas qu'un compte existe.
-    return { erreur: "Impossible de créer ce compte. Vérifiez vos informations ou connectez-vous." };
+    return rejouer(
+      _precedent,
+      "Impossible de créer ce compte. Vérifiez vos informations ou connectez-vous.",
+      donnees,
+    );
   }
 
   const passwordHash = await hacherMotDePasse(motDePasse);

@@ -81,6 +81,76 @@ export function Champ({
   );
 }
 
+/** Zone de texte multiligne, mêmes règles d'accessibilité que `Champ`. */
+export function ZoneTexte({
+  id,
+  libelle,
+  aide,
+  ...props
+}: ComponentProps<"textarea"> & { id: string; libelle: string; aide?: string }) {
+  const idAide = aide ? `${id}-aide` : undefined;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="font-semibold text-sm">
+        {libelle}
+      </label>
+      {aide && (
+        <p id={idAide} className="text-sm text-attenue">
+          {aide}
+        </p>
+      )}
+      <textarea
+        id={id}
+        aria-describedby={idAide}
+        rows={3}
+        className="px-3 py-2 rounded-controle border border-trait bg-white focus:border-action"
+        {...props}
+      />
+    </div>
+  );
+}
+
+/** Liste déroulante. */
+export function Selection({
+  id,
+  libelle,
+  options,
+  ...props
+}: ComponentProps<"select"> & {
+  id: string;
+  libelle: string;
+  options: readonly { valeur: string; libelle: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="font-semibold text-sm">
+        {libelle}
+      </label>
+      <select
+        id={id}
+        className="min-h-11 px-3 rounded-controle border border-trait bg-white focus:border-action"
+        {...props}
+      >
+        {options.map((o) => (
+          <option key={o.valeur} value={o.valeur}>
+            {o.libelle}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/** État vide d'une liste. Explique quoi faire plutôt que d'afficher un vide muet. */
+export function ListeVide({ titre, children }: { titre: string; children?: ReactNode }) {
+  return (
+    <Carte className="border-dashed text-center">
+      <p className="font-semibold">{titre}</p>
+      {children && <div className="text-sm text-attenue mt-2">{children}</div>}
+    </Carte>
+  );
+}
+
 const TONS_BADGE = {
   neutre: "bg-fond text-attenue border-trait",
   succes: "bg-[#e8f4ed] text-succes border-[#bcdcc9]",

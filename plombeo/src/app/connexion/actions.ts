@@ -7,7 +7,13 @@ import { journaliser } from "@/lib/audit";
 import { echecsRecents, enregistrerTentative, tentativeAutorisee } from "@/lib/securite";
 import { premiereErreur, schemaConnexion } from "@/lib/validation";
 
-export type EtatConnexion = { erreur?: string };
+/** L'e-mail est réémis après un échec (React 19 vide le formulaire), jamais le
+ *  mot de passe. */
+export type EtatConnexion = {
+  erreur?: string;
+  email?: string;
+  tentative?: number;
+};
 
 /**
  * Message unique pour tous les échecs d'identification.
@@ -25,7 +31,7 @@ export async function connecter(
     email: donnees.get("email"),
     motDePasse: donnees.get("motDePasse"),
   });
-  if (!saisie.success) return { erreur: premiereErreur(saisie.error) };
+  if (!saisie.success) return { erreur: premiereErreur(saisie.error), email: String(donnees.get('email') ?? ''), tentative: (_precedent.tentative ?? 0) + 1 };
 
   const { email, motDePasse } = saisie.data;
 
@@ -33,6 +39,8 @@ export async function connecter(
     await journaliser({ action: "user.login_blocked", entityType: "User", metadata: { email } });
     return {
       erreur: "Trop de tentatives de connexion. Réessayez dans quelques minutes.",
+      email,
+      tentative: (_precedent.tentative ?? 0) + 1,
     };
   }
 
@@ -55,7 +63,7 @@ export async function connecter(
     await comparaisonFactice(motDePasse);
     await enregistrerTentative(email, false);
     await journaliser({ action: "user.login_failed", metadata: { email, raison: "inconnu" } });
-    return { erreur: IDENTIFIANTS_INVALIDES };
+    return { erreur: IDENTIFIANTS_INVALIDES, email: String(donnees.get('email') ?? ''), tentative: (_precedent.tentative ?? 0) + 1 };
   }
 
   if (!(await verifierMotDePasse(motDePasse, utilisateur.passwordHash))) {
@@ -65,7 +73,7 @@ export async function connecter(
       actorUserId: utilisateur.id,
       metadata: { email, raison: "mot_de_passe" },
     });
-    return { erreur: IDENTIFIANTS_INVALIDES };
+    return { erreur: IDENTIFIANTS_INVALIDES, email: String(donnees.get('email') ?? ''), tentative: (_precedent.tentative ?? 0) + 1 };
   }
 
   const membership = utilisateur.memberships[0];
@@ -77,7 +85,11 @@ export async function connecter(
       actorUserId: utilisateur.id,
       metadata: { email, raison: "sans_organisation" },
     });
-    return { erreur: "Ce compte n'est rattaché à aucune entreprise. Contactez le support." };
+    return {
+      erreur: "Ce compte n'est rattaché à aucune entreprise. Contactez le support.",
+      email,
+      tentative: (_precedent.tentative ?? 0) + 1,
+    };
   }
 
   await enregistrerTentative(email, true);

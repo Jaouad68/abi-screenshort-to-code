@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { APrevoir, Badge, Carte } from "@/components/ui";
 import { exigerSession, organisationCourante } from "@/lib/dal";
+import { compterClients } from "@/lib/crm";
 import { LIBELLE_ROLE } from "@/lib/permissions";
 
 /**
@@ -13,6 +15,7 @@ import { LIBELLE_ROLE } from "@/lib/permissions";
 export default async function TableauDeBord() {
   const contexte = await exigerSession();
   const organisation = await organisationCourante();
+  const nombreClients = await compterClients();
 
   return (
     <div className="flex flex-col gap-4">
@@ -33,11 +36,28 @@ export default async function TableauDeBord() {
         </p>
       </Carte>
 
+      <Link href="/app/clients" className="block">
+        <Carte className="hover:border-action">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">Clients et logements</h2>
+              <p className="text-sm text-attenue mt-1">
+                {nombreClients === 0
+                  ? "Créez votre première fiche client."
+                  : `${nombreClients} client${nombreClients > 1 ? "s" : ""} en fichier`}
+              </p>
+            </div>
+            <span aria-hidden className="text-attenue text-xl">
+              ›
+            </span>
+          </div>
+        </Carte>
+      </Link>
+
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-attenue">
           Prochainement
         </h2>
-        <APrevoir titre="Clients et logements" phase="Phase 2" />
         <APrevoir titre="Agenda et interventions" phase="Phase 3" />
         <APrevoir titre="Devis" phase="Phase 4" />
         <APrevoir titre="Factures et paiements" phase="Phase 5" />

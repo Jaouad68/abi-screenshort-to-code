@@ -1,6 +1,6 @@
 # Sécurité — Plombéo
 
-État à la fin de la **Phase 1**. Ce document décrit ce qui est réellement en place et,
+État à la fin de la **Phase 2**. Ce document décrit ce qui est réellement en place et,
 tout aussi important, ce qui ne l'est pas encore.
 
 ## Modèle de menace retenu
@@ -75,6 +75,37 @@ passe, de jeton, ni de donnée personnelle superflue.
 
 L'échec d'écriture d'un audit ne fait jamais échouer l'action métier qu'il accompagne.
 
+### Cloisonnement des données métier (Phase 2)
+
+Les clients, logements et équipements suivent la même règle que le reste : `src/lib/crm.ts`
+dérive l'organisation de la session et l'applique à **chaque** requête.
+
+Point important : les lectures utilisent `findFirst({ where: { id, organizationId } })`
+plutôt que `findUnique({ where: { id } })`. Un identifiant valide appartenant à un autre
+artisan se comporte donc exactement comme un identifiant inexistant — l'application
+renvoie 404 dans les deux cas. Une réponse différente confirmerait l'existence d'une
+fiche chez quelqu'un d'autre.
+
+Les écritures utilisent `updateMany`/`deleteMany` avec le même filtre : une action visant
+la fiche d'un autre artisan touche zéro ligne au lieu d'écrire. Les créations rattachées
+à un parent (logement sous un client, équipement sous un logement) revalident ce parent
+avant d'écrire.
+
+Vérifié par `src/lib/isolation-crm.test.ts`, validé par mutation, et par un parcours
+navigateur où un second artisan tente d'atteindre les fiches du premier par leurs URL
+exactes.
+
+### Actions sensibles
+
+- **Export du fichier client** : permission dédiée (`client:exporter`), journalisé avec
+  le nombre de lignes, réponse en `Cache-Control: no-store, private`. Le CSV neutralise
+  l'injection de formule (`=`, `+`, `-`, `@`), sans quoi un nom de client malveillant
+  s'exécuterait à l'ouverture dans Excel.
+- **Suppression définitive d'un client** : réservée au propriétaire, confirmée par la
+  saisie exacte du nom, journalisée. Elle emporte logements et équipements en cascade.
+  ⚠️ À revoir en Phase 5 : elle devra être bloquée pour les clients porteurs de pièces
+  comptables soumises à conservation **[À VÉRIFIER — SOURCE OFFICIELLE]**.
+
 ### En-têtes de sécurité
 
 Appliqués à toutes les réponses par `src/proxy.ts` : `X-Content-Type-Options: nosniff`,
@@ -94,7 +125,7 @@ d'entrée réseau et vérifie systématiquement la permission côté serveur.
 
 ## Ce qui n'est PAS encore en place
 
-À traiter aux phases indiquées — ne pas considérer la Phase 1 comme un socle de
+À traiter aux phases indiquées — ne pas considérer les phases livrées comme un socle de
 sécurité complet :
 
 | Manque | Phase prévue |
@@ -104,6 +135,7 @@ sécurité complet :
 | Rate limiting global (hors connexion) | Phase 15 |
 | Politique CSP | Phase 15 |
 | Chiffrement au repos de colonnes sensibles (IBAN…) | Phase 5 |
+| Blocage de la suppression d'un client porteur de pièces comptables | Phase 5 |
 | Purge planifiée des sessions et tentatives expirées | Phase 7 (la fonction existe, le cron non) |
 | Rotation du secret de session | Phase 15 |
 | Tests de restauration de sauvegarde | Phase 15 |

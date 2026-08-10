@@ -59,6 +59,10 @@ model Organization {
 
   memberships Membership[]
   auditLogs   AuditLog[]
+  clients     Client[]
+  properties  Property[]
+  equipments  Equipment[]
+  consents    Consent[]
 }
 
 /// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
@@ -149,6 +153,201 @@ model AuditLog {
 
   @@index([organizationId, createdAt])
   @@index([action, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 2 — CRM : clients, logements (carnet technique), équipements
+// ---------------------------------------------------------------------------
+
+enum ClientType {
+  PARTICULIER
+  PROFESSIONNEL
+}
+
+enum PropertyType {
+  MAISON
+  APPARTEMENT
+  LOCAL_COMMERCIAL
+  IMMEUBLE
+  AUTRE
+}
+
+/// Catégories volontairement larges : le matériel rencontré est trop divers
+/// pour une nomenclature fine, qui deviendrait vite fausse ou incomplète.
+enum EquipmentCategory {
+  CHAUDIERE
+  CHAUFFE_EAU
+  POMPE_A_CHALEUR
+  CLIMATISATION
+  ADOUCISSEUR
+  VMC
+  SANITAIRE
+  ROBINETTERIE
+  CANALISATION
+  AUTRE
+}
+
+/// Consentement aux communications COMMERCIALES uniquement.
+/// Les messages liés à une prestation en cours (confirmation de rendez-vous,
+/// envoi d'un devis) relèvent de l'exécution du contrat et ne dépendent pas de
+/// ce consentement : la distinction sera appliquée par le moteur d'envoi (Phase 7).
+enum ConsentType {
+  EMAIL_COMMERCIAL
+  SMS_COMMERCIAL
+}
+
+/// Client de l'artisan : particulier ou professionnel.
+///
+/// Seul `nomAffichage` est réellement requis : une fiche saisie en urgence entre
+/// deux interventions doit pouvoir n'avoir qu'un nom et un téléphone.
+model Client {
+  id   String     @id @default(cuid())
+  type ClientType @default(PARTICULIER)
+
+  /// Nom du particulier ou raison sociale. Dénormalisé pour trier et rechercher
+  /// sans avoir à reconstruire le nom selon le type à chaque requête.
+  nomAffichage String
+
+  // Particulier
+  civilite String @default("")
+  prenom   String @default("")
+  nom      String @default("")
+
+  // Professionnel
+  raisonSociale         String @default("")
+  siret                 String @default("")
+  tvaIntracommunautaire String @default("")
+  contactNom            String @default("")
+
+  email               String @default("")
+  telephone           String @default("")
+  telephoneSecondaire String @default("")
+
+  // Adresse de facturation. Volontairement inline plutôt que dans une table
+  // `Address` dédiée : une adresse n'existe jamais indépendamment ici, et un
+  // site d'intervention est déjà modélisé par Property.
+  adresse    String @default("")
+  codePostal String @default("")
+  ville      String @default("")
+
+  /// Note interne : ne doit jamais figurer sur un document remis au client.
+  notes String @default("")
+
+  /// Archivage (§78) : le client sort des listes sans être détruit.
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  properties Property[]
+  consents   Consent[]
+
+  @@index([organizationId, archivedAt])
+  @@index([organizationId, nomAffichage])
+}
+
+/// Logement ou site d'intervention, porteur du carnet technique (§8).
+/// Un client peut en avoir plusieurs (propriétaire bailleur, syndic...).
+model Property {
+  id      String       @id @default(cuid())
+  /// Facultatif : sans libellé, l'affichage retombe sur l'adresse.
+  libelle String       @default("")
+  type    PropertyType @default(MAISON)
+
+  adresse    String @default("")
+  complement String @default("")
+  codePostal String @default("")
+  ville      String @default("")
+
+  // Informations d'accès : sur le terrain, c'est ce qui évite de rester bloqué
+  // devant une porte.
+  etage             String @default("")
+  digicode          String @default("")
+  interphone        String @default("")
+  instructionsAcces String @default("")
+
+  anneeConstruction Int?
+  notes             String @default("")
+
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  /// Dénormalisé depuis Client : permet de filtrer par tenant sans jointure et
+  /// rend le cloisonnement vérifiable table par table (voir PHASE-2-SPECIFICATION).
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  equipments Equipment[]
+
+  @@index([organizationId, archivedAt])
+  @@index([clientId])
+}
+
+/// Équipement installé dans un logement.
+///
+/// Aucun champ n'est obligatoire hors la catégorie : sur chantier, l'artisan
+/// note ce qu'il voit. Exiger une marque ou un numéro de série produirait des
+/// fiches vides ou du faux.
+model Equipment {
+  id        String            @id @default(cuid())
+  categorie EquipmentCategory @default(AUTRE)
+
+  marque       String @default("")
+  modele       String @default("")
+  numeroSerie  String @default("")
+  /// Où se trouve l'appareil dans le logement (cave, cuisine, gaine...).
+  localisation String @default("")
+
+  datePose      DateTime?
+  finGarantie   DateTime?
+  /// Date indicative saisie par l'artisan. N'ARME AUCUN RAPPEL en Phase 2 :
+  /// le moteur d'automatisation arrive en Phase 7.
+  prochainEntretien DateTime?
+
+  notes String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([propertyId])
+}
+
+/// Consentement d'un client aux communications commerciales (§33, §45).
+/// L'historique des changements est tracé par AuditLog ; cette table porte
+/// l'état courant.
+model Consent {
+  id       String      @id @default(cuid())
+  type     ConsentType
+  /// Jamais vrai par défaut : un consentement se recueille, il ne se présume pas.
+  accorde  Boolean     @default(false)
+  /// Date du dernier changement d'état, quel qu'il soit.
+  modifieLe DateTime   @default(now())
+  /// Comment le consentement a été recueilli (formulaire papier, oral, e-mail...).
+  source   String      @default("")
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, type])
+  @@index([organizationId])
 }
 
 /// Tentatives de connexion, pour la protection anti-force brute (§46).

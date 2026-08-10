@@ -12,6 +12,14 @@ export const PERMISSIONS = [
   "organisation:supprimer",
   "membre:inviter",
   "audit:lire",
+  // Phase 2 — CRM. Couvrent clients, logements et équipements : ces trois
+  // entités forment un même ensemble du point de vue des droits, les séparer
+  // n'apporterait rien à un artisan seul.
+  "client:lire",
+  "client:modifier",
+  "client:archiver",
+  "client:supprimer",
+  "client:exporter",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -30,14 +38,31 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "organisation:supprimer",
     "membre:inviter",
     "audit:lire",
+    "client:lire",
+    "client:modifier",
+    "client:archiver",
+    "client:supprimer",
+    "client:exporter",
   ],
-  ADMINISTRATEUR: ["organisation:lire", "organisation:modifier", "membre:inviter", "audit:lire"],
-  ASSISTANT: ["organisation:lire"],
-  TECHNICIEN: ["organisation:lire"],
-  APPRENTI: ["organisation:lire"],
-  SOUS_TRAITANT: ["organisation:lire"],
-  COMPTABLE: ["organisation:lire"],
-  LECTURE_SEULE: ["organisation:lire"],
+  ADMINISTRATEUR: [
+    "organisation:lire",
+    "organisation:modifier",
+    "membre:inviter",
+    "audit:lire",
+    "client:lire",
+    "client:modifier",
+    "client:archiver",
+    "client:exporter",
+  ],
+  ASSISTANT: ["organisation:lire", "client:lire", "client:modifier"],
+  // Le technicien peut modifier : il tient le carnet technique depuis le
+  // chantier, c'est le cœur de l'usage terrain.
+  TECHNICIEN: ["organisation:lire", "client:lire", "client:modifier"],
+  APPRENTI: ["organisation:lire", "client:lire"],
+  SOUS_TRAITANT: ["organisation:lire", "client:lire"],
+  // L'expert-comptable lit et exporte, mais ne modifie jamais le fichier client.
+  COMPTABLE: ["organisation:lire", "client:lire", "client:exporter"],
+  LECTURE_SEULE: ["organisation:lire", "client:lire"],
 };
 
 export function permissionsDuRole(role: Role): readonly Permission[] {

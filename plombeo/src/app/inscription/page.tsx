@@ -9,6 +9,8 @@ const etatInitial: EtatInscription = {};
 
 export default function PageInscription() {
   const [etat, action, enCours] = useActionState(inscrire, etatInitial);
+  const v = etat.valeurs ?? {};
+  const cle = etat.tentative ?? 0;
 
   return (
     <main id="contenu" className="flex-1 flex items-center justify-center px-5 py-12">
@@ -19,12 +21,13 @@ export default function PageInscription() {
         </p>
 
         <Carte>
-          <form action={action} className="flex flex-col gap-4" noValidate>
+          <form key={cle} action={action} className="flex flex-col gap-4" noValidate>
             <Champ
               id="nomEntreprise"
               name="nomEntreprise"
               libelle="Nom de votre entreprise"
               placeholder="Plomberie Martin"
+              defaultValue={v["nomEntreprise"] ?? ""}
               autoComplete="organization"
               required
             />
@@ -34,6 +37,7 @@ export default function PageInscription() {
               type="email"
               libelle="Adresse e-mail"
               placeholder="vous@exemple.fr"
+              defaultValue={v["email"] ?? ""}
               autoComplete="email"
               inputMode="email"
               required

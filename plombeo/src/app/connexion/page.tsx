@@ -9,6 +9,7 @@ const etatInitial: EtatConnexion = {};
 
 export default function PageConnexion() {
   const [etat, action, enCours] = useActionState(connecter, etatInitial);
+  const cle = etat.tentative ?? 0;
 
   return (
     <main id="contenu" className="flex-1 flex items-center justify-center px-5 py-12">
@@ -17,13 +18,14 @@ export default function PageConnexion() {
         <p className="text-attenue mb-6">Accédez à votre espace Plombéo.</p>
 
         <Carte>
-          <form action={action} className="flex flex-col gap-4" noValidate>
+          <form key={cle} action={action} className="flex flex-col gap-4" noValidate>
             <Champ
               id="email"
               name="email"
               type="email"
               libelle="Adresse e-mail"
               placeholder="vous@exemple.fr"
+              defaultValue={etat.email ?? ""}
               autoComplete="email"
               inputMode="email"
               required
