@@ -82,6 +82,10 @@ model Organization {
   compteursFacture CompteurFacture[]
   documents        Document[]
   signatures       Signature[]
+  fournisseurs     Supplier[]
+  achats           Purchase[]
+  lignesAchat      PurchaseLine[]
+  mouvementsStock  StockMovement[]
   regles           AutomationRule[]
   executions       AutomationExecution[]
   notifications    Notification[]
@@ -550,6 +554,7 @@ model Intervention {
   devis       Quote[]
   documents   Document[]
   signatures  Signature[]
+  mouvements  StockMovement[]
 
   @@index([organizationId, statut])
   @@index([clientId])
@@ -675,6 +680,23 @@ model Product {
   unite   String @default("u")
   prixUnitaireCents Int @default(0)
   tauxTvaCentiemes  Int @default(2000)
+
+  /// Dernier prix d'achat connu. Zéro signifie INCONNU, pas gratuit : la marge
+  /// n'est affichée que lorsqu'il est renseigné, sinon un article non saisi
+  /// afficherait 100 % de marge.
+  prixAchatCents Int @default(0)
+
+  /// Suivi de stock CHOISI référence par référence. Aucun suivi par défaut :
+  /// un stock faux est pire qu'un stock absent (§ risque de sur-ingénierie).
+  suiviStock Boolean @default(false)
+  /// Seuil d'alerte, en milli-unités. Zéro = pas d'alerte.
+  seuilAlerteMilli Int @default(0)
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  lignesAchat PurchaseLine[]
+  mouvements  StockMovement[]
 
   archivedAt DateTime?
   createdAt  DateTime @default(now())
@@ -1134,6 +1156,7 @@ enum DeclencheurAutomatisation {
   DEVIS_SANS_REPONSE
   RENDEZ_VOUS_DEMAIN
   INTERVENTION_A_CLOTURER
+  STOCK_SOUS_SEUIL
 }
 
 enum ActionAutomatisation {
@@ -1284,4 +1307,156 @@ model ModeleMessage {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, cle])
+}
+
+/* ========================================================================== */
+/* Phase 8 — Fournisseurs, achats et stock                                    */
+/* ========================================================================== */
+
+/// Origine d'un mouvement de stock. Sert à expliquer un écart : sans elle, le
+/// journal dirait « combien » sans jamais dire « pourquoi ».
+enum TypeMouvement {
+  ENTREE_ACHAT
+  SORTIE_CHANTIER
+  CORRECTION_COMPTAGE
+  RETOUR
+  PERTE
+}
+
+enum EtatAchat {
+  BROUILLON
+  VALIDE
+}
+
+model Supplier {
+  id      String @id @default(cuid())
+  nom     String
+  contact String @default("")
+  email   String @default("")
+  telephone String @default("")
+
+  adresse    String @default("")
+  codePostal String @default("")
+  ville      String @default("")
+
+  /// Numéro de compte chez le fournisseur, celui à rappeler au comptoir.
+  numeroCompte String @default("")
+  notes        String @default("")
+
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  achats   Purchase[]
+  produits Product[]
+
+  @@index([organizationId, archivedAt])
+}
+
+/// Facture ou ticket d'achat.
+///
+/// Document REÇU, pas émis : il ne participe à aucune numérotation Plombéo et
+/// ne porte aucune empreinte d'intégrité. Plombéo n'en est pas l'auteur et ne
+/// peut rien certifier à son sujet — c'est la référence du FOURNISSEUR qui
+/// l'identifie.
+model Purchase {
+  id    String    @id @default(cuid())
+  etat  EtatAchat @default(BROUILLON)
+
+  /// Référence portée par le document du fournisseur.
+  referenceFournisseur String   @default("")
+  dateAchat            DateTime @default(now())
+  libelle              String   @default("")
+  notes                String   @default("")
+
+  /// Totaux figés à la validation, comme pour une facture émise (§14).
+  totalHtCents  Int @default(0)
+  /// TVA SAISIE telle qu'elle figure sur la facture, jamais calculée par
+  /// Plombéo : la déductibilité relève de l'expert-comptable
+  /// [À VÉRIFIER — SOURCE OFFICIELLE].
+  totalTvaCents Int @default(0)
+  totalTtcCents Int @default(0)
+
+  valideLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  lignes     PurchaseLine[]
+  mouvements StockMovement[]
+
+  @@index([organizationId, dateAchat])
+  @@index([organizationId, etat])
+}
+
+model PurchaseLine {
+  id      String @id @default(cuid())
+  libelle String
+  ordre   Int    @default(0)
+
+  quantiteMilli     Int @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  /// Rattachement facultatif au catalogue : une ligne d'achat peut rester libre
+  /// (consommable, petit outillage) sans créer une référence pour autant.
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@index([organizationId])
+}
+
+/// Mouvement de stock.
+///
+/// Journal en AJOUT SEUL : le stock d'une référence est la SOMME de ses
+/// mouvements, jamais une colonne mise à jour en place. Une colonne ne dirait ni
+/// pourquoi le stock a changé, ni quand, ni qui — et un écart deviendrait
+/// impossible à expliquer. Même raisonnement qu'en Phase 5, où le solde d'une
+/// facture est dérivé de ses paiements.
+model StockMovement {
+  id   String        @id @default(cuid())
+  type TypeMouvement
+
+  /// Signé : positif pour une entrée, négatif pour une sortie.
+  quantiteMilli Int
+
+  /// Prix unitaire d'achat au moment du mouvement, quand il est connu.
+  prixUnitaireCents Int    @default(0)
+  motif             String @default("")
+
+  createdAt DateTime @default(now())
+  /// Qui a bougé la pièce, pour pouvoir demander ce qui s'est passé.
+  parEmail  String   @default("")
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  purchaseId String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, productId])
+  @@index([productId, createdAt])
 }

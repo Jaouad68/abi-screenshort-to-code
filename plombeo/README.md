@@ -14,6 +14,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 5** : [`docs/plombeo/PHASE-5-SPECIFICATION.md`](../docs/plombeo/PHASE-5-SPECIFICATION.md)
 - **Spécification Phase 6** : [`docs/plombeo/PHASE-6-SPECIFICATION.md`](../docs/plombeo/PHASE-6-SPECIFICATION.md)
 - **Spécification Phase 7** : [`docs/plombeo/PHASE-7-SPECIFICATION.md`](../docs/plombeo/PHASE-7-SPECIFICATION.md)
+- **Spécification Phase 8** : [`docs/plombeo/PHASE-8-SPECIFICATION.md`](../docs/plombeo/PHASE-8-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -154,9 +155,40 @@ avec un message explicite**, l'option « e-mail au client » n'est même pas pro
 dans les règles, et les échecs sont affichés. Aucun mode « console » qui écrirait
 l'e-mail dans les journaux : cela ressemble trop à un envoi réussi.
 
-Les phases suivantes (achats et stock, pilotage, portail client, IA…) ne sont pas
-commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
-données fictives.
+**Phase 8 — Fournisseurs, achats et stock : terminée.**
+
+- Fournisseurs, factures d'achat, et **prix de revient** : Plombéo connaissait les
+  prix de vente, il connaît désormais ce que les fournitures coûtent
+- **Marge réelle** sur chaque fourniture et chaque devis
+- Suivi de stock **choisi article par article**, mouvements en journal
+- Correction après comptage, seuils d'alerte branchés sur les notifications
+
+**Le risque de cette phase n'était pas technique mais ergonomique.** La Phase 0
+l'avait identifié : « sur-ingénierie si trop détaillé pour un indépendant ». Un module
+de stock complet est exactement ce qu'un plombier seul n'utilisera jamais — il saisira
+trois articles, oubliera de décrémenter, verra des chiffres faux, et cessera d'ouvrir
+l'écran. Trois partis pris en découlent :
+
+- **aucun suivi par défaut** : l'artisan coche les rares références qui comptent ;
+- **le stock négatif est accepté et signalé, jamais bloqué**. Refuser de sortir une
+  pièce que l'artisan a dans les mains le pousserait à mentir au logiciel ;
+- **aucune décrémentation silencieuse** : les fournitures d'une intervention ne
+  sortent pas du stock toutes seules.
+
+**La marge n'est affichée que si le prix d'achat est connu.** Un zéro par défaut
+afficherait 100 % de marge sur toute référence non renseignée — le chiffre le plus
+flatteur et le plus faux. Les lignes sans prix d'achat sont écartées du total **et
+comptées**, pour ne pas laisser croire que le total couvre tout.
+
+**Ce que Plombéo ne fait pas** : aucune valorisation de stock au bilan, aucune méthode
+comptable (PMP, FIFO), aucune détermination de TVA déductible. Le prix affiché est le
+« dernier prix payé », jamais une « valeur de stock » — un total ainsi intitulé
+laisserait croire à un chiffre opposable **[À VÉRIFIER — SOURCE OFFICIELLE ET
+EXPERT-COMPTABLE]**. Une facture fournisseur est un document *reçu* : elle n'entre dans
+aucune numérotation Plombéo et ne porte aucune empreinte d'intégrité.
+
+Les phases suivantes (pilotage, portail client, IA…) ne sont pas commencées. Le tableau
+de bord les annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Intégration continue
 

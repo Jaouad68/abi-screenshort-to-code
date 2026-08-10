@@ -282,6 +282,16 @@ automatisation qui ne fait rien sans dire pourquoi est indiscernable d'une
 automatisation en panne. Les motifs temporaires (hors plage d'envoi, délai non
 atteint) ne sont pas figés — les enregistrer bloquerait l'envoi pour toujours.
 
+### Achats et stock (Phase 8)
+
+Les **prix d'achat et les conditions fournisseur sont des données commercialement
+sensibles** : leur fuite serait plus dommageable que celle d'un simple identifiant.
+D'où une séparation nette dans les rôles — le technicien voit et bouge le stock, parce
+que c'est lui qui prend les pièces dans le camion, mais **ne voit pas les achats**.
+
+Le journal des mouvements porte l'e-mail de l'auteur de chaque mouvement : un écart de
+stock doit pouvoir donner lieu à une question, pas à une enquête.
+
 ### Mise à jour des dépendances
 
 `npm audit` fait partie de la vérification, pas d'une revue annuelle. En août 2026,

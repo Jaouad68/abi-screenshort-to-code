@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge, Bouton, Carte, ListeVide } from "@/components/ui";
 import { listerFournitures, listerPrestations } from "@/lib/devis";
 import { sessionCourante } from "@/lib/dal";
@@ -5,6 +6,8 @@ import { roleAutorise } from "@/lib/permissions";
 import { formaterEuros, formaterTaux } from "@/lib/calcul";
 import { formaterDuree } from "@/lib/format";
 import { archiverArticle } from "../devis/actions";
+import { basculerSuiviStock } from "../achats/actions";
+import { margeFourniture } from "@/lib/stock";
 import { FormulaireArticle } from "./FormulaireArticle";
 
 export const metadata = { title: "Catalogue — Plombéo" };
@@ -16,6 +19,7 @@ export default async function PageCatalogue() {
   ]);
   const contexte = await sessionCourante();
   const peutModifier = contexte ? roleAutorise(contexte.role, "catalogue:modifier") : false;
+  const peutStock = contexte ? roleAutorise(contexte.role, "stock:modifier") : false;
 
   return (
     <div className="flex flex-col gap-4">
@@ -86,15 +90,47 @@ export default async function PageCatalogue() {
                         {formaterEuros(f.prixUnitaireCents)} / {f.unite} ·{" "}
                         TVA {formaterTaux(f.tauxTvaCentiemes)}
                       </p>
+                      {/* La marge n'apparaît QUE si le prix d'achat est connu :
+                          un zéro par défaut afficherait 100 % de marge. */}
+                      {(() => {
+                        const marge = margeFourniture(f.prixUnitaireCents, f.prixAchatCents);
+                        return marge ? (
+                          <p className="text-sm mt-1">
+                            Achat {formaterEuros(f.prixAchatCents)} · marge{" "}
+                            {formaterEuros(marge.margeCents)} ({formaterTaux(marge.tauxCentiemes)})
+                          </p>
+                        ) : (
+                          <p className="text-sm text-attenue mt-1">
+                            Prix d&apos;achat inconnu : marge non calculée.
+                          </p>
+                        );
+                      })()}
+                      {f.suiviStock && (
+                        <p className="text-sm text-attenue mt-1">
+                          <Link href={`/app/stock/${f.id}`} className="underline">
+                            Suivi en stock
+                          </Link>
+                        </p>
+                      )}
                     </div>
                     {peutModifier && (
-                      <form action={archiverArticle}>
-                        <input type="hidden" name="id" value={f.id} />
-                        <input type="hidden" name="type" value="fourniture" />
-                        <Bouton type="submit" variante="discret">
-                          Retirer
-                        </Bouton>
-                      </form>
+                      <div className="flex flex-col gap-2">
+                        {peutStock && (
+                          <form action={basculerSuiviStock}>
+                            <input type="hidden" name="id" value={f.id} />
+                            <Bouton type="submit" variante="discret">
+                              {f.suiviStock ? "Ne plus suivre" : "Suivre en stock"}
+                            </Bouton>
+                          </form>
+                        )}
+                        <form action={archiverArticle}>
+                          <input type="hidden" name="id" value={f.id} />
+                          <input type="hidden" name="type" value="fourniture" />
+                          <Bouton type="submit" variante="discret">
+                            Retirer
+                          </Bouton>
+                        </form>
+                      </div>
                     )}
                   </div>
                 </Carte>

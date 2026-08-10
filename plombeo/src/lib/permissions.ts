@@ -52,6 +52,13 @@ export const PERMISSIONS = [
   "automatisation:lire",
   "automatisation:configurer",
   "notification:lire",
+  // Phase 8 — achats et stock. Le TECHNICIEN bouge le stock (c'est lui qui
+  // prend les pièces dans le camion) mais ne voit pas les achats : prix
+  // d'achat et conditions fournisseur sont des données de direction.
+  "achat:lire",
+  "achat:modifier",
+  "stock:lire",
+  "stock:modifier",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -94,6 +101,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "automatisation:lire",
     "automatisation:configurer",
     "notification:lire",
+    "achat:lire",
+    "achat:modifier",
+    "stock:lire",
+    "stock:modifier",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -121,6 +132,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "automatisation:lire",
     "automatisation:configurer",
     "notification:lire",
+    "achat:lire",
+    "achat:modifier",
+    "stock:lire",
+    "stock:modifier",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -130,6 +145,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "intervention:modifier",
     "automatisation:lire",
     "notification:lire",
+    "achat:lire",
+    "achat:modifier",
+    "stock:lire",
+    "stock:modifier",
   ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.
@@ -144,6 +163,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     // ne le modifie pas : le prix est une décision du chef d'entreprise.
     "devis:lire",
     "notification:lire",
+    "stock:lire",
+    "stock:modifier",
   ],
   APPRENTI: [
     "organisation:lire",
@@ -152,6 +173,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "catalogue:lire",
     "document:lire",
     "notification:lire",
+    "stock:lire",
   ],
   SOUS_TRAITANT: [
     "organisation:lire",
@@ -172,6 +194,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "document:lire",
     "automatisation:lire",
     "notification:lire",
+    "achat:lire",
+    "stock:lire",
   ],
   LECTURE_SEULE: [
     "organisation:lire",
@@ -183,6 +207,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "document:lire",
     "automatisation:lire",
     "notification:lire",
+    "achat:lire",
+    "stock:lire",
   ],
 };
 

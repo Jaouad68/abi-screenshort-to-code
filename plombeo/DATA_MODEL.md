@@ -174,6 +174,25 @@ identique, et le conserver n'ajouterait qu'une copie à maintenir.
 
 `Client.relancesDesactivees` exclut un client des relances automatiques.
 
+### Supplier, Purchase, PurchaseLine, StockMovement (Phase 8)
+
+`StockMovement` est un **journal en ajout seul** : le stock d'une référence est la
+SOMME de ses mouvements, jamais une colonne `quantiteEnStock` mise à jour en place.
+Une colonne ne dirait ni pourquoi le stock a changé, ni quand, ni qui — et un écart
+deviendrait impossible à expliquer. Même raisonnement qu'en Phase 5, où le solde d'une
+facture est dérivé de ses paiements.
+
+Une correction après comptage écrit un **mouvement d'écart**, elle ne réécrit jamais
+l'historique (§57).
+
+`Purchase` est un document **reçu**. Il porte la `referenceFournisseur`, jamais un
+numéro attribué par Plombéo, et n'a pas d'empreinte d'intégrité : Plombéo n'en est pas
+l'auteur et ne peut rien certifier à son sujet. Ses totaux sont figés à la validation,
+comme ceux d'une facture émise. `totalTvaCents` est **saisi**, jamais calculé.
+
+Ajouts sur `Product` : `prixAchatCents` (zéro = **inconnu**, pas gratuit),
+`suiviStock` (faux par défaut), `seuilAlerteMilli` (zéro = pas d'alerte), `supplierId`.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -206,7 +225,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 8 | `Supplier`, `Purchase`, `StockItem`, `StockMovement`, `Expense` |
 | 11 | `AiAction` |
 | 13 | `MaintenanceContract`, `Warranty` |
 | 14 | `Subscription`, `Plan`, `Invitation`, `SupportTicket` |

@@ -86,7 +86,15 @@ export type ActionAuditee =
   | "email.queued"
   | "email.sent"
   | "email.failed"
-  | "notification.created";
+  | "notification.created"
+  // Phase 8 — achats et stock
+  | "supplier.created"
+  | "supplier.updated"
+  | "supplier.archived"
+  | "purchase.created"
+  | "purchase.validated"
+  | "stock.movement_recorded"
+  | "stock.corrected";
 
 type EntreeAudit = {
   action: ActionAuditee;
