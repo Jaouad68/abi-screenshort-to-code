@@ -16,6 +16,8 @@ import { Televersement } from "@/components/Televersement";
 import { GalerieDocuments } from "@/components/GalerieDocuments";
 import { listerDocuments } from "@/lib/documents";
 import { basculerRelancesClient } from "../../automatisations/actions";
+import { BlocPortail } from "./BlocPortail";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = { title: "Fiche client — Plombéo" };
 
@@ -37,6 +39,15 @@ export default async function PageClient(props: PageProps<"/app/clients/[id]">) 
   const peutVerser = contexte ? roleAutorise(contexte.role, "document:modifier") : false;
   const peutSupprimerDoc = contexte ? roleAutorise(contexte.role, "document:supprimer") : false;
   const documents = await listerDocuments({ clientId: client.id });
+  const peutPortail = contexte ? roleAutorise(contexte.role, "portail:gerer") : false;
+  const accesPortail = contexte
+    ? await prisma.clientAccess.findFirst({
+        where: { clientId: client.id, organizationId: contexte.organizationId, revokedAt: null },
+        orderBy: { createdAt: "desc" },
+        select: { vuLe: true, expiresAt: true },
+      })
+    : null;
+  const portailActif = Boolean(accesPortail && accesPortail.expiresAt > new Date());
 
   const consentements = new Map(client.consents.map((c) => [c.type, c]));
 
@@ -189,6 +200,14 @@ export default async function PageClient(props: PageProps<"/app/clients/[id]">) 
           au fur et à mesure de leur mise en service.
         </p>
       </Carte>
+
+      {peutPortail && (
+        <BlocPortail
+          clientId={client.id}
+          actif={portailActif}
+          vuLe={accesPortail?.vuLe ?? null}
+        />
+      )}
 
       {peutModifier && (
         <Carte>

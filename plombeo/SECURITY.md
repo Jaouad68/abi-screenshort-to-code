@@ -292,6 +292,31 @@ que c'est lui qui prend les pièces dans le camion, mais **ne voit pas les achat
 Le journal des mouvements porte l'e-mail de l'auteur de chaque mouvement : un écart de
 stock doit pouvoir donner lieu à une question, pas à une enquête.
 
+### Portail client (Phase 10)
+
+**Première porte ouverte hors session.** Le lien EST l'authentification : demander un
+mot de passe à un particulier pour lire un devis, c'est garantir qu'il ne le lira pas.
+Cela impose de traiter le lien comme un secret.
+
+- jeton **aléatoire de 32 octets**, jamais dérivé de l'identifiant du client ;
+- **stocké haché** (SHA-256), comme les jetons de session : une fuite de la base ne
+  donne aucun lien utilisable, et le lien en clair n'est affiché qu'à la création ;
+- **expirant** (90 jours) et **révocable** ; un seul lien actif par client ;
+- jeton inconnu, révoqué ou expiré : **réponse identique**.
+
+**Double filtre sur chaque lecture** — `clientId` *et* `organizationId`. Le premier test
+d'isolation écrit pour cette phase était **vacueux** : les deux clients appartenaient à
+deux organisations différentes, si bien que le filtre d'organisation protégeait seul et
+que retirer `clientId` ne faisait échouer aucun test. Refait avec deux clients d'un
+**même artisan** — le scénario réaliste — il tombe désormais.
+
+**Liste blanche des champs exposés.** Une liste noire oublie le champ ajouté demain. Un
+test sérialise toutes les projections du portail et vérifie qu'aucune note interne,
+marge ou prix d'achat n'y figure.
+
+Le portail vit **hors de `/app`** et ne réutilise aucun composant de l'espace connecté,
+pour qu'aucune donnée de gestion ne s'y invite par accident.
+
 ### Mise à jour des dépendances
 
 `npm audit` fait partie de la vérification, pas d'une revue annuelle. En août 2026,

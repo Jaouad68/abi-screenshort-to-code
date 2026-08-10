@@ -16,6 +16,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 7** : [`docs/plombeo/PHASE-7-SPECIFICATION.md`](../docs/plombeo/PHASE-7-SPECIFICATION.md)
 - **Spécification Phase 8** : [`docs/plombeo/PHASE-8-SPECIFICATION.md`](../docs/plombeo/PHASE-8-SPECIFICATION.md)
 - **Spécification Phase 9** : [`docs/plombeo/PHASE-9-SPECIFICATION.md`](../docs/plombeo/PHASE-9-SPECIFICATION.md)
+- **Spécification Phase 10** : [`docs/plombeo/PHASE-10-SPECIFICATION.md`](../docs/plombeo/PHASE-10-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -212,8 +213,30 @@ normé et suppose un plan comptable, que Plombéo n'a pas **[À VÉRIFIER — SO
 OFFICIELLE]**. Sur les avoirs, les colonnes HT et TVA restent **vides** : Plombéo
 n'en connaît pas la ventilation et ne la déduit pas d'un taux supposé.
 
-Les phases suivantes (portail client, IA, contrats, SaaS…) ne sont pas commencées. Le
-tableau de bord les annonce explicitement plutôt que d'afficher des données fictives.
+**Phase 10 — Portail client : terminée.**
+
+- Lien personnel par client : consultation des devis et factures, **acceptation d'un
+  devis en ligne**, sans créer de compte
+- Jeton aléatoire de 32 octets, **stocké haché**, expirant, révocable
+- Le lien n'est affiché **qu'une fois** : la base n'en garde que l'empreinte
+
+**C'est la première porte du projet ouverte à quelqu'un sans session Plombéo**, d'où
+deux règles strictes :
+
+- **double filtre systématique** — client *et* organisation. Un jeton valide n'est pas
+  un passe-partout : le devis d'un autre client, identifiant exact, répond comme
+  inexistant ;
+- **liste blanche stricte** des champs exposés. `Client.notes` est une note interne que
+  le schéma décrit depuis la Phase 2 comme ne devant jamais figurer sur un document
+  remis au client : le portail est le premier endroit où cette règle pouvait être
+  violée. Marges, prix d'achat et coût horaire n'ont aucun chemin vers ces projections.
+
+Un jeton inconnu, révoqué ou expiré reçoit **la même réponse** : distinguer
+renseignerait sur l'existence d'un lien.
+
+Les phases suivantes (IA, hors-ligne avancé, contrats, SaaS, durcissement) ne sont pas
+commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
+données fictives.
 
 ## Intégration continue
 

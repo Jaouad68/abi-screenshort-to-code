@@ -62,6 +62,9 @@ export const PERMISSIONS = [
   // Phase 9 — pilotage. La rentabilité de l'entreprise n'est pas une donnée de
   // chantier : le terrain ne la voit pas.
   "pilotage:lire",
+  // Phase 10 — portail. Ouvrir un accès client engage l'entreprise : réservé
+  // aux rôles qui gèrent la relation commerciale.
+  "portail:gerer",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -109,6 +112,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:lire",
     "stock:modifier",
     "pilotage:lire",
+    "portail:gerer",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -141,6 +145,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:lire",
     "stock:modifier",
     "pilotage:lire",
+    "portail:gerer",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -155,6 +160,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:lire",
     "stock:modifier",
     "pilotage:lire",
+    "portail:gerer",
   ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.

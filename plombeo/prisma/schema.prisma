@@ -90,6 +90,7 @@ model Organization {
   compteursFacture CompteurFacture[]
   documents        Document[]
   signatures       Signature[]
+  accesPortail     ClientAccess[]
   fournisseurs     Supplier[]
   achats           Purchase[]
   lignesAchat      PurchaseLine[]
@@ -271,6 +272,8 @@ model Client {
 
   /// Certains clients se gèrent au téléphone, pas par relance automatique (§84).
   relancesDesactivees Boolean @default(false)
+
+  accesPortail ClientAccess[]
 
   /// Archivage (§78) : le client sort des listes sans être détruit.
   archivedAt DateTime?
@@ -1467,4 +1470,38 @@ model StockMovement {
 
   @@index([organizationId, productId])
   @@index([productId, createdAt])
+}
+
+/* ========================================================================== */
+/* Phase 10 — Portail client                                                  */
+/* ========================================================================== */
+
+/// Lien d'accès au portail, propre à un client.
+///
+/// Le jeton est stocké HACHÉ, comme les jetons de session (Phase 1) : une fuite
+/// de la base ne donne aucun lien utilisable. Il est aléatoire et jamais dérivé
+/// de l'identifiant du client — sinon deviner un lien reviendrait à deviner un
+/// identifiant.
+///
+/// Le lien EST l'authentification : demander un mot de passe à un particulier
+/// pour lire un devis, c'est garantir qu'il ne le lira pas. D'où l'exigence
+/// qu'il soit révocable et daté.
+model ClientAccess {
+  id        String @id @default(cuid())
+  tokenHash String @unique
+
+  expiresAt DateTime
+  revokedAt DateTime?
+  /// Dernière consultation : permet à l'artisan de savoir si le client a ouvert.
+  vuLe      DateTime?
+
+  createdAt DateTime @default(now())
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, clientId])
 }

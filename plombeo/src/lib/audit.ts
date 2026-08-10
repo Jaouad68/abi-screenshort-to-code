@@ -96,7 +96,12 @@ export type ActionAuditee =
   | "stock.movement_recorded"
   | "stock.corrected"
   // Phase 9 — pilotage
-  | "export.accounting_generated";
+  | "export.accounting_generated"
+  // Phase 10 — portail client
+  | "portal.access_created"
+  | "portal.access_revoked"
+  | "portal.viewed"
+  | "quote.accepted_by_client";
 
 type EntreeAudit = {
   action: ActionAuditee;
