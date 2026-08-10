@@ -52,3 +52,39 @@ export async function purgerDonneesExpirees(): Promise<{ tentatives: number; ses
   });
   return { tentatives: tentatives.count, sessions: sessions.count };
 }
+
+/* -------------------------------------------------------------------------- */
+/* Limitation de débit globale (Phase 15)                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Plafond d'ÉCRITURES par fenêtre et par acteur.
+ *
+ * Volontairement large : il vise l'automate, pas l'artisan pressé. Une limite
+ * trop basse se paierait en frustration sur chantier, précisément au moment où
+ * l'application doit être la plus effacée.
+ */
+export const MAX_ECRITURES = 120;
+
+/**
+ * Limitation de débit adossée à la table `LoginAttempt`.
+ *
+ * Réutiliser une table existante évite d'introduire Redis pour un compteur. La
+ * Phase 0 avait tranché que le volume mono-tenant ne le justifie pas : payer une
+ * brique d'infrastructure supplémentaire, et son exploitation quotidienne, pour
+ * un besoin qui n'existe pas encore serait un mauvais échange.
+ *
+ * La limite porte sur les ÉCRITURES seulement. Borner la consultation
+ * dégraderait l'usage normal sans gêner sérieusement un attaquant.
+ */
+export async function ecritureAutorisee(acteur: string): Promise<boolean> {
+  const cle = `w:${acteur}`;
+  const recentes = await prisma.loginAttempt.count({
+    where: { identifiant: cle, createdAt: { gte: debutFenetre() } },
+  });
+
+  if (recentes >= MAX_ECRITURES) return false;
+
+  await prisma.loginAttempt.create({ data: { identifiant: cle, reussie: true } });
+  return true;
+}

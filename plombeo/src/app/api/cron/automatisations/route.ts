@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { balayer, viderFileEmails } from "@/lib/moteur";
+import { purgerDonneesExpirees } from "@/lib/securite";
 
 /**
  * Balayage périodique des automatisations.
@@ -44,8 +45,14 @@ async function executer(requete: Request): Promise<Response> {
   const regles = await balayer(maintenant);
   const file = await viderFileEmails(maintenant);
 
+  // Purge (Phase 15) : sessions expirées et tentatives anciennes. La fonction
+  // existait depuis la Phase 1 ; seul le branchement manquait. Les DOCUMENTS ne
+  // sont pas purgés : leur durée de conservation relève d'obligations
+  // [À VÉRIFIER — SOURCE OFFICIELLE] que Plombéo ne tranche pas.
+  const purge = await purgerDonneesExpirees();
+
   return Response.json(
-    { execute: maintenant.toISOString(), regles, file },
+    { execute: maintenant.toISOString(), regles, file, purge },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_SESSION } from "@/lib/session";
+import { ENTETES_SECURITE } from "@/lib/entetes";
 
 /**
  * Next.js 16 : le fichier `middleware.ts` est déprécié au profit de `proxy.ts`,
@@ -33,13 +34,9 @@ export function proxy(request: NextRequest) {
 }
 
 function appliquerEntetes(reponse: NextResponse): NextResponse {
-  reponse.headers.set("X-Content-Type-Options", "nosniff");
-  reponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  reponse.headers.set("X-Frame-Options", "DENY");
-  // Minimisation : aucune de ces fonctionnalités n'est utilisée en Phase 1.
-  // La géolocalisation et la caméra seront ouvertes en Phase 3 (terrain), au
-  // moment où elles servent réellement.
-  reponse.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  for (const [nom, valeur] of Object.entries(ENTETES_SECURITE)) {
+    reponse.headers.set(nom, valeur);
+  }
   return reponse;
 }
 

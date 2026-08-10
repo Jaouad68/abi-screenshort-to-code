@@ -18,6 +18,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 9** : [`docs/plombeo/PHASE-9-SPECIFICATION.md`](../docs/plombeo/PHASE-9-SPECIFICATION.md)
 - **Spécification Phase 10** : [`docs/plombeo/PHASE-10-SPECIFICATION.md`](../docs/plombeo/PHASE-10-SPECIFICATION.md)
 - **Spécification Phase 11** : [`docs/plombeo/PHASE-11-SPECIFICATION.md`](../docs/plombeo/PHASE-11-SPECIFICATION.md)
+- **Spécification Phase 15** : [`docs/plombeo/PHASE-15-SPECIFICATION.md`](../docs/plombeo/PHASE-15-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -259,9 +260,27 @@ Rien ne s'enregistre sans validation explicite. Le texte est **caviardé** avant
 (téléphone, e-mail, code postal, IBAN) — et l'interface précise que **cela ne garantit
 pas l'anonymat**, un texte libre pouvant toujours contenir un nom.
 
-Les phases suivantes (hors-ligne avancé, contrats, SaaS, durcissement) ne sont pas
-commencées. Le tableau de bord les annonce explicitement plutôt que d'afficher des
-données fictives.
+**Phase 15 — Durcissement : terminée**, traitée avant les phases 12 à 14.
+
+Raison de ce déplacement : les phases 12 à 14 **ajoutent** des fonctionnalités, la 15
+**protège ce qui existe** — neuf phases de données réelles. Une application qu'on
+n'ose pas déployer ne sert personne, quel que soit le nombre de ses modules.
+
+- **CSP** stricte, sans `unsafe-eval` ni aucune origine distante
+- **HSTS**, COOP, Permissions-Policy ; le micro reste fermé
+- **Rate limiting** en base, sur les écritures seulement
+- **Purge** des sessions expirées branchée sur le cron
+- **Rotation du secret de session** sans déconnecter tout le monde
+
+Quatre points restent **hors du périmètre, et le disent** : MFA (à livrer avec
+l'ouverture multi-utilisateurs), réinitialisation du mot de passe (assumée absente
+plutôt que bâclée — c'est un contournement de l'authentification), analyse antivirale
+et tests de restauration. `SECURITY.md` en donne la raison point par point, et décrit
+la procédure de sauvegarde attendue de l'exploitant.
+
+Les phases 12 (hors-ligne avancé), 13 (contrats) et 14 (SaaS) ne sont pas commencées.
+Le tableau de bord les annonce explicitement plutôt que d'afficher des données
+fictives.
 
 ## Intégration continue
 

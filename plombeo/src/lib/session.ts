@@ -15,6 +15,25 @@ function cleSecrete() {
   return new TextEncoder().encode(secret);
 }
 
+/**
+ * Clés acceptées EN VÉRIFICATION (Phase 15).
+ *
+ * `SESSION_SECRET` signe ; `SESSION_SECRET_PRECEDENT`, s'il existe, reste
+ * accepté. Cela rend une rotation possible sans déconnecter tout le monde :
+ * on publie le nouveau secret, on garde l'ancien le temps que les sessions
+ * expirent, puis on le retire.
+ *
+ * Sans ce mécanisme, une rotation est si coûteuse qu'elle n'a jamais lieu — et
+ * un secret qu'on ne peut pas changer est un secret qu'on ne changera pas après
+ * une fuite.
+ */
+function clesAcceptees(): Uint8Array[] {
+  const cles = [cleSecrete()];
+  const precedent = process.env["SESSION_SECRET_PRECEDENT"];
+  if (precedent) cles.push(new TextEncoder().encode(precedent));
+  return cles;
+}
+
 export type ContenuSession = {
   /** Identifiant unique de session, corrélé à la table Session. */
   sid: string;
@@ -53,14 +72,23 @@ export async function signerSession(contenu: ContenuSession): Promise<string> {
  * révocation réellement effective.
  */
 export async function verifierSession(jeton: string): Promise<ContenuSession | null> {
-  try {
-    const { payload } = await jwtVerify(jeton, cleSecrete(), { algorithms: [ALG] });
-    const { sid, userId, organizationId } = payload;
-    if (typeof sid !== "string" || typeof userId !== "string" || typeof organizationId !== "string") {
-      return null;
+  // La signature EST toujours vérifiée : accepter le secret précédent élargit
+  // les clés valides, jamais le contrôle lui-même.
+  for (const cle of clesAcceptees()) {
+    try {
+      const { payload } = await jwtVerify(jeton, cle, { algorithms: [ALG] });
+      const { sid, userId, organizationId } = payload;
+      if (
+        typeof sid !== "string" ||
+        typeof userId !== "string" ||
+        typeof organizationId !== "string"
+      ) {
+        return null;
+      }
+      return { sid, userId, organizationId };
+    } catch {
+      // Clé suivante. Une signature invalide pour toutes les clés finit en null.
     }
-    return { sid, userId, organizationId };
-  } catch {
-    return null;
   }
+  return null;
 }

@@ -331,23 +331,52 @@ non authentifiée de points d'entrée de fonctions serveur) étaient, eux, réel
 applicables. La montée de version a été faite et vérifiée par les 213 tests et les six
 parcours navigateur.
 
-## Ce qui n'est PAS encore en place
+## Durcissement (Phase 15)
 
-À traiter aux phases indiquées — ne pas considérer les phases livrées comme un socle de
-sécurité complet :
+### Ce qui a été soldé
 
-| Manque | Phase prévue |
+| Point | État |
 |---|---|
-| MFA / TOTP | Phase 15 (obligatoire pour le rôle Propriétaire dès que le paiement en ligne est réel) |
-| Réinitialisation du mot de passe | Phase 15 (l'adaptateur e-mail existe depuis la Phase 7 ; le parcours de réinitialisation reste à écrire) |
-| Rate limiting global (hors connexion) | Phase 15 |
-| Politique CSP | Phase 15 |
-| Chiffrement au repos de colonnes sensibles (IBAN…) | Phase 15 |
-| Analyse antivirale des fichiers versés | Phase 15 (prestataire à retenir ; aucun contrôle antiviral n'est fait aujourd'hui) |
-| Politique de rétention et purge des documents | Phase 7 (règles datées, obligations **[À VÉRIFIER — SOURCE OFFICIELLE]**) |
-| Purge planifiée des sessions et tentatives expirées | Phase 15 (la fonction et le point d'entrée cron existent ; le branchement reste à faire) |
-| Rotation du secret de session | Phase 15 |
-| Tests de restauration de sauvegarde | Phase 15 |
+| **Politique CSP** | Livrée. `default-src 'self'`, pas d'`unsafe-eval`, `object-src`/`frame-src`/`frame-ancestors` à `none`, `base-uri` et `form-action` verrouillés, **aucune origine distante** |
+| **En-têtes** | Complétés : HSTS (sans `preload`), COOP, Permissions-Policy — le micro reste fermé, la dictée vocale ayant été écartée en Phase 11 |
+| **Rate limiting global** | Livré, en base, sur les **écritures** seulement |
+| **Purge planifiée** | Branchée sur le cron de la Phase 7 |
+| **Rotation du secret de session** | Livrée : `SESSION_SECRET_PRECEDENT` reste accepté en vérification |
+
+`style-src` conserve `'unsafe-inline'` : Next.js injecte des styles en ligne, et
+prétendre le contraire produirait une politique qui casse l'application au premier
+déploiement. **Limite assumée et écrite, pas un oubli.**
+
+La limite de débit porte sur les écritures et non sur les lectures : borner la
+consultation dégraderait l'usage normal d'un artisan sur chantier sans gêner
+sérieusement un attaquant. Elle s'adosse à la table `LoginAttempt` plutôt qu'à Redis —
+payer une brique d'infrastructure et son exploitation quotidienne pour un compteur
+serait un mauvais échange au volume actuel.
+
+### Ce qui reste hors du périmètre, et pourquoi
+
+Dire « fait » sur ces points serait une fausse garantie (§76).
+
+| Point | Raison |
+|---|---|
+| **MFA / TOTP** | L'application est **mono-utilisateur en pratique** : aucun écran n'ouvre encore un second compte. Un second facteur protège surtout contre le vol de mot de passe, alors que la vraie exposition viendra de l'ouverture multi-utilisateurs. **À livrer avec la Phase 14**, pas avant |
+| **Réinitialisation du mot de passe** | L'adaptateur e-mail existe ; ce qui manque n'est pas technique. Un parcours de réinitialisation est un **contournement de l'authentification** et se conçoit avec le même soin qu'elle (jeton à usage unique, durée très courte, invalidation des sessions). Bâclé, il devient la porte la plus facile. **Assumé absent plutôt que mal fait** |
+| **Analyse antivirale des fichiers** | Suppose un prestataire, donc un contrat et un flux sortant. Les fichiers ne sont jamais servis exécutables (`attachment` + `nosniff`), ce qui limite le risque **pour Plombéo, pas pour le poste de l'artisan qui les ouvre** |
+| **Chiffrement au repos de colonnes sensibles** | **Sans objet** : aucune colonne bancaire n'existe dans le schéma |
+| **Tests de restauration de sauvegarde** | Plombéo ne gère pas son infrastructure : les sauvegardes sont celles de l'hébergeur PostgreSQL. Un test de restauration ne se simule pas dans le code — c'est une **procédure d'exploitation**, décrite ci-dessous, dont l'exécution appartient à l'exploitant |
+
+### Procédure de sauvegarde attendue de l'exploitant
+
+Plombéo n'exécute rien de tout ceci ; il en fixe l'attendu.
+
+1. Sauvegarde quotidienne automatique de la base, **rétention 30 jours minimum** ;
+2. sauvegarde du **stockage de fichiers** (`STOCKAGE_DISQUE_RACINE` ou le bucket) —
+   une base restaurée sans ses photos de chantier est une restauration partielle ;
+3. **test de restauration trimestriel sur un environnement séparé**, chronométré : une
+   sauvegarde jamais restaurée est une hypothèse, pas une garantie ;
+4. vérification que `SESSION_SECRET` et les clés d'API **ne figurent pas** dans les
+   sauvegardes applicatives.
+
 
 ## RGPD
 
