@@ -63,6 +63,12 @@ model Organization {
   properties  Property[]
   equipments  Equipment[]
   consents    Consent[]
+  leads         Lead[]
+  appointments  Appointment[]
+  interventions Intervention[]
+  taches        InterventionTask[]
+  temps         TimeEntry[]
+  fournitures   InterventionSupply[]
 }
 
 /// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
@@ -244,6 +250,9 @@ model Client {
 
   properties Property[]
   consents   Consent[]
+  leads         Lead[]
+  appointments  Appointment[]
+  interventions Intervention[]
 
   @@index([organizationId, archivedAt])
   @@index([organizationId, nomAffichage])
@@ -285,7 +294,10 @@ model Property {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  equipments Equipment[]
+  equipments    Equipment[]
+  leads         Lead[]
+  appointments  Appointment[]
+  interventions Intervention[]
 
   @@index([organizationId, archivedAt])
   @@index([clientId])
@@ -323,6 +335,8 @@ model Equipment {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  interventions Intervention[]
+
   @@index([organizationId])
   @@index([propertyId])
 }
@@ -347,6 +361,231 @@ model Consent {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, type])
+  @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 3 — Terrain : demandes, rendez-vous, interventions
+// ---------------------------------------------------------------------------
+
+/// Niveau d'urgence d'une demande.
+///
+/// Sert UNIQUEMENT à qualifier et prioriser. Aucune majoration tarifaire n'est
+/// déduite de cette valeur : les règles de prix appartiennent à l'artisan et
+/// arrivent avec le catalogue (Phase 4). Le §11 interdit d'appliquer
+/// automatiquement une règle tarifaire supposée.
+enum NiveauUrgence {
+  NORMAL
+  RAPIDE
+  URGENT
+  CRITIQUE
+}
+
+enum LeadStatut {
+  NOUVEAU
+  QUALIFIE
+  CONVERTI
+  ABANDONNE
+}
+
+enum AppointmentStatut {
+  PLANIFIE
+  CONFIRME
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+
+enum InterventionStatut {
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  /// Compte rendu validé par l'artisan. C'est cet état qui rendra une
+  /// intervention facturable en Phase 5 — d'où sa distinction d'avec TERMINEE.
+  CLOTUREE
+  ANNULEE
+}
+
+/// Demande entrante (appel, formulaire, urgence).
+///
+/// Une urgence n'est pas une entité distincte : c'est une demande avec un
+/// niveau d'urgence plus élevé. Les séparer aurait dupliqué le même cycle de vie.
+model Lead {
+  id        String        @id @default(cuid())
+  statut    LeadStatut    @default(NOUVEAU)
+  urgence   NiveauUrgence @default(NORMAL)
+
+  /// Ce que le client décrit, dans ses mots.
+  description String @default("")
+  /// Coordonnées brutes quand la demande arrive avant toute fiche client.
+  contactNom       String @default("")
+  contactTelephone String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Facultatif : une demande peut précéder la création de la fiche client.
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  appointments Appointment[]
+
+  @@index([organizationId, statut])
+  @@index([organizationId, urgence])
+}
+
+/// Rendez-vous planifié.
+model Appointment {
+  id     String            @id @default(cuid())
+  statut AppointmentStatut @default(PLANIFIE)
+
+  titre  String   @default("")
+  debut  DateTime
+  fin    DateTime
+  /// Temps de trajet estimé par l'artisan, en minutes. Saisi, jamais calculé :
+  /// aucun fournisseur de cartographie n'est engagé à ce stade.
+  trajetMin Int   @default(0)
+  urgence NiveauUrgence @default(NORMAL)
+  notes   String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  intervention Intervention?
+
+  @@index([organizationId, debut])
+  @@index([clientId])
+}
+
+/// Intervention : ce qui est réellement fait sur place.
+///
+/// C'est l'entité centrale du travail hors-ligne : son contenu (tâches, temps,
+/// fournitures, compte rendu) doit pouvoir être saisi sans réseau.
+model Intervention {
+  id     String             @id @default(cuid())
+  statut InterventionStatut @default(PLANIFIEE)
+
+  /// Ce que le client signale.
+  probleme String @default("")
+  /// Diagnostic PROFESSIONNEL, saisi par l'artisan. Jamais généré ni déduit par
+  /// l'application (§22 : l'outil ne se substitue pas au diagnostic du plombier).
+  diagnostic String @default("")
+  compteRendu String @default("")
+
+  demarreeLe DateTime?
+  termineeLe DateTime?
+  clotureeLe DateTime?
+
+  /// Identifiant généré sur l'appareil AU MOMENT DE LA SAISIE, avant tout envoi.
+  /// C'est lui qui rend la synchronisation idempotente : rejouer une mutation
+  /// retombe sur la même ligne au lieu d'en créer une seconde (§5).
+  clientMutationId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  taches      InterventionTask[]
+  temps       TimeEntry[]
+  fournitures InterventionSupply[]
+
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+model InterventionTask {
+  id      String  @id @default(cuid())
+  libelle String
+  faite   Boolean @default(false)
+  ordre   Int     @default(0)
+
+  clientMutationId String? @unique
+  createdAt        DateTime @default(now())
+
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@index([organizationId])
+}
+
+/// Temps passé, en minutes entières.
+/// Saisie manuelle : un chronomètre qui tourne pendant qu'on travaille sous un
+/// évier produirait surtout des oublis.
+model TimeEntry {
+  id      String @id @default(cuid())
+  minutes Int
+  libelle String @default("")
+
+  clientMutationId String?  @unique
+  createdAt        DateTime @default(now())
+
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@index([organizationId])
+}
+
+/// Fourniture utilisée pendant l'intervention.
+///
+/// Libellé libre en Phase 3 : le catalogue n'existe qu'en Phase 4, où cette
+/// table gagnera un lien facultatif vers un article. `quantiteMilli` suit la
+/// convention du dépôt (× 1000) pour permettre 1,5 m sans virgule flottante.
+model InterventionSupply {
+  id            String @id @default(cuid())
+  libelle       String
+  quantiteMilli Int    @default(1000)
+  unite         String @default("u")
+
+  clientMutationId String?  @unique
+  createdAt        DateTime @default(now())
+
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
   @@index([organizationId])
 }
 

@@ -31,7 +31,20 @@ export type ActionAuditee =
   | "equipment.created"
   | "equipment.updated"
   | "equipment.deleted"
-  | "consent.updated";
+  | "consent.updated"
+  // Phase 3 — terrain
+  | "lead.created"
+  | "lead.qualified"
+  | "lead.converted"
+  | "lead.abandoned"
+  | "appointment.created"
+  | "appointment.cancelled"
+  | "appointment.status_changed"
+  | "intervention.started"
+  | "intervention.updated"
+  | "intervention.completed"
+  | "intervention.closed"
+  | "intervention.synced";
 
 type EntreeAudit = {
   action: ActionAuditee;

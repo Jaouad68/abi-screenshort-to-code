@@ -1,0 +1,194 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Badge, Bouton, Carte } from "@/components/ui";
+import { lireIntervention } from "@/lib/terrain";
+import { sessionCourante } from "@/lib/dal";
+import { roleAutorise } from "@/lib/permissions";
+import { adresseCourte, LIBELLE_CATEGORIE_EQUIPEMENT } from "@/lib/libelles";
+import { formaterQuantite, formaterDuree, totalMinutes } from "@/lib/format";
+import { transitionInterventionAutorisee } from "@/lib/etats";
+import { changerEtatIntervention } from "../../agenda/actions";
+import { SaisieTerrain } from "./SaisieTerrain";
+import { FormulaireCompteRendu } from "./FormulaireCompteRendu";
+
+export const metadata = { title: "Intervention — Plombéo" };
+
+const LIBELLE_STATUT = {
+  PLANIFIEE: "Planifiée",
+  EN_COURS: "En cours",
+  TERMINEE: "Terminée",
+  CLOTUREE: "Clôturée",
+  ANNULEE: "Annulée",
+} as const;
+
+export default async function PageIntervention(props: PageProps<"/app/interventions/[id]">) {
+  const { id } = await props.params;
+  const intervention = await lireIntervention(id);
+  if (!intervention) notFound();
+
+  const contexte = await sessionCourante();
+  const peutModifier = contexte ? roleAutorise(contexte.role, "intervention:modifier") : false;
+  // Une intervention clôturée n'accepte plus d'écriture : son compte rendu
+  // servira de base à la facturation (Phase 5).
+  const modifiable = peutModifier && intervention.statut !== "CLOTUREE" && intervention.statut !== "ANNULEE";
+
+  const adresse = intervention.property ? adresseCourte(intervention.property) : "";
+
+  return (
+    <div className="flex flex-col gap-4">
+      <header>
+        <p className="text-sm text-attenue">
+          <Link href={`/app/clients/${intervention.client.id}`} className="underline">
+            {intervention.client.nomAffichage}
+          </Link>
+        </p>
+        <div className="flex items-center gap-2 flex-wrap mt-1">
+          <h1 className="text-2xl font-bold">Intervention</h1>
+          <Badge
+            ton={
+              intervention.statut === "CLOTUREE"
+                ? "succes"
+                : intervention.statut === "EN_COURS"
+                  ? "alerte"
+                  : "neutre"
+            }
+          >
+            {LIBELLE_STATUT[intervention.statut]}
+          </Badge>
+        </div>
+      </header>
+
+      {intervention.property && (
+        <Carte>
+          <h2 className="font-semibold mb-2">Sur place</h2>
+          <p className="text-sm">{adresse}</p>
+          {intervention.property.digicode && (
+            <p className="text-sm text-attenue mt-1">
+              Digicode {intervention.property.digicode}
+              {intervention.property.etage ? ` · Étage ${intervention.property.etage}` : ""}
+            </p>
+          )}
+          {intervention.property.instructionsAcces && (
+            <p className="text-sm mt-2 whitespace-pre-wrap">
+              {intervention.property.instructionsAcces}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {adresse && (
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(adresse)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center min-h-11 px-4 rounded-controle
+                           font-semibold bg-white text-encre border border-trait hover:bg-fond"
+              >
+                Ouvrir dans le GPS
+              </a>
+            )}
+            {intervention.client.telephone && (
+              <a
+                href={`tel:${intervention.client.telephone}`}
+                className="inline-flex items-center justify-center min-h-11 px-4 rounded-controle
+                           font-semibold bg-white text-encre border border-trait hover:bg-fond"
+              >
+                Appeler le client
+              </a>
+            )}
+          </div>
+        </Carte>
+      )}
+
+      {intervention.equipment && (
+        <Carte>
+          <h2 className="font-semibold mb-1">Équipement concerné</h2>
+          <p className="text-sm">
+            {LIBELLE_CATEGORIE_EQUIPEMENT[intervention.equipment.categorie]}
+            {[intervention.equipment.marque, intervention.equipment.modele]
+              .filter(Boolean)
+              .join(" ")
+              ? ` — ${[intervention.equipment.marque, intervention.equipment.modele].filter(Boolean).join(" ")}`
+              : ""}
+          </p>
+        </Carte>
+      )}
+
+      <SaisieTerrain
+        interventionId={intervention.id}
+        modifiable={modifiable}
+        minutesServeur={totalMinutes(intervention.temps)}
+        tachesServeur={intervention.taches.map((t) => ({
+          id: t.id,
+          libelle: t.libelle,
+          detail: t.faite ? "Faite" : undefined,
+        }))}
+        tempsServeur={intervention.temps.map((t) => ({
+          id: t.id,
+          libelle: formaterDuree(t.minutes),
+          detail: t.libelle || undefined,
+        }))}
+        fournituresServeur={intervention.fournitures.map((f) => ({
+          id: f.id,
+          libelle: f.libelle,
+          detail: `${formaterQuantite(f.quantiteMilli)} ${f.unite}`,
+        }))}
+      />
+
+      <FormulaireCompteRendu
+        interventionId={intervention.id}
+        modifiable={modifiable}
+        valeurs={{
+          probleme: intervention.probleme,
+          diagnostic: intervention.diagnostic,
+          compteRendu: intervention.compteRendu,
+        }}
+      />
+
+      {peutModifier && (
+        <Carte>
+          <h2 className="font-semibold mb-3">Suite</h2>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {transitionInterventionAutorisee(intervention.statut, "EN_COURS") && (
+              <FormulaireEtat id={intervention.id} vers="EN_COURS" libelle="Reprendre" />
+            )}
+            {transitionInterventionAutorisee(intervention.statut, "TERMINEE") && (
+              <FormulaireEtat id={intervention.id} vers="TERMINEE" libelle="Terminer" />
+            )}
+            {transitionInterventionAutorisee(intervention.statut, "CLOTUREE") && (
+              <FormulaireEtat
+                id={intervention.id}
+                vers="CLOTUREE"
+                libelle="Valider le compte rendu"
+              />
+            )}
+          </div>
+          {intervention.statut === "TERMINEE" && (
+            <p className="text-sm text-attenue mt-3">
+              Valider le compte rendu fige l&apos;intervention. Elle ne pourra plus être
+              modifiée — c&apos;est elle qui servira de base à la facturation.
+            </p>
+          )}
+        </Carte>
+      )}
+    </div>
+  );
+}
+
+function FormulaireEtat({
+  id,
+  vers,
+  libelle,
+}: {
+  id: string;
+  vers: string;
+  libelle: string;
+}) {
+  return (
+    <form action={changerEtatIntervention}>
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="vers" value={vers} />
+      <Bouton type="submit" variante={vers === "CLOTUREE" ? "principal" : "discret"}>
+        {libelle}
+      </Bouton>
+    </form>
+  );
+}

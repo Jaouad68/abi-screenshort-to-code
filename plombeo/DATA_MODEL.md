@@ -1,6 +1,6 @@
 # Modèle de données — Plombéo
 
-État à la fin de la **Phase 2**. Source de vérité : `prisma/schema.prisma`.
+État à la fin de la **Phase 3**. Source de vérité : `prisma/schema.prisma`.
 
 ## Principe fondateur
 
@@ -79,6 +79,24 @@ Contrainte produit assumée sur `Equipment` : **aucun champ obligatoire hors la
 catégorie**. Le matériel rencontré est trop divers pour qu'exiger une marque ou un
 numéro de série produise autre chose que des fiches vides ou du faux.
 
+### Lead, Appointment, Intervention (Phase 3)
+
+`Lead` (demande entrante) → `Appointment` (rendez-vous) → `Intervention` (exécution),
+cette dernière portant `InterventionTask`, `TimeEntry` et `InterventionSupply`.
+
+**L'urgence est un champ de `Lead`, pas une entité séparée.** Une urgence est une
+demande avec une priorité différente ; en faire une table distincte aurait dupliqué le
+même cycle de vie. Elle sert à qualifier et prioriser — **aucune majoration tarifaire
+n'en est déduite**, les règles de prix appartenant à l'artisan (§11).
+
+**`clientMutationId`, unique et nullable**, sur `Intervention`, `InterventionTask`,
+`TimeEntry` et `InterventionSupply` : identifiant généré sur l'appareil au moment de la
+saisie, qui rend la synchronisation hors-ligne idempotente. La contrainte d'unicité est
+une seconde barrière derrière l'`upsert` applicatif.
+
+Les états sont des énumérations explicites, jamais des booléens (§56), et les
+transitions vivent dans `src/lib/etats.ts`.
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -111,7 +129,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 3 | `Lead`, `Appointment`, `Intervention`, `InterventionTask`, `TimeEntry`, `Photo` |
 | 4 | `Service`, `Product`, `Quote`, `QuoteOption`, `QuoteLine` |
 | 5 | `Invoice`, `InvoiceLine`, `CreditNote`, `Payment` |
 | 6 | `Document`, `Signature` |

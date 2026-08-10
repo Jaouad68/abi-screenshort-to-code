@@ -16,7 +16,24 @@ export default function LayoutApplication({ children }: { children: React.ReactN
           <Link href="/app" className="font-bold text-lg">
             Plombéo
           </Link>
-          <nav aria-label="Navigation principale" className="flex items-center gap-1">
+          <nav
+            aria-label="Navigation principale"
+            className="flex items-center gap-1 overflow-x-auto"
+          >
+            <Link
+              href="/app/agenda"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Agenda
+            </Link>
+            <Link
+              href="/app/demandes"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Demandes
+            </Link>
             <Link
               href="/app/clients"
               className="inline-flex items-center min-h-11 px-3 rounded-controle

@@ -211,3 +211,99 @@ export function versDate(valeur: string): Date | null {
   const v = valeur.trim();
   return v === "" ? null : new Date(v);
 }
+
+/* -------------------------------------------------------------------------- */
+/* Phase 3 — Terrain                                                          */
+/* -------------------------------------------------------------------------- */
+
+const URGENCES = ["NORMAL", "RAPIDE", "URGENT", "CRITIQUE"] as const;
+
+export const schemaDemande = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(1, "Décrivez la demande en quelques mots.")
+    .max(5000),
+  urgence: z.enum(URGENCES),
+  contactNom: z.string().trim().max(120).default(""),
+  contactTelephone: z.string().trim().max(30).default(""),
+  clientId: z.string().trim().default(""),
+  propertyId: z.string().trim().default(""),
+});
+
+/**
+ * Rendez-vous.
+ *
+ * `debut` et `fin` proviennent d'un champ `datetime-local` : la chaîne n'a pas
+ * de fuseau, elle est donc interprétée dans celui du serveur (voir la note de
+ * bornesDuJour — l'application ne cible que la France métropolitaine).
+ */
+export const schemaRendezVous = z
+  .object({
+    clientId: z.string().trim().min(1, "Choisissez un client."),
+    propertyId: z.string().trim().default(""),
+    titre: z.string().trim().max(160).default(""),
+    debut: z.string().trim().min(1, "Indiquez la date et l'heure de début."),
+    fin: z.string().trim().min(1, "Indiquez l'heure de fin."),
+    trajetMin: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || /^\d{1,3}$/.test(v), "Indiquez un nombre de minutes."),
+    urgence: z.enum(URGENCES),
+    notes: z.string().trim().max(5000).default(""),
+  })
+  .refine((v) => !Number.isNaN(Date.parse(v.debut)) && !Number.isNaN(Date.parse(v.fin)), {
+    message: "Les dates saisies ne sont pas valides.",
+    path: ["debut"],
+  })
+  // Un rendez-vous qui finit avant de commencer fausserait tout le planning.
+  .refine((v) => Date.parse(v.fin) > Date.parse(v.debut), {
+    message: "La fin doit être postérieure au début.",
+    path: ["fin"],
+  });
+
+export const schemaCompteRendu = z.object({
+  probleme: z.string().trim().max(5000).default(""),
+  diagnostic: z.string().trim().max(5000).default(""),
+  compteRendu: z.string().trim().max(10000).default(""),
+});
+
+/** Une mutation issue de la file hors-ligne. */
+export const schemaMutation = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("tache"),
+    clientMutationId: z.string().uuid(),
+    interventionId: z.string().min(1),
+    libelle: z.string().trim().min(1).max(300),
+    ordre: z.number().int().min(0).max(9999).default(0),
+  }),
+  z.object({
+    type: z.literal("temps"),
+    clientMutationId: z.string().uuid(),
+    interventionId: z.string().min(1),
+    minutes: z.number().int().min(1).max(24 * 60),
+    libelle: z.string().trim().max(300).default(""),
+  }),
+  z.object({
+    type: z.literal("fourniture"),
+    clientMutationId: z.string().uuid(),
+    interventionId: z.string().min(1),
+    libelle: z.string().trim().min(1).max(300),
+    quantiteMilli: z.number().int().min(1).max(1_000_000_000),
+    unite: z.string().trim().max(10).default("u"),
+  }),
+  z.object({
+    type: z.literal("compteRendu"),
+    clientMutationId: z.string().uuid(),
+    interventionId: z.string().min(1),
+    probleme: z.string().trim().max(5000).default(""),
+    diagnostic: z.string().trim().max(5000).default(""),
+    compteRendu: z.string().trim().max(10000).default(""),
+  }),
+]);
+
+export const schemaFileMutations = z.object({
+  mutations: z.array(schemaMutation).max(200),
+});
+
+export type Mutation = z.infer<typeof schemaMutation>;

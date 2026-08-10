@@ -20,6 +20,11 @@ export const PERMISSIONS = [
   "client:archiver",
   "client:supprimer",
   "client:exporter",
+  // Phase 3 — terrain. Demandes, rendez-vous et interventions relèvent d'un
+  // même ensemble de droits : les séparer n'aurait aucun sens pour un artisan.
+  "intervention:lire",
+  "intervention:modifier",
+  "intervention:supprimer",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -43,6 +48,9 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "client:archiver",
     "client:supprimer",
     "client:exporter",
+    "intervention:lire",
+    "intervention:modifier",
+    "intervention:supprimer",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -53,16 +61,30 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "client:modifier",
     "client:archiver",
     "client:exporter",
+    "intervention:lire",
+    "intervention:modifier",
   ],
-  ASSISTANT: ["organisation:lire", "client:lire", "client:modifier"],
+  ASSISTANT: [
+    "organisation:lire",
+    "client:lire",
+    "client:modifier",
+    "intervention:lire",
+    "intervention:modifier",
+  ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.
-  TECHNICIEN: ["organisation:lire", "client:lire", "client:modifier"],
-  APPRENTI: ["organisation:lire", "client:lire"],
-  SOUS_TRAITANT: ["organisation:lire", "client:lire"],
+  TECHNICIEN: [
+    "organisation:lire",
+    "client:lire",
+    "client:modifier",
+    "intervention:lire",
+    "intervention:modifier",
+  ],
+  APPRENTI: ["organisation:lire", "client:lire", "intervention:lire"],
+  SOUS_TRAITANT: ["organisation:lire", "client:lire", "intervention:lire"],
   // L'expert-comptable lit et exporte, mais ne modifie jamais le fichier client.
-  COMPTABLE: ["organisation:lire", "client:lire", "client:exporter"],
-  LECTURE_SEULE: ["organisation:lire", "client:lire"],
+  COMPTABLE: ["organisation:lire", "client:lire", "client:exporter", "intervention:lire"],
+  LECTURE_SEULE: ["organisation:lire", "client:lire", "intervention:lire"],
 };
 
 export function permissionsDuRole(role: Role): readonly Permission[] {

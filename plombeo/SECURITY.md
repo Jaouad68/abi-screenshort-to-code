@@ -1,6 +1,6 @@
 # Sécurité — Plombéo
 
-État à la fin de la **Phase 2**. Ce document décrit ce qui est réellement en place et,
+État à la fin de la **Phase 3**. Ce document décrit ce qui est réellement en place et,
 tout aussi important, ce qui ne l'est pas encore.
 
 ## Modèle de menace retenu
@@ -105,6 +105,29 @@ exactes.
   saisie exacte du nom, journalisée. Elle emporte logements et équipements en cascade.
   ⚠️ À revoir en Phase 5 : elle devra être bloquée pour les clients porteurs de pièces
   comptables soumises à conservation **[À VÉRIFIER — SOURCE OFFICIELLE]**.
+
+### Synchronisation hors-ligne (Phase 3)
+
+L'endpoint `/api/sync` reçoit des mutations produites hors réseau. Trois protections :
+
+- **Cloisonnement** : les interventions citées sont d'abord filtrées par l'organisation
+  de la session. Un identifiant d'intervention appartenant à un autre artisan est
+  refusé, pas écrit — vérifié par mutation dans `src/lib/idempotence.test.ts`.
+- **Idempotence** : chaque mutation porte un `clientMutationId` (UUID généré sur
+  l'appareil), et le serveur fait un `upsert` dessus. Rejouer une mutation ne crée pas
+  de doublon *et* renvoie « appliqué » — un refus ferait réessayer la file jusqu'au
+  seuil puis afficherait une fausse erreur à l'artisan.
+- **Écritures figées après clôture** : une intervention `CLOTUREE` ou `ANNULEE`
+  n'accepte plus aucune mutation. C'est elle qui servira de base à la facturation.
+
+Chaque mutation d'un lot est traitée indépendamment : une ligne invalide ne fait pas
+perdre les autres, sans quoi une seule saisie fautive bloquerait toute la file.
+
+### Intégrité des états métier
+
+Les transitions sont déclarées dans `src/lib/etats.ts` et vérifiées **côté serveur**
+avant toute écriture. Masquer un bouton ne protège rien : une Server Action est un
+point d'entrée réseau.
 
 ### En-têtes de sécurité
 

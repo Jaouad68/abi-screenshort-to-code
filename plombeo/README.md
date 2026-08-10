@@ -9,6 +9,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Architecture (Phase 0)** : [`docs/plombeo/PHASE-0-ARCHITECTURE.md`](../docs/plombeo/PHASE-0-ARCHITECTURE.md)
 - **Spécification Phase 1** : [`docs/plombeo/PHASE-1-SPECIFICATION.md`](../docs/plombeo/PHASE-1-SPECIFICATION.md)
 - **Spécification Phase 2** : [`docs/plombeo/PHASE-2-SPECIFICATION.md`](../docs/plombeo/PHASE-2-SPECIFICATION.md)
+- **Spécification Phase 3** : [`docs/plombeo/PHASE-3-SPECIFICATION.md`](../docs/plombeo/PHASE-3-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -40,7 +41,23 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
   par la saisie du nom
 - Export CSV du fichier client (portabilité §79 et droit d'accès RGPD)
 
-Les phases suivantes (agenda, devis, factures…) ne sont pas commencées. Le
+**Phase 3 — Terrain : terminée.**
+
+- Demandes entrantes avec niveau d'urgence, converties en rendez-vous sans ressaisie
+- Agenda en vue jour, navigation par date, lien GPS et appel direct
+- Interventions : tâches, temps, fournitures, diagnostic et compte rendu
+- Machines à états explicites (demande, rendez-vous, intervention), transitions
+  validées côté serveur — une intervention clôturée ne se rouvre jamais
+- **Capture hors-ligne** : la saisie de chantier est écrite dans IndexedDB avant
+  tout envoi, avec un identifiant généré sur l'appareil ; la synchronisation est
+  idempotente, les états (`en attente`, `échec`) sont visibles, et le retour du
+  réseau déclenche l'envoi automatiquement
+
+Non livré volontairement et sans faux-semblant : les **photos** d'intervention
+exigent un stockage objet, qui relève de la Phase 6. Aucun bouton n'est proposé
+tant qu'elles ne sont pas réellement conservées (§76).
+
+Les phases suivantes (devis, factures…) ne sont pas commencées. Le
 tableau de bord les annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Démarrer
@@ -69,7 +86,7 @@ Aucun secret réel ne doit être committé : `.env` est ignoré par git.
 ## Vérifications
 
 ```bash
-npm test        # Vitest : 71 tests, dont l'isolation multi-tenant et CRM
+npm test        # Vitest : 111 tests, dont isolation, idempotence et machines à états
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de production
@@ -95,6 +112,11 @@ et compare chaque texte à son fond effectif.
 |---|---|
 | `src/lib/dal.ts` | **Couche d'accès aux données** — point d'entrée unique de la session et du cloisonnement |
 | `src/lib/crm.ts` | Accès CRM (clients, logements, équipements), toujours filtré par l'organisation de la session |
+| `src/lib/terrain.ts` | Accès terrain (demandes, rendez-vous, interventions) |
+| `src/lib/etats.ts` | **Machines à états** — transitions déclarées une fois, testées exhaustivement |
+| `src/lib/file-sync.ts` | Logique pure de la file hors-ligne (déduplication, réessai, états) |
+| `src/lib/sync-client.ts` | Stockage IndexedDB et envoi de la file |
+| `src/app/api/sync/route.ts` | Réception idempotente des mutations hors-ligne |
 | `src/lib/csv.ts` | Génération CSV (BOM UTF-8, neutralisation de l'injection de formule) |
 | `src/lib/libelles.ts` | Libellés affichés — aucun nom technique d'énumération dans l'interface |
 | `src/lib/auth.ts` | Hachage, ouverture et révocation de session |
