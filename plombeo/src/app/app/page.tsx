@@ -2,6 +2,7 @@ import Link from "next/link";
 import { APrevoir, Badge, Bouton, Carte } from "@/components/ui";
 import { exigerSession, organisationCourante } from "@/lib/dal";
 import { compterClients } from "@/lib/crm";
+import { compterDevisEnCours } from "@/lib/devis";
 import {
   compterDemandesOuvertes,
   listerInterventionsEnCours,
@@ -25,13 +26,15 @@ export default async function TableauDeBord() {
   const contexte = await exigerSession();
   const organisation = await organisationCourante();
 
-  const [suivant, duJour, enCours, demandesOuvertes, nombreClients] = await Promise.all([
-    prochainRendezVous(),
-    listerRendezVousDuJour(new Date()),
-    listerInterventionsEnCours(),
-    compterDemandesOuvertes(),
-    compterClients(),
-  ]);
+  const [suivant, duJour, enCours, demandesOuvertes, nombreClients, devisEnCours] =
+    await Promise.all([
+      prochainRendezVous(),
+      listerRendezVousDuJour(new Date()),
+      listerInterventionsEnCours(),
+      compterDemandesOuvertes(),
+      compterClients(),
+      compterDevisEnCours(),
+    ]);
 
   const adresseSuivant = suivant?.property ? adresseCourte(suivant.property) : "";
 
@@ -134,15 +137,14 @@ export default async function TableauDeBord() {
           valeur={`${demandesOuvertes} en attente`}
           alerte={demandesOuvertes > 0}
         />
+        <Raccourci href="/app/devis" titre="Devis" valeur={`${devisEnCours} en cours`} />
         <Raccourci href="/app/clients" titre="Clients" valeur={`${nombreClients} fiches`} />
-        <Raccourci href="/app/demandes/nouvelle" titre="Noter un appel" valeur="+ Demande" />
       </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-attenue">
           Prochainement
         </h2>
-        <APrevoir titre="Devis" phase="Phase 4" />
         <APrevoir titre="Factures et paiements" phase="Phase 5" />
         <APrevoir titre="Photos et documents" phase="Phase 6" />
       </section>

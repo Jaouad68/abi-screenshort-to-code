@@ -1,6 +1,6 @@
 # Modèle de données — Plombéo
 
-État à la fin de la **Phase 3**. Source de vérité : `prisma/schema.prisma`.
+État à la fin de la **Phase 4**. Source de vérité : `prisma/schema.prisma`.
 
 ## Principe fondateur
 
@@ -97,6 +97,25 @@ une seconde barrière derrière l'`upsert` applicatif.
 Les états sont des énumérations explicites, jamais des booléens (§56), et les
 transitions vivent dans `src/lib/etats.ts`.
 
+### Service, Product, Quote, QuoteOption, QuoteLine (Phase 4)
+
+`Quote` (dossier) → `QuoteOption` (proposition) → `QuoteLine` (ligne). **Un devis
+simple est un devis à une seule proposition** : porter les variantes dans le modèle
+dès maintenant évite une migration des lignes déjà émises le jour où l'artisan veut
+proposer « Essentiel / Confort / Premium » (§13).
+
+**Les lignes sont figées à la copie** : libellé et prix sont recopiés depuis le
+catalogue, jamais référencés. Modifier un article plus tard ne doit pas changer un
+devis déjà établi. `origineType`/`origineId` gardent une trace informative, sans clé
+étrangère — supprimer un article du catalogue ne doit pas toucher aux devis émis.
+
+**Le numéro n'est attribué qu'au passage en `PRET`**, via `CompteurDevis` et un
+incrément atomique en base. Numéroter les brouillons produirait des trous
+inexpliqués ; un compteur lu puis réécrit produirait des doublons en concurrence.
+
+Unités : montants en **centimes**, quantités en **milli-unités**, taux de TVA en
+**centièmes de pourcent** (2000 = 20 %, 550 = 5,5 %).
+
 ### LoginAttempt
 
 Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
@@ -129,7 +148,6 @@ de la sur-ingénierie.
 
 | Phase | Entités |
 |---|---|
-| 4 | `Service`, `Product`, `Quote`, `QuoteOption`, `QuoteLine` |
 | 5 | `Invoice`, `InvoiceLine`, `CreditNote`, `Payment` |
 | 6 | `Document`, `Signature` |
 | 7 | `AutomationRule`, `AutomationExecution`, `Notification` |

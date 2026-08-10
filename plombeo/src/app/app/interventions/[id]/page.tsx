@@ -8,6 +8,7 @@ import { adresseCourte, LIBELLE_CATEGORIE_EQUIPEMENT } from "@/lib/libelles";
 import { formaterQuantite, formaterDuree, totalMinutes } from "@/lib/format";
 import { transitionInterventionAutorisee } from "@/lib/etats";
 import { changerEtatIntervention } from "../../agenda/actions";
+import { creerDevisDepuisIntervention } from "../../devis/actions";
 import { SaisieTerrain } from "./SaisieTerrain";
 import { FormulaireCompteRendu } from "./FormulaireCompteRendu";
 
@@ -142,6 +143,22 @@ export default async function PageIntervention(props: PageProps<"/app/interventi
           compteRendu: intervention.compteRendu,
         }}
       />
+
+      {peutModifier && intervention.statut !== "PLANIFIEE" && (
+        <Carte>
+          <h2 className="font-semibold mb-1">Chiffrer ces travaux</h2>
+          <p className="text-sm text-attenue mb-3">
+            Crée un devis reprenant votre temps et vos fournitures. Les prix restent à
+            renseigner : Plombéo propose un point de départ, pas vos tarifs.
+          </p>
+          <form action={creerDevisDepuisIntervention}>
+            <input type="hidden" name="interventionId" value={intervention.id} />
+            <Bouton type="submit" variante="discret">
+              Créer un devis depuis cette intervention
+            </Bouton>
+          </form>
+        </Carte>
+      )}
 
       {peutModifier && (
         <Carte>

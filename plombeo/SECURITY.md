@@ -1,6 +1,6 @@
 # Sécurité — Plombéo
 
-État à la fin de la **Phase 3**. Ce document décrit ce qui est réellement en place et,
+État à la fin de la **Phase 4**. Ce document décrit ce qui est réellement en place et,
 tout aussi important, ce qui ne l'est pas encore.
 
 ## Modèle de menace retenu
@@ -128,6 +128,28 @@ perdre les autres, sans quoi une seule saisie fautive bloquerait toute la file.
 Les transitions sont déclarées dans `src/lib/etats.ts` et vérifiées **côté serveur**
 avant toute écriture. Masquer un bouton ne protège rien : une Server Action est un
 point d'entrée réseau.
+
+### Intégrité des documents commerciaux (Phase 4)
+
+- Un devis n'est modifiable qu'à l'état `BROUILLON`. Le contrôle est fait **côté
+  serveur à chaque écriture de ligne**, pas seulement par masquage de boutons.
+- Le numéro est attribué une seule fois, par incrément atomique en base : deux
+  devis passés en « prêt » simultanément n'obtiennent jamais le même numéro
+  (vérifié par mutation, avec 20 attributions concurrentes).
+- Un devis accepté ou refusé est figé : une correction passera par un nouveau
+  devis, jamais par une réécriture (§14).
+
+### Responsabilité fiscale
+
+Plombéo **ne détermine jamais** le taux de TVA applicable et **ne rédige aucune
+mention légale**. Les taux proposés dans les listes sont des valeurs de saisie, pas
+une règle d'application. Cette frontière est délibérée : un défaut de conseil
+fiscal engagerait l'artisan, et un texte par défaut lui donnerait un faux sentiment
+de couverture (§15, §54).
+
+**[À VÉRIFIER — SOURCE OFFICIELLE]** subsistent sur : les taux et leurs conditions
+d'application aux travaux de plomberie, les mentions obligatoires d'un devis, et la
+méthode d'agrégation et d'arrondi de la TVA retenue dans `src/lib/calcul.ts`.
 
 ### En-têtes de sécurité
 

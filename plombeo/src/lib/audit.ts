@@ -44,7 +44,22 @@ export type ActionAuditee =
   | "intervention.updated"
   | "intervention.completed"
   | "intervention.closed"
-  | "intervention.synced";
+  | "intervention.synced"
+  // Phase 4 — catalogue et devis
+  | "service.created"
+  | "service.updated"
+  | "service.archived"
+  | "product.created"
+  | "product.updated"
+  | "product.archived"
+  | "quote.created"
+  | "quote.updated"
+  | "quote.ready"
+  | "quote.sent"
+  | "quote.accepted"
+  | "quote.declined"
+  | "quote.expired"
+  | "quote.cancelled";
 
 type EntreeAudit = {
   action: ActionAuditee;

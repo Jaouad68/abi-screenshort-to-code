@@ -1,5 +1,6 @@
 import type {
   AppointmentStatut,
+  DevisStatut,
   InterventionStatut,
   LeadStatut,
 } from "@/generated/prisma/enums";
@@ -49,6 +50,25 @@ const INTERVENTION: Record<InterventionStatut, readonly InterventionStatut[]> = 
   ANNULEE: [],
 };
 
+const DEVIS: Record<DevisStatut, readonly DevisStatut[]> = {
+  BROUILLON: ["PRET", "ANNULE"],
+  // Retour en arrière autorisé tant que le devis n'est pas parti : l'artisan
+  // relit, voit une erreur, corrige. Le numéro déjà attribué est conservé.
+  PRET: ["BROUILLON", "ENVOYE", "ANNULE"],
+  ENVOYE: ["ACCEPTE", "REFUSE", "EXPIRE", "ANNULE"],
+  // Un devis accepté deviendra facturable (Phase 5) : il ne se remodifie plus.
+  // Une correction passera par un nouveau devis.
+  ACCEPTE: [],
+  REFUSE: [],
+  // Un devis expiré peut être renvoyé après prolongation : c'est un cas réel.
+  EXPIRE: ["ENVOYE", "ANNULE"],
+  ANNULE: [],
+};
+
+export function transitionDevisAutorisee(de: DevisStatut, vers: DevisStatut): boolean {
+  return DEVIS[de].includes(vers);
+}
+
 export function transitionLeadAutorisee(de: LeadStatut, vers: LeadStatut): boolean {
   return LEAD[de].includes(vers);
 }
@@ -69,11 +89,17 @@ export function transitionInterventionAutorisee(
 
 /** États depuis lesquels plus aucune transition n'est possible. */
 export function estTerminal(
-  machine: "lead" | "rendezVous" | "intervention",
+  machine: "lead" | "rendezVous" | "intervention" | "devis",
   etat: string,
 ): boolean {
   const table: Record<string, readonly string[]> =
-    machine === "lead" ? LEAD : machine === "rendezVous" ? RENDEZ_VOUS : INTERVENTION;
+    machine === "lead"
+      ? LEAD
+      : machine === "rendezVous"
+        ? RENDEZ_VOUS
+        : machine === "devis"
+          ? DEVIS
+          : INTERVENTION;
   const suivants = table[etat];
   return suivants !== undefined && suivants.length === 0;
 }

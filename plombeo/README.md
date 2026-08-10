@@ -10,6 +10,7 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 1** : [`docs/plombeo/PHASE-1-SPECIFICATION.md`](../docs/plombeo/PHASE-1-SPECIFICATION.md)
 - **Spécification Phase 2** : [`docs/plombeo/PHASE-2-SPECIFICATION.md`](../docs/plombeo/PHASE-2-SPECIFICATION.md)
 - **Spécification Phase 3** : [`docs/plombeo/PHASE-3-SPECIFICATION.md`](../docs/plombeo/PHASE-3-SPECIFICATION.md)
+- **Spécification Phase 4** : [`docs/plombeo/PHASE-4-SPECIFICATION.md`](../docs/plombeo/PHASE-4-SPECIFICATION.md)
 
 ## État d'avancement
 
@@ -57,7 +58,24 @@ Non livré volontairement et sans faux-semblant : les **photos** d'intervention
 exigent un stockage objet, qui relève de la Phase 6. Aucun bouton n'est proposé
 tant qu'elles ne sont pas réellement conservées (§76).
 
-Les phases suivantes (devis, factures…) ne sont pas commencées. Le
+**Phase 4 — Catalogue et devis : terminée.**
+
+- Catalogue de prestations et de fournitures, avec prix et TVA par défaut
+- Devis : lignes depuis le catalogue ou en saisie libre, remise, acompte,
+  durée de validité, machine à états (brouillon → prêt → envoyé → accepté)
+- **Devis à variantes** (Essentiel / Confort / Premium) : un devis simple est un
+  devis à une seule proposition, la notion n'est jamais imposée
+- Génération d'un devis **depuis une intervention**, reprenant temps et fournitures
+- Numérotation `DEV-2026-001` attribuée au passage en « prêt », par incrément
+  atomique en base : deux devis simultanés n'obtiennent jamais le même numéro
+- Document imprimable (PDF via le navigateur), sans navigation ni service externe
+
+**Prudence fiscale assumée** : Plombéo ne déduit **jamais** le taux de TVA
+applicable ni ne rédige de mention légale. L'artisan saisit son taux par ligne et
+rédige ses conditions. Un texte par défaut lui donnerait un faux sentiment de
+couverture (§15, §54).
+
+Les phases suivantes (factures, paiements…) ne sont pas commencées. Le
 tableau de bord les annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Démarrer
@@ -86,7 +104,7 @@ Aucun secret réel ne doit être committé : `.env` est ignoré par git.
 ## Vérifications
 
 ```bash
-npm test        # Vitest : 111 tests, dont isolation, idempotence et machines à états
+npm test        # Vitest : 153 tests, dont calculs, isolation, idempotence et états
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de production
@@ -98,6 +116,15 @@ Les tests de `src/lib/isolation.test.ts` ont été validés **par mutation** : e
 temporairement chaque contrôle du DAL, on a vérifié que le test correspondant échoue
 bien. Une première version passait sans le contrôle — elle ne prouvait donc rien. Toute
 évolution de ces tests devrait refaire cette vérification.
+
+### Sur les calculs financiers
+
+Aucune opération en virgule flottante n'est faite sur un montant : les montants
+sont des centimes entiers, les quantités des milli-unités, les taux de TVA des
+centièmes de pourcent (5,5 % n'est pas représentable exactement en binaire). La
+TVA est arrondie **une seule fois par taux**, sur la base agrégée, et une remise
+est répartie au prorata sans perdre ni créer de centime. Ces propriétés sont
+testées, et la valeur des tests a été confirmée par mutation.
 
 ### Sur le contraste
 
@@ -117,6 +144,8 @@ et compare chaque texte à son fond effectif.
 | `src/lib/file-sync.ts` | Logique pure de la file hors-ligne (déduplication, réessai, états) |
 | `src/lib/sync-client.ts` | Stockage IndexedDB et envoi de la file |
 | `src/app/api/sync/route.ts` | Réception idempotente des mutations hors-ligne |
+| `src/lib/calcul.ts` | **Moteur de calcul** — arithmétique entière, TVA par taux, remise au prorata |
+| `src/lib/devis.ts` | Accès catalogue et devis, numérotation atomique |
 | `src/lib/csv.ts` | Génération CSV (BOM UTF-8, neutralisation de l'injection de formule) |
 | `src/lib/libelles.ts` | Libellés affichés — aucun nom technique d'énumération dans l'interface |
 | `src/lib/auth.ts` | Hachage, ouverture et révocation de session |

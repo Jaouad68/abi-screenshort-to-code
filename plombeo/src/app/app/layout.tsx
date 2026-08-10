@@ -11,7 +11,7 @@ import Link from "next/link";
 export default function LayoutApplication({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 flex flex-col">
-      <header className="bg-encre text-white">
+      <header className="bg-encre text-white no-print">
         <div className="mx-auto w-full max-w-3xl px-5 py-3 flex items-center justify-between">
           <Link href="/app" className="font-bold text-lg">
             Plombéo
@@ -35,11 +35,25 @@ export default function LayoutApplication({ children }: { children: React.ReactN
               Demandes
             </Link>
             <Link
+              href="/app/devis"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Devis
+            </Link>
+            <Link
               href="/app/clients"
               className="inline-flex items-center min-h-11 px-3 rounded-controle
                          text-sm font-medium hover:bg-white/10"
             >
               Clients
+            </Link>
+            <Link
+              href="/app/catalogue"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Catalogue
             </Link>
             <Link
               href="/app/entreprise"

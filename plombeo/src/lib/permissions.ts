@@ -25,6 +25,13 @@ export const PERMISSIONS = [
   "intervention:lire",
   "intervention:modifier",
   "intervention:supprimer",
+  // Phase 4 — catalogue et devis. Le prix est une décision du chef
+  // d'entreprise : la modification est plus restreinte que la lecture.
+  "catalogue:lire",
+  "catalogue:modifier",
+  "devis:lire",
+  "devis:modifier",
+  "devis:supprimer",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -51,6 +58,11 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "intervention:lire",
     "intervention:modifier",
     "intervention:supprimer",
+    "catalogue:lire",
+    "catalogue:modifier",
+    "devis:lire",
+    "devis:modifier",
+    "devis:supprimer",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -63,6 +75,10 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "client:exporter",
     "intervention:lire",
     "intervention:modifier",
+    "catalogue:lire",
+    "catalogue:modifier",
+    "devis:lire",
+    "devis:modifier",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -79,12 +95,29 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "client:modifier",
     "intervention:lire",
     "intervention:modifier",
+    "catalogue:lire",
+    // Le technicien CONSULTE un devis (il doit savoir ce qui a été vendu) mais
+    // ne le modifie pas : le prix est une décision du chef d'entreprise.
+    "devis:lire",
   ],
-  APPRENTI: ["organisation:lire", "client:lire", "intervention:lire"],
+  APPRENTI: ["organisation:lire", "client:lire", "intervention:lire", "catalogue:lire"],
   SOUS_TRAITANT: ["organisation:lire", "client:lire", "intervention:lire"],
   // L'expert-comptable lit et exporte, mais ne modifie jamais le fichier client.
-  COMPTABLE: ["organisation:lire", "client:lire", "client:exporter", "intervention:lire"],
-  LECTURE_SEULE: ["organisation:lire", "client:lire", "intervention:lire"],
+  COMPTABLE: [
+    "organisation:lire",
+    "client:lire",
+    "client:exporter",
+    "intervention:lire",
+    "catalogue:lire",
+    "devis:lire",
+  ],
+  LECTURE_SEULE: [
+    "organisation:lire",
+    "client:lire",
+    "intervention:lire",
+    "catalogue:lire",
+    "devis:lire",
+  ],
 };
 
 export function permissionsDuRole(role: Role): readonly Permission[] {

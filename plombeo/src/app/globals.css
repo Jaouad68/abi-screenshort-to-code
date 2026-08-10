@@ -72,3 +72,30 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Impression des documents (devis, plus tard factures).
+ *
+ * L'artisan imprime ou enregistre en PDF depuis son navigateur : aucun service
+ * externe n'est nécessaire tant qu'il n'y a pas d'envoi automatique par e-mail
+ * (Phase 6).
+ */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  /* Éviter qu'un tableau de lignes soit coupé au milieu d'une proposition. */
+  .break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 15mm;
+  }
+}

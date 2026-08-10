@@ -69,6 +69,12 @@ model Organization {
   taches        InterventionTask[]
   temps         TimeEntry[]
   fournitures   InterventionSupply[]
+  services      Service[]
+  produits      Product[]
+  devis         Quote[]
+  devisOptions  QuoteOption[]
+  devisLignes   QuoteLine[]
+  compteursDevis CompteurDevis[]
 }
 
 /// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
@@ -253,6 +259,7 @@ model Client {
   leads         Lead[]
   appointments  Appointment[]
   interventions Intervention[]
+  devis         Quote[]
 
   @@index([organizationId, archivedAt])
   @@index([organizationId, nomAffichage])
@@ -298,6 +305,7 @@ model Property {
   leads         Lead[]
   appointments  Appointment[]
   interventions Intervention[]
+  devis         Quote[]
 
   @@index([organizationId, archivedAt])
   @@index([clientId])
@@ -520,6 +528,7 @@ model Intervention {
   taches      InterventionTask[]
   temps       TimeEntry[]
   fournitures InterventionSupply[]
+  devis       Quote[]
 
   @@index([organizationId, statut])
   @@index([clientId])
@@ -587,6 +596,191 @@ model InterventionSupply {
 
   @@index([interventionId])
   @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 4 — Catalogue et devis
+// ---------------------------------------------------------------------------
+//
+// CONVENTIONS ARITHMÉTIQUES, non négociables :
+//  - montants en CENTIMES (entiers) ;
+//  - quantités en MILLI-UNITÉS (× 1000), pour permettre 1,5 m sans flottant ;
+//  - taux de TVA en CENTIÈMES DE POURCENT (2000 = 20 %, 550 = 5,5 %), car 5,5 %
+//    n'est pas représentable exactement en virgule flottante.
+//
+// ATTENTION : Plombéo ne déduit JAMAIS le taux de TVA applicable. Il est saisi
+// par l'artisan, à qui revient la responsabilité fiscale (§15, §54).
+
+enum DevisStatut {
+  BROUILLON
+  /// Relu et numéroté : les lignes sont figées.
+  PRET
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  EXPIRE
+  ANNULE
+}
+
+/// Prestation du catalogue (main-d'œuvre, forfait…).
+model Service {
+  id      String @id @default(cuid())
+  libelle String
+  description String @default("")
+  unite   String @default("u")
+  prixUnitaireCents Int @default(0)
+  /// Centièmes de pourcent. Valeur par défaut de la ligne, modifiable au devis.
+  tauxTvaCentiemes Int @default(2000)
+  /// Durée indicative, pour aider au chiffrage. Purement informative.
+  dureeMin Int @default(0)
+
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, archivedAt])
+}
+
+/// Fourniture du catalogue.
+/// Le prix d'achat, les marges et le stock arrivent en Phase 8.
+model Product {
+  id      String @id @default(cuid())
+  libelle String
+  description String @default("")
+  reference String @default("")
+  unite   String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, archivedAt])
+}
+
+/// Dossier de devis.
+///
+/// Le NUMÉRO n'est attribué qu'au passage en PRET : numéroter des brouillons
+/// abandonnés produirait des trous inexpliqués dans la séquence.
+model Quote {
+  id     String      @id @default(cuid())
+  numero String?
+  statut DevisStatut @default(BROUILLON)
+
+  objet String @default("")
+  /// Conditions rédigées par l'artisan. Plombéo ne compose AUCUNE mention
+  /// légale à sa place : un texte par défaut lui donnerait un faux sentiment
+  /// de couverture (§54).
+  conditions String @default("")
+  notes      String @default("")
+
+  dateDevis     DateTime @default(now())
+  /// Durée de validité en jours, saisie par l'artisan.
+  validiteJours Int      @default(30)
+
+  pretLe    DateTime?
+  envoyeLe  DateTime?
+  accepteLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  /// Devis issu d'une intervention : permet de retrouver l'origine du chiffrage.
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  options QuoteOption[]
+
+  @@unique([organizationId, numero])
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+/// Une proposition à l'intérieur d'un devis.
+///
+/// Un devis simple est un devis à UNE proposition : l'artisan n'y voit alors
+/// aucune complexité. C'est ce qui permet d'offrir « Essentiel / Confort /
+/// Premium » (§13) sans imposer la notion à qui n'en veut pas — et sans
+/// migration douloureuse le jour où il en veut.
+model QuoteOption {
+  id      String @id @default(cuid())
+  libelle String @default("Proposition")
+  ordre   Int    @default(0)
+  /// Remise en POUR MILLE (100 = 10 %).
+  remisePourMille  Int @default(0)
+  /// Acompte demandé, en POUR MILLE du TTC (300 = 30 %).
+  acomptePourMille Int @default(0)
+
+  quoteId String
+  quote   Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  lignes QuoteLine[]
+
+  @@index([quoteId])
+  @@index([organizationId])
+}
+
+/// Ligne d'une proposition.
+///
+/// Les valeurs sont FIGÉES à l'ajout : modifier plus tard un article du
+/// catalogue ne doit jamais changer un devis déjà établi. D'où la copie du
+/// libellé et du prix plutôt qu'une simple référence.
+model QuoteLine {
+  id          String @id @default(cuid())
+  libelle     String
+  description String @default("")
+  quantiteMilli     Int @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+  ordre             Int @default(0)
+
+  /// Origine de la ligne, purement informative (statistiques futures).
+  /// Volontairement sans clé étrangère : supprimer un article du catalogue ne
+  /// doit pas toucher aux devis émis.
+  origineType String @default("")
+  origineId   String @default("")
+
+  optionId String
+  option   QuoteOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([optionId])
+  @@index([organizationId])
+}
+
+/// Compteur de numérotation, un par organisation et par année → DEV-2026-001.
+/// L'unicité de la paire garantit qu'aucun numéro n'est attribué deux fois.
+model CompteurDevis {
+  id     String @id @default(cuid())
+  annee  Int
+  dernier Int   @default(0)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, annee])
 }
 
 /// Tentatives de connexion, pour la protection anti-force brute (§46).
