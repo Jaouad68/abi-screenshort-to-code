@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/*
+ * Design system PLOMBÉO — §73.
+ *
+ * Parti pris : une application d'artisan professionnel, pas une vitrine.
+ * Lisible en plein soleil sur un chantier, utilisable au pouce d'une seule main.
+ * Aucune animation décorative.
+ */
+
+@theme {
+  /* Bleu profond : couleur de marque, sérieuse et lisible. */
+  --color-encre: #0f2f44;
+  --color-encre-clair: #1c4a68;
+
+  /* Orange chantier : réservé à l'action principale et à l'urgence.
+     Utilisé avec parcimonie pour qu'il garde sa valeur de signal.
+
+     Teinte volontairement assombrie : l'orange vif d'origine (#d95f18) ne
+     donnait que 3,75:1 avec du texte blanc, sous le seuil de 4,5:1 (§61).
+     Mesuré, pas supposé — voir l'audit de contraste décrit dans le README. */
+  --color-action: #b04a0d;
+  --color-action-fonce: #8f3c0a;
+
+  --color-papier: #ffffff;
+  --color-fond: #f4f6f8;
+  --color-trait: #d8dfe5;
+  --color-attenue: #5a6a76;
+
+  /* Couleurs d'état. Jamais utilisées seules : toujours accompagnées d'un
+     libellé, car la couleur seule n'est pas accessible (§61). */
+  --color-succes: #1c7c4a;
+  --color-alerte: #a8690a;
+  --color-danger: #b3261e;
+
+  --radius-carte: 0.75rem;
+  --radius-controle: 0.5rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-fond);
+  color: var(--color-encre);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Taille de police de base à 16 px minimum sur les champs : en dessous, iOS
+ * zoome automatiquement au focus, ce qui désoriente sur chantier.
+ */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* Focus toujours visible : la navigation au clavier doit rester praticable (§61). */
+:focus-visible {
+  outline: 3px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+/* Respect de la préférence système de réduction des animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

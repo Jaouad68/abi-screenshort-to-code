@@ -1,0 +1,103 @@
+# Modèle de données — Plombéo
+
+État à la fin de la **Phase 1**. Source de vérité : `prisma/schema.prisma`.
+
+## Principe fondateur
+
+```
+Organization (le tenant)
+    │
+    ├── Membership ──── User          (l'appartenance porte le RÔLE)
+    │
+    └── [toutes les entités métier des phases suivantes]
+```
+
+**Règle non négociable** : toute table métier ajoutée porte `organizationId`, indexé,
+avec une clé étrangère en cascade vers `Organization`. Sans cela, le cloisonnement
+entre artisans n'est plus garanti.
+
+## Entités
+
+### Organization
+
+Le tenant : une entreprise artisanale. Porte les informations d'entreprise (nom, forme
+juridique, SIRET, coordonnées) et, en prévision de la Phase 5, deux colonnes de
+mentions légales (`tvaIntracommunautaire`, `assuranceDecennale`) créées dès maintenant
+pour éviter une migration ultérieure. Leur **contenu** relève d'une source officielle
+française et n'est jamais déduit par l'application.
+
+### User
+
+Compte de connexion. `email` unique et normalisé en minuscules (l'unicité serait
+illusoire sans normalisation). `passwordHash` bcrypt.
+
+Un utilisateur peut appartenir à **plusieurs** organisations : le modèle le permet dès
+la Phase 1, même si l'interface V1 n'expose pas de bascule.
+
+### Membership
+
+Lien `User` ↔ `Organization`, **porteur du rôle**. Unique sur `(userId, organizationId)`.
+
+Placer le rôle ici plutôt que sur `User` est structurant : un même utilisateur peut être
+propriétaire de sa propre entreprise et simple lecteur chez un confrère.
+
+### Session
+
+Session révocable. Le cookie porte un jeton signé, mais **cette table fait autorité** :
+une session révoquée ou expirée ici n'authentifie plus.
+
+- `tokenHash` : SHA-256 du jeton, jamais le jeton en clair
+- `revokedAt` : révocation explicite, distincte de l'expiration
+- `appareil` : user-agent tronqué, pour que l'artisan reconnaisse ses appareils
+- **aucune adresse IP** (minimisation RGPD)
+
+### AuditLog
+
+Journal immuable. Pas de colonne `updatedAt` : ces lignes ne se modifient pas.
+`organizationId` et `actorUserId` sont **nullables** — un échec de connexion sur un
+e-mail inconnu n'est rattachable ni à un utilisateur ni à une organisation.
+
+### LoginAttempt
+
+Tentatives de connexion, pour l'anti-force brute. Ne contient que l'e-mail tenté et le
+résultat — **jamais le mot de passe**. Table purgeable.
+
+## Énumération `Role`
+
+`PROPRIETAIRE`, `ADMINISTRATEUR`, `ASSISTANT`, `TECHNICIEN`, `APPRENTI`,
+`SOUS_TRAITANT`, `COMPTABLE`, `LECTURE_SEULE`.
+
+Les huit rôles du cahier des charges (§49) existent en base dès la Phase 1 ; seuls les
+deux premiers sont exploités par l'interface V1. Les créer maintenant évite une
+migration de rupture à l'ouverture multi-utilisateurs (Phase 14).
+
+Les **permissions** sont définies en code (`src/lib/permissions.ts`), pas en base : tant
+que les rôles ne sont pas personnalisables par l'artisan, une table `Permission` serait
+de la sur-ingénierie.
+
+## Conventions pour les phases suivantes
+
+| Convention | Raison |
+|---|---|
+| Montants en **centimes** (entiers) | Aucune erreur d'arrondi sur les calculs financiers |
+| Quantités en **milli-unités** (× 1000) | Permet 1,5 ml ou 0,25 h en restant en arithmétique entière |
+| **États explicites** plutôt que des booléens | Un devis a 8 états, pas trois cases à cocher (§56) |
+| **Soft delete** sur les entités à valeur documentaire | Obligations de conservation (§78) |
+| `organizationId` sur toute table métier | Cloisonnement |
+
+## À venir
+
+| Phase | Entités |
+|---|---|
+| 2 | `Client`, `Address`, `Property`, `Equipment`, `Consent` |
+| 3 | `Lead`, `Appointment`, `Intervention`, `InterventionTask`, `TimeEntry`, `Photo` |
+| 4 | `Service`, `Product`, `Quote`, `QuoteOption`, `QuoteLine` |
+| 5 | `Invoice`, `InvoiceLine`, `CreditNote`, `Payment` |
+| 6 | `Document`, `Signature` |
+| 7 | `AutomationRule`, `AutomationExecution`, `Notification` |
+| 8 | `Supplier`, `Purchase`, `StockItem`, `StockMovement`, `Expense` |
+| 11 | `AiAction` |
+| 13 | `MaintenanceContract`, `Warranty` |
+| 14 | `Subscription`, `Plan`, `Invitation`, `SupportTicket` |
+
+Le détail de chacune est arrêté au lancement de la phase concernée, pas d'avance.

@@ -1,0 +1,165 @@
+// Schéma de base de données — PLOMBÉO
+// Base : PostgreSQL. Client Prisma généré dans src/generated/prisma.
+//
+// RÈGLE D'ARCHITECTURE (décision n°8, Phase 0) : le cloisonnement entre artisans
+// est logique. Toute table métier ajoutée dans les phases suivantes DOIT porter
+// une colonne `organizationId` indexée, avec une clé étrangère en cascade vers
+// Organization. Aucune requête ne doit être écrite sans ce filtre : l'accès aux
+// données passe obligatoirement par la couche src/lib/dal.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Rôles prévus par le cahier des charges (§49).
+/// Seuls PROPRIETAIRE et ADMINISTRATEUR sont exploités par l'interface en V1 ;
+/// les autres existent dès maintenant pour éviter une migration de rupture
+/// à l'ouverture multi-utilisateurs (Phase 14).
+enum Role {
+  PROPRIETAIRE
+  ADMINISTRATEUR
+  ASSISTANT
+  TECHNICIEN
+  APPRENTI
+  SOUS_TRAITANT
+  COMPTABLE
+  LECTURE_SEULE
+}
+
+/// Le tenant : une organisation = une entreprise artisanale.
+/// Toutes les données métier des phases suivantes lui seront rattachées.
+model Organization {
+  id   String @id @default(cuid())
+  nom  String
+
+  // Informations d'entreprise. Renseignées par l'artisan, imprimées plus tard
+  // sur les devis et factures (Phases 4 et 5).
+  formeJuridique String @default("")
+  siret          String @default("")
+  adresse        String @default("")
+  codePostal     String @default("")
+  ville          String @default("")
+  telephone      String @default("")
+  email          String @default("")
+
+  // Mentions légales : les colonnes existent dès la Phase 1 pour éviter une
+  // migration ultérieure, mais ne sont pas exploitées avant la Phase 5.
+  // ATTENTION : le contenu de ces mentions relève d'une source officielle
+  // française et ne doit jamais être déduit par l'application.
+  tvaIntracommunautaire String @default("")
+  assuranceDecennale    String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  auditLogs   AuditLog[]
+}
+
+/// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
+model User {
+  id           String   @id @default(cuid())
+  /// Toujours normalisé en minuscules avant écriture (voir src/lib/validation.ts).
+  email        String   @unique
+  passwordHash String
+  nomComplet   String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships Membership[]
+  sessions    Session[]
+  auditLogs   AuditLog[]
+}
+
+/// Lien User <-> Organization, porteur du rôle.
+model Membership {
+  id        String   @id @default(cuid())
+  role      Role     @default(PROPRIETAIRE)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+/// Session révocable.
+///
+/// Le cookie porte un jeton signé (jose), mais l'autorité finale est cette table :
+/// une session révoquée ou expirée ici n'authentifie plus, même si le cookie est
+/// encore valide cryptographiquement. C'est ce qui rend « déconnecter tous mes
+/// appareils » réellement effectif (§46 du cahier des charges).
+///
+/// Seul le SHA-256 du jeton est stocké : une fuite de la base ne permet pas de
+/// rejouer une session.
+model Session {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  lastSeenAt DateTime @default(now())
+  revokedAt DateTime?
+
+  /// User-agent tronqué, pour que l'artisan reconnaisse ses appareils.
+  /// Minimisation RGPD : aucune adresse IP n'est conservée ici.
+  appareil String @default("")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Organisation active pour cette session (un utilisateur multi-organisations
+  /// en choisit une à la connexion).
+  organizationId String
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Journal d'audit immuable (§57).
+///
+/// Aucune Server Action applicative n'expose de mise à jour ni de suppression de
+/// ces lignes ; il n'y a délibérément pas de colonne `updatedAt`. Les écritures
+/// passent uniquement par src/lib/audit.ts.
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String   @default("")
+  entityId   String   @default("")
+  /// Contexte complémentaire. NE JAMAIS y écrire de mot de passe, de jeton,
+  /// ni de donnée personnelle non nécessaire (§64).
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  /// Nullable : certains événements (échec de connexion sur un e-mail inconnu)
+  /// ne sont rattachables ni à un utilisateur ni à une organisation.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  actorUserId String?
+  actorUser   User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([action, createdAt])
+}
+
+/// Tentatives de connexion, pour la protection anti-force brute (§46).
+/// Table volontairement purgeable : voir purgerDonneesExpirees() dans src/lib/securite.ts.
+model LoginAttempt {
+  id String @id @default(cuid())
+
+  /// E-mail normalisé tenté (jamais le mot de passe).
+  identifiant String
+  reussie     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([identifiant, createdAt])
+}
