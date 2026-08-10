@@ -68,6 +68,11 @@ export const PERMISSIONS = [
   // Phase 11 — assistant. Le technicien l'utilise : c'est lui qui rédige les
   // comptes rendus sur le chantier.
   "ia:utiliser",
+  // Phase 13 — contrats. Le technicien LIT (il doit savoir sur place si
+  // l'équipement est couvert) mais ne modifie pas : un contrat est un
+  // engagement commercial.
+  "contrat:lire",
+  "contrat:modifier",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -117,6 +122,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "pilotage:lire",
     "portail:gerer",
     "ia:utiliser",
+    "contrat:lire",
+    "contrat:modifier",
   ],
   ADMINISTRATEUR: [
     "organisation:lire",
@@ -151,6 +158,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "pilotage:lire",
     "portail:gerer",
     "ia:utiliser",
+    "contrat:lire",
+    "contrat:modifier",
   ],
   ASSISTANT: [
     "organisation:lire",
@@ -167,6 +176,8 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "pilotage:lire",
     "portail:gerer",
     "ia:utiliser",
+    "contrat:lire",
+    "contrat:modifier",
   ],
   // Le technicien peut modifier : il tient le carnet technique depuis le
   // chantier, c'est le cœur de l'usage terrain.
@@ -184,6 +195,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "stock:lire",
     "stock:modifier",
     "ia:utiliser",
+    "contrat:lire",
   ],
   APPRENTI: [
     "organisation:lire",
@@ -216,6 +228,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "achat:lire",
     "stock:lire",
     "pilotage:lire",
+    "contrat:lire",
   ],
   LECTURE_SEULE: [
     "organisation:lire",
@@ -230,6 +243,7 @@ const PERMISSIONS_PAR_ROLE: Record<Role, readonly Permission[]> = {
     "achat:lire",
     "stock:lire",
     "pilotage:lire",
+    "contrat:lire",
   ],
 };
 

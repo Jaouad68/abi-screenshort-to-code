@@ -92,6 +92,8 @@ model Organization {
   signatures       Signature[]
   accesPortail     ClientAccess[]
   actionsIA        AiAction[]
+  contrats         MaintenanceContract[]
+  garanties        Warranty[]
   fournisseurs     Supplier[]
   achats           Purchase[]
   lignesAchat      PurchaseLine[]
@@ -275,6 +277,8 @@ model Client {
   relancesDesactivees Boolean @default(false)
 
   accesPortail ClientAccess[]
+  contrats     MaintenanceContract[]
+  garanties    Warranty[]
 
   /// Archivage (§78) : le client sort des listes sans être détruit.
   archivedAt DateTime?
@@ -344,6 +348,8 @@ model Property {
 
   @@index([organizationId, archivedAt])
   @@index([clientId])
+  contrats   MaintenanceContract[]
+  garanties  Warranty[]
 }
 
 /// Équipement installé dans un logement.
@@ -382,6 +388,8 @@ model Equipment {
 
   @@index([organizationId])
   @@index([propertyId])
+  contrats   MaintenanceContract[]
+  garanties  Warranty[]
 }
 
 /// Consentement d'un client aux communications commerciales (§33, §45).
@@ -568,6 +576,7 @@ model Intervention {
   signatures  Signature[]
   mouvements  StockMovement[]
   actionsIA   AiAction[]
+  garanties   Warranty[]
 
   @@index([organizationId, statut])
   @@index([clientId])
@@ -1170,6 +1179,7 @@ enum DeclencheurAutomatisation {
   RENDEZ_VOUS_DEMAIN
   INTERVENTION_A_CLOTURER
   STOCK_SOUS_SEUIL
+  CONTRAT_ECHEANCE
 }
 
 enum ActionAutomatisation {
@@ -1550,4 +1560,103 @@ model AiAction {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, createdAt])
+}
+
+/* ========================================================================== */
+/* Phase 13 — Contrats d'entretien et garanties                               */
+/* ========================================================================== */
+
+enum PeriodiciteContrat {
+  MENSUELLE
+  TRIMESTRIELLE
+  SEMESTRIELLE
+  ANNUELLE
+  BIENNALE
+}
+
+enum StatutContrat {
+  ACTIF
+  SUSPENDU
+  RESILIE
+}
+
+/// Contrat d'entretien.
+///
+/// `derniereVisiteLe` est la SOURCE de l'échéance : Plombéo ne coche jamais une
+/// visite tout seul. Faire avancer l'échéance à la date prévue plutôt qu'à la
+/// visite réelle produirait un contrat « à jour » sans qu'aucun technicien ne
+/// soit passé — sur un entretien de chaudière, l'écart est sérieux.
+model MaintenanceContract {
+  id      String             @id @default(cuid())
+  libelle String
+  statut  StatutContrat      @default(ACTIF)
+  periodicite PeriodiciteContrat @default(ANNUELLE)
+
+  debutLe          DateTime  @default(now())
+  finLe            DateTime?
+  /// Dernière visite RÉELLEMENT effectuée. Nulle tant qu'aucune n'a eu lieu.
+  derniereVisiteLe DateTime?
+
+  /// Montant convenu, saisi. Plombéo ne facture pas tout seul : l'échéance
+  /// produit une notification, jamais une facture (§14, Phase 5).
+  montantTtcCents Int    @default(0)
+  notes           String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+/// Garantie enregistrée.
+///
+/// Plombéo ne QUALIFIE aucune garantie : il enregistre un libellé, une date de
+/// début et une durée saisis par l'artisan, et compare des dates. La nature
+/// (légale, contractuelle, constructeur), l'étendue et les obligations qui en
+/// découlent relèvent du droit applicable
+/// [À VÉRIFIER — SOURCE OFFICIELLE ET CONSEIL JURIDIQUE].
+///
+/// Aucune durée par défaut n'est proposée : suggérer « 10 ans » serait déjà un
+/// conseil juridique.
+model Warranty {
+  id      String @id @default(cuid())
+  libelle String
+
+  debutLe    DateTime
+  dureeMois  Int
+  /// Ce que l'artisan a noté sur l'étendue. Texte libre, jamais interprété.
+  precisions String @default("")
+
+  createdAt DateTime @default(now())
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([equipmentId])
 }

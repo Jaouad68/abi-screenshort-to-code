@@ -91,6 +91,13 @@ export default async function LayoutApplication({ children }: { children: React.
               Documents
             </Link>
             <Link
+              href="/app/contrats"
+              className="inline-flex items-center min-h-11 px-3 rounded-controle
+                         text-sm font-medium hover:bg-white/10"
+            >
+              Contrats
+            </Link>
+            <Link
               href="/app/pilotage"
               className="inline-flex items-center min-h-11 px-3 rounded-controle
                          text-sm font-medium hover:bg-white/10"

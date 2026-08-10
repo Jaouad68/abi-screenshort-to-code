@@ -107,7 +107,12 @@ export type ActionAuditee =
   | "ai.proposed"
   | "ai.accepted"
   | "ai.rejected"
-  | "ai.unavailable";
+  | "ai.unavailable"
+  // Phase 13 — contrats et garanties
+  | "contract.created"
+  | "contract.updated"
+  | "contract.visit_recorded"
+  | "warranty.created";
 
 type EntreeAudit = {
   action: ActionAuditee;

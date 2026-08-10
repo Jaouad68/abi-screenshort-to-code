@@ -280,10 +280,6 @@ export function SaisieTerrain({
         )}
       </Section>
 
-      <p className="text-xs text-attenue">
-        Les photos avant/après seront disponibles avec le module Documents. Aucun bouton
-        n&apos;est proposé tant qu&apos;elles ne sont pas réellement stockées.
-      </p>
     </div>
   );
 }

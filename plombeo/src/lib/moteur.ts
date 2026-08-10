@@ -308,6 +308,55 @@ async function balayerRappelsInternes(
     return;
   }
 
+  if (regle.declencheur === "CONTRAT_ECHEANCE") {
+    const { prochaineEcheance } = await import("@/lib/contrats");
+
+    const contrats = await prisma.maintenanceContract.findMany({
+      where: { organizationId: regle.organizationId, statut: "ACTIF" },
+      include: { client: { select: { nomAffichage: true } } },
+      take: 200,
+    });
+
+    for (const contrat of contrats) {
+      const echeance = prochaineEcheance(contrat);
+      if (!echeance) continue;
+
+      // `delaiJours` sert ici de PRÉAVIS : on prévient avant l'échéance, pas
+      // après. Un rappel d'entretien arrivé en retard n'a plus d'objet.
+      const preavis = new Date(echeance.getTime() - regle.delaiJours * JOUR);
+      if (maintenant < preavis) continue;
+
+      // L'occurrence est l'ÉCHÉANCE elle-même : le contrat se rappellera
+      // l'année suivante, mais une seule fois par échéance. Comme l'échéance
+      // dérive de la dernière visite, enregistrer la visite change
+      // l'occurrence et rouvre naturellement le rappel suivant — sans qu'aucun
+      // code n'ait à « réinitialiser » quoi que ce soit.
+      const cle = cleIdempotence("CONTRAT_ECHEANCE", contrat.id, echeance.getTime());
+      const reservee = await reserverExecution({
+        cle,
+        ruleId: regle.id,
+        organizationId: regle.organizationId,
+        entiteType: "MaintenanceContract",
+        entiteId: contrat.id,
+        etat: "REUSSIE",
+        motif: "",
+      });
+      if (!reservee) continue;
+
+      // Le moteur NOTIFIE ; il n'enregistre JAMAIS la visite à la place de
+      // l'artisan. Un contrat « à jour » sans qu'aucun technicien ne soit passé
+      // serait pire qu'un contrat en retard. Un test le vérifie.
+      bilan.executions += 1;
+      await creerNotification(regle.organizationId, {
+        titre: `Entretien à prévoir : ${contrat.libelle}`,
+        corps: `${contrat.client.nomAffichage} — visite due le ${formatDate.format(echeance)}.`,
+        lien: "/app/contrats",
+      });
+      bilan.notifications += 1;
+    }
+    return;
+  }
+
   if (regle.declencheur === "DEVIS_SANS_REPONSE") {
     const limite = new Date(maintenant.getTime() - regle.delaiJours * JOUR);
     const devis = await prisma.quote.findMany({

@@ -18,6 +18,8 @@ le premier commit pour pouvoir devenir un SaaS multi-artisans sans réécriture.
 - **Spécification Phase 9** : [`docs/plombeo/PHASE-9-SPECIFICATION.md`](../docs/plombeo/PHASE-9-SPECIFICATION.md)
 - **Spécification Phase 10** : [`docs/plombeo/PHASE-10-SPECIFICATION.md`](../docs/plombeo/PHASE-10-SPECIFICATION.md)
 - **Spécification Phase 11** : [`docs/plombeo/PHASE-11-SPECIFICATION.md`](../docs/plombeo/PHASE-11-SPECIFICATION.md)
+- **Spécification Phase 12** : [`docs/plombeo/PHASE-12-SPECIFICATION.md`](../docs/plombeo/PHASE-12-SPECIFICATION.md)
+- **Spécification Phase 13** : [`docs/plombeo/PHASE-13-SPECIFICATION.md`](../docs/plombeo/PHASE-13-SPECIFICATION.md)
 - **Spécification Phase 15** : [`docs/plombeo/PHASE-15-SPECIFICATION.md`](../docs/plombeo/PHASE-15-SPECIFICATION.md)
 
 ## État d'avancement
@@ -295,8 +297,27 @@ Le **mode dégradé du devis** n'avait rien à livrer : un devis suppose le cata
 des compteurs atomiques ; le rendre hors ligne exigerait des numéros provisoires, ce qui
 heurte la continuité de numérotation. L'interface signale déjà l'absence de réseau.
 
-Les phases 13 (contrats d'entretien) et 14 (SaaS) ne sont pas commencées. Le tableau de
-bord les annonce explicitement plutôt que d'afficher des données fictives.
+**Phase 13 — Contrats d'entretien et garanties : terminée.**
+
+- Contrats récurrents, échéance calculée, rappel automatique avant la visite
+- Garanties enregistrées, couverture affichée par comparaison de dates
+
+**L'échéance avance sur la visite RÉELLE, jamais sur la date théorique.** Plombéo ne
+coche aucune visite tout seul : un contrat « à jour » sans qu'aucun technicien ne soit
+passé serait pire qu'un contrat en retard. Un test le vérifie explicitement.
+
+**Une échéance notifie, elle ne facture jamais.** Émettre une facture est l'acte
+irréversible qui engage l'entreprise — la Phase 5 en a fait une permission distincte
+pour cette raison.
+
+**Plombéo ne qualifie aucune garantie.** Il enregistre un libellé, une date et une durée
+**saisis**, et compare des dates. La nature (légale, contractuelle, constructeur), son
+étendue et les obligations qui en découlent relèvent du droit applicable **[À VÉRIFIER —
+SOURCE OFFICIELLE ET CONSEIL JURIDIQUE]**. Aucune durée par défaut n'est proposée :
+suggérer « 2 ans » ou « 10 ans » serait déjà un conseil juridique.
+
+La phase 14 (SaaS, ouverture multi-utilisateurs) n'est pas commencée. Le tableau de bord
+l'annonce explicitement plutôt que d'afficher des données fictives.
 
 ## Intégration continue
 
