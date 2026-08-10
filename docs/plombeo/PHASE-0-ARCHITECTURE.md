@@ -546,20 +546,31 @@ Format condensé (objectif / dépendances / difficulté / risques / critères de
 
 ---
 
-## N. Décisions à valider
+## N. Décisions
 
-Merci de valider ou d'arbitrer les points suivants avant l'ouverture de la Phase 1 :
+### Décisions validées (2026-08-10)
 
-1. **Stack** : confirmer la reconduction du socle du dépôt (Next.js/Prisma/PostgreSQL/Tailwind, Stripe, Brevo) plutôt qu'une stack alternative.
-2. **Hébergement** : Vercel + Postgres EU managé (rapide, cohérent avec l'existant) vs. Scaleway/OVHcloud full-français (souveraineté renforcée, plus d'effort d'exploitation).
-3. **PWA seule** vs. PWA + app native ultérieure — je recommande PWA seule en V1 (§H).
-4. **Signature électronique** : niveau simple/avancé (Yousign) suffit-il pour l'usage réel (devis de travaux, bon d'intervention) ?
-5. **Cartographie** : précision (Google Maps) vs. souveraineté (Mapbox/solution UE) — arbitrage business.
-6. **Portée du offline en V1** : capture terrain uniquement (recommandé, H7) ou également création complète de devis hors-ligne ?
-7. **Statut TVA par défaut** de l'artisan pilote (réel simplifié / franchise en base) — conditionne les mentions légales et le paramétrage TVA.
-8. **Isolation multi-tenant** : base partagée + `organizationId` en V1 (recommandé) — à reconfirmer avant l'ouverture SaaS (Phase 14).
-9. **Fournisseur IA** : Claude comme fournisseur principal texte+vision — confirmer l'acceptation du traitement de données hors UE (DPA à vérifier) ou exiger une alternative souveraine (Mistral) dès la V1.
-10. **Priorité de calendrier** : confirmer l'ordre de phases proposé (§L), notamment le déplacement du offline de base en Phase 3.
+Ces quatre arbitrages conditionnaient l'ouverture de la Phase 1. Ils sont tranchés :
+
+| # | Décision | Choix retenu | Conséquence |
+|---|---|---|---|
+| 1 | **Stack** | Reconduction du socle du dépôt : Next.js (App Router) + Prisma 7 + PostgreSQL + Tailwind, Stripe (paiement), Brevo (e-mail/SMS) | Aucune stack parallèle introduite ; les conventions existantes du dépôt (montants en centimes, adapters fournisseurs avec mode Null, statuts explicites) s'appliquent à Plombéo |
+| 2 | **Hébergement** | Vercel (régions EU) + PostgreSQL managé en région UE | Mise en production rapide et coût faible au démarrage. **À documenter au registre RGPD** : éditeur américain, clauses contractuelles types à vérifier. Réversibilité vers Scaleway/OVHcloud maintenue comme option de repli (§C) |
+| 3 | **Mobile** | **PWA seule** en V1, pas d'application native | Un seul code base web+mobile, mises à jour instantanées. Squelette PWA installable livré en Phase 1. Réévaluation d'une app native uniquement si un besoin matériel non couvert par les API Web apparaît |
+| 8 | **Isolation multi-tenant** | Base partagée + `organizationId` sur chaque table métier, filtrage systématique par la couche d'accès aux données | Modèle standard SaaS, exploitation simple. **Test automatisé obligatoire dès la Phase 1** vérifiant qu'aucune requête ne peut retourner les données d'une autre organisation. À reconfirmer avant l'ouverture multi-artisans (Phase 14) |
+
+### Décisions encore ouvertes
+
+Aucune ne bloque la Phase 1 ; chacune est à trancher avant la phase indiquée :
+
+| # | Décision | À trancher avant |
+|---|---|---|
+| 6 | **Portée du offline en V1** : capture terrain uniquement (recommandé, H7) ou création complète de devis hors-ligne | Phase 3 |
+| 5 | **Cartographie** : précision (Google Maps) vs. souveraineté (Mapbox / solution UE) — arbitrage business | Phase 3 |
+| 7 | **Statut TVA** de l'artisan pilote (réel simplifié / franchise en base) — conditionne les mentions légales et le paramétrage TVA | Phase 5 |
+| 4 | **Signature électronique** : le niveau simple/avancé (Yousign) suffit-il pour un devis de travaux et un bon d'intervention ? | Phase 6 |
+| 9 | **Fournisseur IA** : Claude (texte + vision) avec DPA à vérifier, ou alternative souveraine (Mistral) | Phase 11 |
+| 10 | **Ordre des phases** (§L), notamment le déplacement du offline de base en Phase 3 | Confirmable au fil de l'eau |
 
 ---
 
