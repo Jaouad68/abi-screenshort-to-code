@@ -39,6 +39,31 @@ Strictement séquentiel. Chaque script suppose que le précédent a réussi.
 | 05 | `05-formulaires.js` | Champ, ZoneTexte, Selection |
 | 06 | `06-conteneurs.js` | Carte, ListeVide, APrevoir |
 | 07 | `07-signaux.js` | Badge (4 tons), Message (2 tons) |
+| 08 | `08-ecrans-page.js` | Page des écrans **et récolte des identifiants de composants** |
+| 09 | `09-ecrans-connexion-accueil.js` | Connexion, Accueil |
+| 10 | `10-ecrans-agenda-client.js` | Agenda, Fiche client |
+| 11 | `11-ecrans-devis-facture.js` | Devis (détail), Facture (détail) |
+| 12 | `12-ecrans-equipe-portail.js` | Équipe, Portail client |
+
+### Les scripts d'écrans demandent une étape manuelle
+
+Les scripts 09 à 12 commencent par un bloc `CONFIG` vide. **Recopiez-y les
+identifiants renvoyés par le script 08** avant de les exécuter.
+
+Ce n'est pas une négligence : l'API ne charge les pages qu'à la demande et
+n'autorise **qu'une bascule de page par exécution**. Un script d'écran ne peut
+donc pas aller chercher lui-même un composant qui vit sur une autre page — il
+faut le lui passer.
+
+### Deux façons d'assembler, et pourquoi celle-ci
+
+Dans les écrans, les éléments **atomiques** (bouton, champ, badge, message) sont
+des **instances** du design system : corriger le composant les met tous à jour.
+
+Les **cartes**, elles, sont des frames locales liées aux mêmes variables, et non
+des instances. Une instance Figma n'accepte pas d'enfants arbitraires : une
+carte instanciée resterait figée sur son contenu d'exemple, donc inutilisable
+pour composer un écran.
 
 Chaque script renvoie les identifiants des nœuds créés. **Conservez-les** : les
 scripts suivants n'en ont pas besoin, mais toute reprise ou correction en
