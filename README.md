@@ -119,6 +119,16 @@ npm run lint     # ESLint
 npm run build    # build de production + vérification TypeScript
 ```
 
+## Développement avec Claude Code
+
+Le projet déclare le serveur MCP [Context7](https://context7.com) dans
+`.mcp.json` : il donne à Claude Code un accès à la documentation à jour des
+librairies utilisées (Next.js, Prisma, Stripe...), ce qui est particulièrement
+utile ici puisque `AGENTS.md` prévient que cette version de Next.js diffère
+des connaissances d'entraînement par défaut. Il est activé automatiquement à
+l'ouverture du repo (une approbation ponctuelle sera demandée la première
+fois).
+
 ## Structure
 
 - `src/app/page.tsx` — page d'accueil
