@@ -129,6 +129,12 @@ des connaissances d'entraînement par défaut. Il est activé automatiquement à
 l'ouverture du repo (une approbation ponctuelle sera demandée la première
 fois).
 
+Le serveur MCP [Playwright](https://github.com/microsoft/playwright-mcp) est
+également déclaré (`npx @playwright/mcp`) : il permet à Claude Code de piloter
+un navigateur (naviguer, cliquer, remplir des formulaires, prendre des
+captures d'écran) pour vérifier visuellement les pages (réservation, tableau
+de bord...) pendant le développement.
+
 ## Structure
 
 - `src/app/page.tsx` — page d'accueil
