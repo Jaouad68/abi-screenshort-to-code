@@ -135,6 +135,12 @@ un navigateur (naviguer, cliquer, remplir des formulaires, prendre des
 captures d'écran) pour vérifier visuellement les pages (réservation, tableau
 de bord...) pendant le développement.
 
+Le serveur MCP [Magic](https://21st.dev/magic) (`@21st-dev/magic`) génère des
+composants UI frontend à partir d'une description en langage naturel. Il lit
+sa clé API dans la variable d'environnement `TWENTY_FIRST_API_KEY` (à définir
+dans votre shell — clé obtenue sur la console 21st.dev), jamais commitée dans
+le repo.
+
 ## Structure
 
 - `src/app/page.tsx` — page d'accueil
