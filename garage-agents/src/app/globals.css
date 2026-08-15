@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0e0c;
+  --surface: #121713;
+  --surface-2: #191f1a;
+  --surface-3: #212822;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #f2f5f1;
+  --text-dim: #9ba79e;
+  --text-faint: #66716a;
+  --lime: #c6ff5e;
+  --lime-deep: #a6e23f;
+  --lime-ink: #16210a;
+  --lime-bg: rgba(198, 255, 94, 0.13);
+  --mint: #6fcf97;
+  --mint-bg: rgba(111, 207, 151, 0.14);
+  --coral: #ff7a62;
+  --coral-bg: rgba(255, 122, 98, 0.14);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-faint: var(--text-faint);
+  --color-lime: var(--lime);
+  --color-lime-deep: var(--lime-deep);
+  --color-lime-ink: var(--lime-ink);
+  --color-lime-bg: var(--lime-bg);
+  --color-mint: var(--mint);
+  --color-mint-bg: var(--mint-bg);
+  --color-coral: var(--coral);
+  --color-coral-bg: var(--coral-bg);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+}
+
+body {
+  background: var(--bg);
+  background-image: radial-gradient(circle at 18% -10%, rgba(198, 255, 94, 0.1), transparent 45%),
+    radial-gradient(circle at 100% 10%, rgba(111, 207, 151, 0.07), transparent 40%);
+  background-attachment: fixed;
+  color: var(--text);
+}
+
+::selection {
+  background: var(--lime-bg);
+  color: var(--text);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
