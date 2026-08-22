@@ -1,0 +1,98 @@
+name: CI Plombéo
+
+# Ne se déclenche que sur les fichiers de Plombéo : le dépôt héberge plusieurs
+# projets, et faire tourner cette CI pour un changement dans un autre serait du
+# temps d'attente sans contrepartie.
+on:
+  push:
+    paths:
+      - "plombeo/**"
+      - ".github/workflows/plombeo-ci.yml"
+  pull_request:
+    paths:
+      - "plombeo/**"
+      - ".github/workflows/plombeo-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: plombeo-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verification:
+    name: Types, lint, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plombeo
+
+    # Les tests d'isolation multi-tenant sont des tests d'INTÉGRATION : sans base
+    # réelle ils se mettent en veille (`describe.skip`) et passeraient au vert
+    # sans rien vérifier. Une CI qui saute silencieusement le test le plus
+    # important du projet serait pire que pas de CI du tout.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: plombeo
+          POSTGRES_PASSWORD: plombeo
+          POSTGRES_DB: plombeo_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://plombeo:plombeo@localhost:5432/plombeo_test
+      # Secret de test, sans valeur en dehors de ce job. Le secret réel n'est
+      # jamais dans le dépôt (§71).
+      SESSION_SECRET: secret-de-test-uniquement-pour-la-ci-32car
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: plombeo/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Appliquer les migrations
+        run: npx prisma migrate deploy
+
+      - name: Vérifier les types
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Tests
+        run: npm test
+
+      # Garde-fou contre un test d'isolation qui se serait mis en veille : sans
+      # base, `decrire` vaut `describe.skip` et la suite passerait au vert.
+      - name: Vérifier que les tests d'intégration ont réellement tourné
+        run: |
+          npx vitest run src/lib/isolation.test.ts src/lib/isolation-crm.test.ts \
+            src/lib/isolation-documents.test.ts --reporter=json --outputFile=/tmp/iso.json
+          node -e "
+            const r = require('/tmp/iso.json');
+            const passes = r.numPassedTests ?? 0;
+            const skipped = r.numPendingTests ?? 0;
+            if (skipped > 0) { console.error('Tests d isolation en veille : ' + skipped); process.exit(1); }
+            if (passes === 0) { console.error('Aucun test d isolation execute'); process.exit(1); }
+            console.log('Tests d isolation reellement executes : ' + passes);
+          "
+
+      - name: Build
+        run: npm run build

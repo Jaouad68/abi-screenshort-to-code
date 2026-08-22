@@ -1,0 +1,1744 @@
+// Schéma de base de données — PLOMBÉO
+// Base : PostgreSQL. Client Prisma généré dans src/generated/prisma.
+//
+// RÈGLE D'ARCHITECTURE (décision n°8, Phase 0) : le cloisonnement entre artisans
+// est logique. Toute table métier ajoutée dans les phases suivantes DOIT porter
+// une colonne `organizationId` indexée, avec une clé étrangère en cascade vers
+// Organization. Aucune requête ne doit être écrite sans ce filtre : l'accès aux
+// données passe obligatoirement par la couche src/lib/dal.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Rôles prévus par le cahier des charges (§49).
+/// Seuls PROPRIETAIRE et ADMINISTRATEUR sont exploités par l'interface en V1 ;
+/// les autres existent dès maintenant pour éviter une migration de rupture
+/// à l'ouverture multi-utilisateurs (Phase 14).
+enum Role {
+  PROPRIETAIRE
+  ADMINISTRATEUR
+  ASSISTANT
+  TECHNICIEN
+  APPRENTI
+  SOUS_TRAITANT
+  COMPTABLE
+  LECTURE_SEULE
+}
+
+/// Le tenant : une organisation = une entreprise artisanale.
+/// Toutes les données métier des phases suivantes lui seront rattachées.
+model Organization {
+  id   String @id @default(cuid())
+  nom  String
+
+  // Informations d'entreprise. Renseignées par l'artisan, imprimées plus tard
+  // sur les devis et factures (Phases 4 et 5).
+  formeJuridique String @default("")
+  siret          String @default("")
+  adresse        String @default("")
+  codePostal     String @default("")
+  ville          String @default("")
+  telephone      String @default("")
+  email          String @default("")
+
+  // Mentions légales : les colonnes existent dès la Phase 1 pour éviter une
+  // migration ultérieure, mais ne sont pas exploitées avant la Phase 5.
+  // ATTENTION : le contenu de ces mentions relève d'une source officielle
+  // française et ne doit jamais être déduit par l'application.
+  tvaIntracommunautaire String @default("")
+  assuranceDecennale    String @default("")
+
+  /// Coût horaire de revient, SAISI par l'artisan (Phase 9).
+  ///
+  /// Zéro signifie NON RENSEIGNÉ, jamais « gratuit » : tant qu'il vaut zéro, la
+  /// rentabilité n'est pas affichée. Le déduire du temps saisi produirait un
+  /// coût faux — il intègre charges, congés, temps non facturable et
+  /// amortissements, dont Plombéo ne sait rien.
+  coutHoraireCents Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  auditLogs   AuditLog[]
+  clients     Client[]
+  properties  Property[]
+  equipments  Equipment[]
+  consents    Consent[]
+  leads         Lead[]
+  appointments  Appointment[]
+  interventions Intervention[]
+  taches        InterventionTask[]
+  temps         TimeEntry[]
+  fournitures   InterventionSupply[]
+  services      Service[]
+  produits      Product[]
+  devis         Quote[]
+  devisOptions  QuoteOption[]
+  devisLignes   QuoteLine[]
+  compteursDevis CompteurDevis[]
+  factures         Invoice[]
+  facturesLignes   InvoiceLine[]
+  avoirs           CreditNote[]
+  paiements        Payment[]
+  compteursFacture CompteurFacture[]
+  documents        Document[]
+  signatures       Signature[]
+  accesPortail     ClientAccess[]
+  actionsIA        AiAction[]
+  contrats         MaintenanceContract[]
+  garanties        Warranty[]
+  invitations      Invitation[]
+  abonnement       Subscription?
+  fournisseurs     Supplier[]
+  achats           Purchase[]
+  lignesAchat      PurchaseLine[]
+  mouvementsStock  StockMovement[]
+  regles           AutomationRule[]
+  executions       AutomationExecution[]
+  notifications    Notification[]
+  emails           EmailMessage[]
+  modelesMessage   ModeleMessage[]
+}
+
+/// Compte de connexion. Un utilisateur peut appartenir à plusieurs organisations.
+model User {
+  id           String   @id @default(cuid())
+  /// Toujours normalisé en minuscules avant écriture (voir src/lib/validation.ts).
+  email        String   @unique
+  passwordHash String
+  nomComplet   String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships Membership[]
+  sessions    Session[]
+  auditLogs   AuditLog[]
+  /// MFA (Phase 14). Le secret TOTP n'est pas chiffré : le chiffrer suppose une
+  /// clé, donc un secret à protéger ailleurs [À VÉRIFIER — SOURCE OFFICIELLE].
+  totpSecret        String?
+  totpActifLe       DateTime?
+  /// Codes de récupération HACHÉS, à usage unique. Sans eux, un téléphone perdu
+  /// fermerait définitivement le compte.
+  codesRecuperation String[]  @default([])
+}
+
+/// Lien User <-> Organization, porteur du rôle.
+model Membership {
+  id        String   @id @default(cuid())
+  role      Role     @default(PROPRIETAIRE)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+/// Session révocable.
+///
+/// Le cookie porte un jeton signé (jose), mais l'autorité finale est cette table :
+/// une session révoquée ou expirée ici n'authentifie plus, même si le cookie est
+/// encore valide cryptographiquement. C'est ce qui rend « déconnecter tous mes
+/// appareils » réellement effectif (§46 du cahier des charges).
+///
+/// Seul le SHA-256 du jeton est stocké : une fuite de la base ne permet pas de
+/// rejouer une session.
+model Session {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  lastSeenAt DateTime @default(now())
+  revokedAt DateTime?
+
+  /// User-agent tronqué, pour que l'artisan reconnaisse ses appareils.
+  /// Minimisation RGPD : aucune adresse IP n'est conservée ici.
+  appareil String @default("")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Organisation active pour cette session (un utilisateur multi-organisations
+  /// en choisit une à la connexion).
+  organizationId String
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Journal d'audit immuable (§57).
+///
+/// Aucune Server Action applicative n'expose de mise à jour ni de suppression de
+/// ces lignes ; il n'y a délibérément pas de colonne `updatedAt`. Les écritures
+/// passent uniquement par src/lib/audit.ts.
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String   @default("")
+  entityId   String   @default("")
+  /// Contexte complémentaire. NE JAMAIS y écrire de mot de passe, de jeton,
+  /// ni de donnée personnelle non nécessaire (§64).
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  /// Nullable : certains événements (échec de connexion sur un e-mail inconnu)
+  /// ne sont rattachables ni à un utilisateur ni à une organisation.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  actorUserId String?
+  actorUser   User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([action, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 2 — CRM : clients, logements (carnet technique), équipements
+// ---------------------------------------------------------------------------
+
+enum ClientType {
+  PARTICULIER
+  PROFESSIONNEL
+}
+
+enum PropertyType {
+  MAISON
+  APPARTEMENT
+  LOCAL_COMMERCIAL
+  IMMEUBLE
+  AUTRE
+}
+
+/// Catégories volontairement larges : le matériel rencontré est trop divers
+/// pour une nomenclature fine, qui deviendrait vite fausse ou incomplète.
+enum EquipmentCategory {
+  CHAUDIERE
+  CHAUFFE_EAU
+  POMPE_A_CHALEUR
+  CLIMATISATION
+  ADOUCISSEUR
+  VMC
+  SANITAIRE
+  ROBINETTERIE
+  CANALISATION
+  AUTRE
+}
+
+/// Consentement aux communications COMMERCIALES uniquement.
+/// Les messages liés à une prestation en cours (confirmation de rendez-vous,
+/// envoi d'un devis) relèvent de l'exécution du contrat et ne dépendent pas de
+/// ce consentement : la distinction sera appliquée par le moteur d'envoi (Phase 7).
+enum ConsentType {
+  EMAIL_COMMERCIAL
+  SMS_COMMERCIAL
+}
+
+/// Client de l'artisan : particulier ou professionnel.
+///
+/// Seul `nomAffichage` est réellement requis : une fiche saisie en urgence entre
+/// deux interventions doit pouvoir n'avoir qu'un nom et un téléphone.
+model Client {
+  id   String     @id @default(cuid())
+  type ClientType @default(PARTICULIER)
+
+  /// Nom du particulier ou raison sociale. Dénormalisé pour trier et rechercher
+  /// sans avoir à reconstruire le nom selon le type à chaque requête.
+  nomAffichage String
+
+  // Particulier
+  civilite String @default("")
+  prenom   String @default("")
+  nom      String @default("")
+
+  // Professionnel
+  raisonSociale         String @default("")
+  siret                 String @default("")
+  tvaIntracommunautaire String @default("")
+  contactNom            String @default("")
+
+  email               String @default("")
+  telephone           String @default("")
+  telephoneSecondaire String @default("")
+
+  // Adresse de facturation. Volontairement inline plutôt que dans une table
+  // `Address` dédiée : une adresse n'existe jamais indépendamment ici, et un
+  // site d'intervention est déjà modélisé par Property.
+  adresse    String @default("")
+  codePostal String @default("")
+  ville      String @default("")
+
+  /// Note interne : ne doit jamais figurer sur un document remis au client.
+  notes String @default("")
+
+  /// Certains clients se gèrent au téléphone, pas par relance automatique (§84).
+  relancesDesactivees Boolean @default(false)
+
+  accesPortail ClientAccess[]
+  contrats     MaintenanceContract[]
+  garanties    Warranty[]
+
+  /// Archivage (§78) : le client sort des listes sans être détruit.
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  properties Property[]
+  consents   Consent[]
+  leads         Lead[]
+  appointments  Appointment[]
+  interventions Intervention[]
+  devis         Quote[]
+  factures      Invoice[]
+  documents     Document[]
+
+  @@index([organizationId, archivedAt])
+  @@index([organizationId, nomAffichage])
+}
+
+/// Logement ou site d'intervention, porteur du carnet technique (§8).
+/// Un client peut en avoir plusieurs (propriétaire bailleur, syndic...).
+model Property {
+  id      String       @id @default(cuid())
+  /// Facultatif : sans libellé, l'affichage retombe sur l'adresse.
+  libelle String       @default("")
+  type    PropertyType @default(MAISON)
+
+  adresse    String @default("")
+  complement String @default("")
+  codePostal String @default("")
+  ville      String @default("")
+
+  // Informations d'accès : sur le terrain, c'est ce qui évite de rester bloqué
+  // devant une porte.
+  etage             String @default("")
+  digicode          String @default("")
+  interphone        String @default("")
+  instructionsAcces String @default("")
+
+  anneeConstruction Int?
+  notes             String @default("")
+
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  /// Dénormalisé depuis Client : permet de filtrer par tenant sans jointure et
+  /// rend le cloisonnement vérifiable table par table (voir PHASE-2-SPECIFICATION).
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  equipments    Equipment[]
+  leads         Lead[]
+  appointments  Appointment[]
+  interventions Intervention[]
+  devis         Quote[]
+  factures      Invoice[]
+  documents     Document[]
+
+  @@index([organizationId, archivedAt])
+  @@index([clientId])
+  contrats   MaintenanceContract[]
+  garanties  Warranty[]
+}
+
+/// Équipement installé dans un logement.
+///
+/// Aucun champ n'est obligatoire hors la catégorie : sur chantier, l'artisan
+/// note ce qu'il voit. Exiger une marque ou un numéro de série produirait des
+/// fiches vides ou du faux.
+model Equipment {
+  id        String            @id @default(cuid())
+  categorie EquipmentCategory @default(AUTRE)
+
+  marque       String @default("")
+  modele       String @default("")
+  numeroSerie  String @default("")
+  /// Où se trouve l'appareil dans le logement (cave, cuisine, gaine...).
+  localisation String @default("")
+
+  datePose      DateTime?
+  finGarantie   DateTime?
+  /// Date indicative saisie par l'artisan. N'ARME AUCUN RAPPEL en Phase 2 :
+  /// le moteur d'automatisation arrive en Phase 7.
+  prochainEntretien DateTime?
+
+  notes String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  interventions Intervention[]
+
+  @@index([organizationId])
+  @@index([propertyId])
+  contrats   MaintenanceContract[]
+  garanties  Warranty[]
+}
+
+/// Consentement d'un client aux communications commerciales (§33, §45).
+/// L'historique des changements est tracé par AuditLog ; cette table porte
+/// l'état courant.
+model Consent {
+  id       String      @id @default(cuid())
+  type     ConsentType
+  /// Jamais vrai par défaut : un consentement se recueille, il ne se présume pas.
+  accorde  Boolean     @default(false)
+  /// Date du dernier changement d'état, quel qu'il soit.
+  modifieLe DateTime   @default(now())
+  /// Comment le consentement a été recueilli (formulaire papier, oral, e-mail...).
+  source   String      @default("")
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, type])
+  @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 3 — Terrain : demandes, rendez-vous, interventions
+// ---------------------------------------------------------------------------
+
+/// Niveau d'urgence d'une demande.
+///
+/// Sert UNIQUEMENT à qualifier et prioriser. Aucune majoration tarifaire n'est
+/// déduite de cette valeur : les règles de prix appartiennent à l'artisan et
+/// arrivent avec le catalogue (Phase 4). Le §11 interdit d'appliquer
+/// automatiquement une règle tarifaire supposée.
+enum NiveauUrgence {
+  NORMAL
+  RAPIDE
+  URGENT
+  CRITIQUE
+}
+
+enum LeadStatut {
+  NOUVEAU
+  QUALIFIE
+  CONVERTI
+  ABANDONNE
+}
+
+enum AppointmentStatut {
+  PLANIFIE
+  CONFIRME
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+
+enum InterventionStatut {
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  /// Compte rendu validé par l'artisan. C'est cet état qui rendra une
+  /// intervention facturable en Phase 5 — d'où sa distinction d'avec TERMINEE.
+  CLOTUREE
+  ANNULEE
+}
+
+/// Demande entrante (appel, formulaire, urgence).
+///
+/// Une urgence n'est pas une entité distincte : c'est une demande avec un
+/// niveau d'urgence plus élevé. Les séparer aurait dupliqué le même cycle de vie.
+model Lead {
+  id        String        @id @default(cuid())
+  statut    LeadStatut    @default(NOUVEAU)
+  urgence   NiveauUrgence @default(NORMAL)
+
+  /// Ce que le client décrit, dans ses mots.
+  description String @default("")
+  /// Coordonnées brutes quand la demande arrive avant toute fiche client.
+  contactNom       String @default("")
+  contactTelephone String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Facultatif : une demande peut précéder la création de la fiche client.
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  appointments Appointment[]
+
+  @@index([organizationId, statut])
+  @@index([organizationId, urgence])
+}
+
+/// Rendez-vous planifié.
+model Appointment {
+  id     String            @id @default(cuid())
+  statut AppointmentStatut @default(PLANIFIE)
+
+  titre  String   @default("")
+  debut  DateTime
+  fin    DateTime
+  /// Temps de trajet estimé par l'artisan, en minutes. Saisi, jamais calculé :
+  /// aucun fournisseur de cartographie n'est engagé à ce stade.
+  trajetMin Int   @default(0)
+  urgence NiveauUrgence @default(NORMAL)
+  notes   String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  intervention Intervention?
+
+  @@index([organizationId, debut])
+  @@index([clientId])
+}
+
+/// Intervention : ce qui est réellement fait sur place.
+///
+/// C'est l'entité centrale du travail hors-ligne : son contenu (tâches, temps,
+/// fournitures, compte rendu) doit pouvoir être saisi sans réseau.
+model Intervention {
+  id     String             @id @default(cuid())
+  statut InterventionStatut @default(PLANIFIEE)
+
+  /// Ce que le client signale.
+  probleme String @default("")
+  /// Diagnostic PROFESSIONNEL, saisi par l'artisan. Jamais généré ni déduit par
+  /// l'application (§22 : l'outil ne se substitue pas au diagnostic du plombier).
+  diagnostic String @default("")
+  compteRendu String @default("")
+
+  demarreeLe DateTime?
+  termineeLe DateTime?
+  clotureeLe DateTime?
+
+  /// Identifiant généré sur l'appareil AU MOMENT DE LA SAISIE, avant tout envoi.
+  /// C'est lui qui rend la synchronisation idempotente : rejouer une mutation
+  /// retombe sur la même ligne au lieu d'en créer une seconde (§5).
+  clientMutationId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  taches      InterventionTask[]
+  temps       TimeEntry[]
+  fournitures InterventionSupply[]
+  devis       Quote[]
+  documents   Document[]
+  signatures  Signature[]
+  mouvements  StockMovement[]
+  actionsIA   AiAction[]
+  garanties   Warranty[]
+
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+model InterventionTask {
+  id      String  @id @default(cuid())
+  libelle String
+  faite   Boolean @default(false)
+  ordre   Int     @default(0)
+
+  clientMutationId String? @unique
+  createdAt        DateTime @default(now())
+
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@index([organizationId])
+}
+
+/// Temps passé, en minutes entières.
+/// Saisie manuelle : un chronomètre qui tourne pendant qu'on travaille sous un
+/// évier produirait surtout des oublis.
+model TimeEntry {
+  id      String @id @default(cuid())
+  minutes Int
+  libelle String @default("")
+
+  clientMutationId String?  @unique
+  createdAt        DateTime @default(now())
+
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@index([organizationId])
+}
+
+/// Fourniture utilisée pendant l'intervention.
+///
+/// Libellé libre en Phase 3 : le catalogue n'existe qu'en Phase 4, où cette
+/// table gagnera un lien facultatif vers un article. `quantiteMilli` suit la
+/// convention du dépôt (× 1000) pour permettre 1,5 m sans virgule flottante.
+model InterventionSupply {
+  id            String @id @default(cuid())
+  libelle       String
+  quantiteMilli Int    @default(1000)
+  unite         String @default("u")
+
+  clientMutationId String?  @unique
+  createdAt        DateTime @default(now())
+
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([interventionId])
+  @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 4 — Catalogue et devis
+// ---------------------------------------------------------------------------
+//
+// CONVENTIONS ARITHMÉTIQUES, non négociables :
+//  - montants en CENTIMES (entiers) ;
+//  - quantités en MILLI-UNITÉS (× 1000), pour permettre 1,5 m sans flottant ;
+//  - taux de TVA en CENTIÈMES DE POURCENT (2000 = 20 %, 550 = 5,5 %), car 5,5 %
+//    n'est pas représentable exactement en virgule flottante.
+//
+// ATTENTION : Plombéo ne déduit JAMAIS le taux de TVA applicable. Il est saisi
+// par l'artisan, à qui revient la responsabilité fiscale (§15, §54).
+
+enum DevisStatut {
+  BROUILLON
+  /// Relu et numéroté : les lignes sont figées.
+  PRET
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  EXPIRE
+  ANNULE
+}
+
+/// Prestation du catalogue (main-d'œuvre, forfait…).
+model Service {
+  id      String @id @default(cuid())
+  libelle String
+  description String @default("")
+  unite   String @default("u")
+  prixUnitaireCents Int @default(0)
+  /// Centièmes de pourcent. Valeur par défaut de la ligne, modifiable au devis.
+  tauxTvaCentiemes Int @default(2000)
+  /// Durée indicative, pour aider au chiffrage. Purement informative.
+  dureeMin Int @default(0)
+
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, archivedAt])
+}
+
+/// Fourniture du catalogue.
+/// Le prix d'achat, les marges et le stock arrivent en Phase 8.
+model Product {
+  id      String @id @default(cuid())
+  libelle String
+  description String @default("")
+  reference String @default("")
+  unite   String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+
+  /// Dernier prix d'achat connu. Zéro signifie INCONNU, pas gratuit : la marge
+  /// n'est affichée que lorsqu'il est renseigné, sinon un article non saisi
+  /// afficherait 100 % de marge.
+  prixAchatCents Int @default(0)
+
+  /// Suivi de stock CHOISI référence par référence. Aucun suivi par défaut :
+  /// un stock faux est pire qu'un stock absent (§ risque de sur-ingénierie).
+  suiviStock Boolean @default(false)
+  /// Seuil d'alerte, en milli-unités. Zéro = pas d'alerte.
+  seuilAlerteMilli Int @default(0)
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  lignesAchat PurchaseLine[]
+  mouvements  StockMovement[]
+
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, archivedAt])
+}
+
+/// Dossier de devis.
+///
+/// Le NUMÉRO n'est attribué qu'au passage en PRET : numéroter des brouillons
+/// abandonnés produirait des trous inexpliqués dans la séquence.
+model Quote {
+  id     String      @id @default(cuid())
+  numero String?
+  statut DevisStatut @default(BROUILLON)
+
+  objet String @default("")
+  /// Conditions rédigées par l'artisan. Plombéo ne compose AUCUNE mention
+  /// légale à sa place : un texte par défaut lui donnerait un faux sentiment
+  /// de couverture (§54).
+  conditions String @default("")
+  notes      String @default("")
+
+  dateDevis     DateTime @default(now())
+  /// Durée de validité en jours, saisie par l'artisan.
+  validiteJours Int      @default(30)
+
+  pretLe    DateTime?
+  envoyeLe  DateTime?
+  accepteLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  /// Devis issu d'une intervention : permet de retrouver l'origine du chiffrage.
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  options QuoteOption[]
+  factures Invoice[]
+  documents  Document[]
+  signatures Signature[]
+
+  @@unique([organizationId, numero])
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+/// Une proposition à l'intérieur d'un devis.
+///
+/// Un devis simple est un devis à UNE proposition : l'artisan n'y voit alors
+/// aucune complexité. C'est ce qui permet d'offrir « Essentiel / Confort /
+/// Premium » (§13) sans imposer la notion à qui n'en veut pas — et sans
+/// migration douloureuse le jour où il en veut.
+model QuoteOption {
+  id      String @id @default(cuid())
+  libelle String @default("Proposition")
+  ordre   Int    @default(0)
+  /// Remise en POUR MILLE (100 = 10 %).
+  remisePourMille  Int @default(0)
+  /// Acompte demandé, en POUR MILLE du TTC (300 = 30 %).
+  acomptePourMille Int @default(0)
+
+  quoteId String
+  quote   Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  lignes QuoteLine[]
+
+  @@index([quoteId])
+  @@index([organizationId])
+}
+
+/// Ligne d'une proposition.
+///
+/// Les valeurs sont FIGÉES à l'ajout : modifier plus tard un article du
+/// catalogue ne doit jamais changer un devis déjà établi. D'où la copie du
+/// libellé et du prix plutôt qu'une simple référence.
+model QuoteLine {
+  id          String @id @default(cuid())
+  libelle     String
+  description String @default("")
+  quantiteMilli     Int @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+  ordre             Int @default(0)
+
+  /// Origine de la ligne, purement informative (statistiques futures).
+  /// Volontairement sans clé étrangère : supprimer un article du catalogue ne
+  /// doit pas toucher aux devis émis.
+  origineType String @default("")
+  origineId   String @default("")
+
+  optionId String
+  option   QuoteOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([optionId])
+  @@index([organizationId])
+}
+
+/// Compteur de numérotation, un par organisation et par année → DEV-2026-001.
+/// L'unicité de la paire garantit qu'aucun numéro n'est attribué deux fois.
+model CompteurDevis {
+  id     String @id @default(cuid())
+  annee  Int
+  dernier Int   @default(0)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, annee])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 5 — Factures, avoirs, paiements
+// ---------------------------------------------------------------------------
+//
+// RÈGLE CENTRALE (§14) : une facture ÉMISE ne se modifie plus. Une erreur se
+// corrige par un AVOIR, jamais par réécriture. Trois barrières :
+//   1. interdiction applicative de toute écriture hors état BROUILLON ;
+//   2. totaux FIGÉS en base à l'émission, plutôt que recalculés à l'affichage ;
+//   3. empreinte SHA-256 du contenu, pour DÉTECTER une altération faite hors
+//      application (accès direct à la base, restauration partielle).
+//
+// [À VÉRIFIER — SOURCE OFFICIELLE] Les obligations françaises exactes
+// (mentions, continuité de la numérotation, modalités de rectification, durée
+// de conservation) relèvent de sources officielles et de l'expert-comptable de
+// l'artisan. Plombéo fournit une structure ; il ne certifie aucune conformité.
+
+enum FactureStatut {
+  BROUILLON
+  /// Numérotée, totaux figés, empreinte calculée. Plus aucune modification.
+  EMISE
+  ENVOYEE
+  /// États DÉRIVÉS des paiements enregistrés, jamais saisis à la main.
+  PARTIELLEMENT_PAYEE
+  PAYEE
+}
+
+/// Une facture d'acompte doit être déductible de la facture de solde.
+enum FactureType {
+  STANDARD
+  ACOMPTE
+  SOLDE
+}
+
+enum MoyenPaiement {
+  VIREMENT
+  CHEQUE
+  ESPECES
+  CARTE
+  AUTRE
+}
+
+model Invoice {
+  id     String        @id @default(cuid())
+  numero String?
+  statut FactureStatut @default(BROUILLON)
+  type   FactureType   @default(STANDARD)
+
+  objet      String @default("")
+  conditions String @default("")
+  notes      String @default("")
+
+  dateFacture DateTime @default(now())
+  /// Échéance de paiement. Le DÉLAI applicable relève d'une source officielle
+  /// et du contrat : il est saisi, jamais déduit.
+  dateEcheance DateTime?
+
+  /// Totaux FIGÉS au moment de l'émission.
+  /// Recalculer à l'affichage ferait varier une facture émise le jour où le
+  /// moteur de calcul évolue — inacceptable pour une pièce comptable.
+  totalHtCents  Int @default(0)
+  totalTvaCents Int @default(0)
+  totalTtcCents Int @default(0)
+  /// Détail de la TVA par taux, figé lui aussi (tableau JSON).
+  detailTva     Json?
+
+  /// SHA-256 du contenu au moment de l'émission. Mécanisme de DÉTECTION :
+  /// il ne protège pas l'écriture, il empêche qu'une altération passe inaperçue.
+  empreinte String?
+  emiseLe   DateTime?
+  envoyeeLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  /// Devis d'origine, pour la traçabilité du cycle commercial.
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  lignes    InvoiceLine[]
+  paiements Payment[]
+  avoirs    CreditNote[]
+  documents Document[]
+
+  @@unique([organizationId, numero])
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+/// Ligne de facture, figée à la copie comme les lignes de devis.
+model InvoiceLine {
+  id          String @id @default(cuid())
+  libelle     String
+  description String @default("")
+  quantiteMilli     Int @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+  ordre             Int @default(0)
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([organizationId])
+}
+
+/// Avoir : la SEULE façon de corriger une facture émise.
+model CreditNote {
+  id     String @id @default(cuid())
+  numero String?
+  motif  String @default("")
+  /// Montant TTC avoiré. Un avoir partiel est fréquent (geste commercial,
+  /// prestation non réalisée).
+  montantTtcCents Int @default(0)
+
+  dateAvoir DateTime @default(now())
+  empreinte String?
+
+  createdAt DateTime @default(now())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, numero])
+  @@index([invoiceId])
+}
+
+/// Encaissement réellement perçu.
+///
+/// Plombéo n'enregistre QUE des paiements constatés par l'artisan. Le paiement
+/// en ligne exige un prestataire configuré ; sans lui, aucune simulation n'est
+/// proposée (§76).
+model Payment {
+  id         String        @id @default(cuid())
+  montantCents Int
+  moyen      MoyenPaiement @default(VIREMENT)
+  datePaiement DateTime    @default(now())
+  reference  String        @default("")
+  notes      String        @default("")
+
+  createdAt DateTime @default(now())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([organizationId])
+}
+
+/// Compteurs de numérotation. Factures et avoirs ont des séquences DISTINCTES.
+model CompteurFacture {
+  id      String @id @default(cuid())
+  annee   Int
+  /// "FACTURE" ou "AVOIR".
+  serie   String
+  dernier Int    @default(0)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, annee, serie])
+}
+
+// ---------------------------------------------------------------------------
+// PHASE 6 — Documents, photos et signature
+// ---------------------------------------------------------------------------
+
+enum DocumentCategorie {
+  PHOTO
+  DEVIS
+  FACTURE
+  ATTESTATION
+  CONTRAT
+  NOTICE
+  BON_INTERVENTION
+  AUTRE
+}
+
+/// Moment de prise d'une photo de chantier (§19 : photos avant / après).
+enum MomentPhoto {
+  AVANT
+  APRES
+  AUTRE
+}
+
+/// Pièce versée au dossier : photo, PDF, scan.
+///
+/// Les PHOTOS sont des Documents comme les autres, distingués par leur
+/// catégorie et leur `moment`. Une table dédiée aurait dupliqué le stockage,
+/// les permissions et la recherche pour une seule colonne de différence.
+model Document {
+  id        String            @id @default(cuid())
+  categorie DocumentCategorie @default(AUTRE)
+  moment    MomentPhoto?
+
+  /// Nom affiché à l'artisan. Le nom réel sur le disque est REGÉNÉRÉ côté
+  /// serveur : un nom fourni par le client ne sert jamais de chemin.
+  nomFichier   String
+  mimeType     String
+  tailleOctets Int
+  /// Clé de stockage, produite par le serveur à partir d'un identifiant
+  /// aléatoire. Aucune donnée client n'y entre : aucune traversée de
+  /// répertoire n'est possible.
+  cheminStockage String
+  legende        String   @default("")
+  tags           String[] @default([])
+
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  /// Rattachement polymorphe, tous facultatifs : un document peut être versé
+  /// au dossier d'un client, d'un logement, d'une intervention, d'un devis ou
+  /// d'une facture.
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  versePar String @default("")
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  signatures Signature[]
+
+  @@index([organizationId, categorie])
+  @@index([interventionId])
+  @@index([propertyId])
+  @@index([clientId])
+}
+
+/// Signature apposée sur un contenu.
+///
+/// SIGNATURE SIMPLE : trace manuscrite capturée sur l'appareil, horodatée, avec
+/// l'empreinte du contenu signé. Sa valeur probatoire est celle d'un
+/// commencement de preuve, appréciée au cas par cas.
+///
+/// [À VÉRIFIER — SOURCE OFFICIELLE ET CONSEIL JURIDIQUE] Le niveau requis
+/// (simple, avancée, qualifiée) selon la nature et le montant de l'engagement
+/// relève d'eIDAS et du droit français. Plombéo documente le mécanisme, il ne
+/// qualifie pas juridiquement la signature qu'il produit.
+model Signature {
+  id String @id @default(cuid())
+
+  signataireNom String
+  /// Tracé manuscrit, en data URL PNG.
+  trace         String
+  /// Empreinte SHA-256 du contenu au moment de la signature : c'est elle qui
+  /// permet de démontrer que le document n'a pas changé depuis.
+  empreinteContenu String
+  /// Ce qui a été signé, en clair, pour pouvoir le relire des années plus tard
+  /// sans dépendre de l'application.
+  resumeContenu String @default("")
+
+  signeLe  DateTime @default(now())
+  /// User-agent tronqué. Minimisation : aucune adresse IP conservée.
+  appareil String   @default("")
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  quoteId String?
+  quote   Quote?  @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([interventionId])
+}
+
+/// Tentatives de connexion, pour la protection anti-force brute (§46).
+/// Table volontairement purgeable : voir purgerDonneesExpirees() dans src/lib/securite.ts.
+model LoginAttempt {
+  id String @id @default(cuid())
+
+  /// E-mail normalisé tenté (jamais le mot de passe).
+  identifiant String
+  reussie     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([identifiant, createdAt])
+}
+
+/* ========================================================================== */
+/* Phase 7 — Automatisation, relances et notifications                        */
+/* ========================================================================== */
+
+/// Ce qui déclenche une règle. Volontairement peu nombreux en V1 : chaque
+/// déclencheur est une promesse faite à l'artisan, mieux vaut quatre qui
+/// marchent que douze approximatifs.
+enum DeclencheurAutomatisation {
+  FACTURE_ECHUE
+  DEVIS_SANS_REPONSE
+  RENDEZ_VOUS_DEMAIN
+  INTERVENTION_A_CLOTURER
+  STOCK_SOUS_SEUIL
+  CONTRAT_ECHEANCE
+}
+
+enum ActionAutomatisation {
+  NOTIFIER
+  ENVOYER_EMAIL
+}
+
+enum EtatExecution {
+  PLANIFIEE
+  REUSSIE
+  ECHOUEE
+  /// Écartée avant exécution : garde-fou déclenché, client exclu, facture payée
+  /// entre-temps. Conservée pour que l'artisan comprenne POURQUOI rien n'est parti.
+  ECARTEE
+}
+
+enum EtatEmail {
+  EN_ATTENTE
+  ENVOYE
+  ECHOUE
+}
+
+/// Règle d'automatisation. **Inactive à la création** : à l'installation,
+/// Plombéo n'envoie rien. L'artisan décide de ce qui part en son nom (§84).
+model AutomationRule {
+  id     String  @id @default(cuid())
+  active Boolean @default(false)
+
+  declencheur DeclencheurAutomatisation
+  action      ActionAutomatisation      @default(NOTIFIER)
+
+  /// Délai en jours après l'événement déclencheur. Plusieurs règles sur le même
+  /// déclencheur avec des délais différents forment un échéancier de relance.
+  delaiJours Int @default(0)
+
+  libelle String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  executions AutomationExecution[]
+
+  @@unique([organizationId, declencheur, delaiJours])
+  @@index([organizationId, active])
+}
+
+/// Une occurrence d'exécution.
+///
+/// `cleIdempotence` porte à elle seule la garantie « une relance part une seule
+/// fois » : elle est déterministe (règle + entité + occurrence) et **unique en
+/// base**. Un booléen « déjà envoyé » ne suffirait pas — entre la lecture et
+/// l'écriture, deux balayages concurrents verraient tous deux `false`.
+model AutomationExecution {
+  id  String        @id @default(cuid())
+  etat EtatExecution @default(PLANIFIEE)
+
+  /// Déterministe : `declencheur:entiteId:occurrence`. Contrainte d'unicité
+  /// GLOBALE et non par organisation — l'identifiant d'entité est déjà unique.
+  cleIdempotence String @unique
+
+  /// Pourquoi rien n'est parti, en français, quand l'état est ECARTEE ou ECHOUEE.
+  motif String @default("")
+
+  entiteType String @default("")
+  entiteId   String @default("")
+
+  executeeLe DateTime @default(now())
+
+  ruleId String
+  rule   AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, executeeLe])
+  @@index([entiteType, entiteId])
+}
+
+/// Alerte dans l'application.
+///
+/// Canal TOUJOURS disponible, contrairement à l'e-mail qui suppose un serveur
+/// SMTP configuré. C'est lui qui garantit que l'artisan finit par voir
+/// l'information, même si aucun envoi n'est possible.
+model Notification {
+  id      String    @id @default(cuid())
+  titre   String
+  corps   String    @default("")
+  lien    String    @default("")
+  lueLe   DateTime?
+
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, lueLe])
+  @@index([organizationId, createdAt])
+}
+
+/// File d'attente d'envoi.
+///
+/// Un envoi direct depuis une Server Action lierait la réussite de l'action à la
+/// disponibilité du serveur SMTP : émettre une facture échouerait parce qu'un
+/// serveur d'e-mail est lent. La file découple les deux, et rend chaque envoi
+/// traçable et rejouable.
+model EmailMessage {
+  id   String    @id @default(cuid())
+  etat EtatEmail @default(EN_ATTENTE)
+
+  destinataire String
+  sujet        String
+  corps        String
+
+  /// Pièce jointe produite à l'envoi, pas stockée : `devis:<id>` ou `facture:<id>`.
+  pieceJointe String @default("")
+
+  tentatives Int      @default(0)
+  erreur     String   @default("")
+  envoyeLe   DateTime?
+
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, etat])
+  @@index([organizationId, createdAt])
+}
+
+/// Modèle de texte, modifiable par l'artisan.
+///
+/// Le texte par défaut est FACTUEL : numéro, montant, échéance. Aucune mention
+/// d'intérêts de retard, d'indemnité forfaitaire ou de mise en demeure — ce sont
+/// des notions au régime précis [À VÉRIFIER — SOURCE OFFICIELLE], et un défaut
+/// donnerait à l'artisan un faux sentiment de couverture (§15, §54).
+model ModeleMessage {
+  id    String @id @default(cuid())
+  cle   String
+  sujet String
+  corps String
+
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, cle])
+}
+
+/* ========================================================================== */
+/* Phase 8 — Fournisseurs, achats et stock                                    */
+/* ========================================================================== */
+
+/// Origine d'un mouvement de stock. Sert à expliquer un écart : sans elle, le
+/// journal dirait « combien » sans jamais dire « pourquoi ».
+enum TypeMouvement {
+  ENTREE_ACHAT
+  SORTIE_CHANTIER
+  CORRECTION_COMPTAGE
+  RETOUR
+  PERTE
+}
+
+enum EtatAchat {
+  BROUILLON
+  VALIDE
+}
+
+model Supplier {
+  id      String @id @default(cuid())
+  nom     String
+  contact String @default("")
+  email   String @default("")
+  telephone String @default("")
+
+  adresse    String @default("")
+  codePostal String @default("")
+  ville      String @default("")
+
+  /// Numéro de compte chez le fournisseur, celui à rappeler au comptoir.
+  numeroCompte String @default("")
+  notes        String @default("")
+
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  achats   Purchase[]
+  produits Product[]
+
+  @@index([organizationId, archivedAt])
+}
+
+/// Facture ou ticket d'achat.
+///
+/// Document REÇU, pas émis : il ne participe à aucune numérotation Plombéo et
+/// ne porte aucune empreinte d'intégrité. Plombéo n'en est pas l'auteur et ne
+/// peut rien certifier à son sujet — c'est la référence du FOURNISSEUR qui
+/// l'identifie.
+model Purchase {
+  id    String    @id @default(cuid())
+  etat  EtatAchat @default(BROUILLON)
+
+  /// Référence portée par le document du fournisseur.
+  referenceFournisseur String   @default("")
+  dateAchat            DateTime @default(now())
+  libelle              String   @default("")
+  notes                String   @default("")
+
+  /// Totaux figés à la validation, comme pour une facture émise (§14).
+  totalHtCents  Int @default(0)
+  /// TVA SAISIE telle qu'elle figure sur la facture, jamais calculée par
+  /// Plombéo : la déductibilité relève de l'expert-comptable
+  /// [À VÉRIFIER — SOURCE OFFICIELLE].
+  totalTvaCents Int @default(0)
+  totalTtcCents Int @default(0)
+
+  valideLe DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  lignes     PurchaseLine[]
+  mouvements StockMovement[]
+
+  @@index([organizationId, dateAchat])
+  @@index([organizationId, etat])
+}
+
+model PurchaseLine {
+  id      String @id @default(cuid())
+  libelle String
+  ordre   Int    @default(0)
+
+  quantiteMilli     Int @default(1000)
+  unite             String @default("u")
+  prixUnitaireCents Int @default(0)
+  tauxTvaCentiemes  Int @default(2000)
+
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  /// Rattachement facultatif au catalogue : une ligne d'achat peut rester libre
+  /// (consommable, petit outillage) sans créer une référence pour autant.
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@index([organizationId])
+}
+
+/// Mouvement de stock.
+///
+/// Journal en AJOUT SEUL : le stock d'une référence est la SOMME de ses
+/// mouvements, jamais une colonne mise à jour en place. Une colonne ne dirait ni
+/// pourquoi le stock a changé, ni quand, ni qui — et un écart deviendrait
+/// impossible à expliquer. Même raisonnement qu'en Phase 5, où le solde d'une
+/// facture est dérivé de ses paiements.
+model StockMovement {
+  id   String        @id @default(cuid())
+  type TypeMouvement
+
+  /// Signé : positif pour une entrée, négatif pour une sortie.
+  quantiteMilli Int
+
+  /// Prix unitaire d'achat au moment du mouvement, quand il est connu.
+  prixUnitaireCents Int    @default(0)
+  motif             String @default("")
+
+  createdAt DateTime @default(now())
+  /// Qui a bougé la pièce, pour pouvoir demander ce qui s'est passé.
+  parEmail  String   @default("")
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  purchaseId String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, productId])
+  @@index([productId, createdAt])
+}
+
+/* ========================================================================== */
+/* Phase 10 — Portail client                                                  */
+/* ========================================================================== */
+
+/// Lien d'accès au portail, propre à un client.
+///
+/// Le jeton est stocké HACHÉ, comme les jetons de session (Phase 1) : une fuite
+/// de la base ne donne aucun lien utilisable. Il est aléatoire et jamais dérivé
+/// de l'identifiant du client — sinon deviner un lien reviendrait à deviner un
+/// identifiant.
+///
+/// Le lien EST l'authentification : demander un mot de passe à un particulier
+/// pour lire un devis, c'est garantir qu'il ne le lira pas. D'où l'exigence
+/// qu'il soit révocable et daté.
+model ClientAccess {
+  id        String @id @default(cuid())
+  tokenHash String @unique
+
+  expiresAt DateTime
+  revokedAt DateTime?
+  /// Dernière consultation : permet à l'artisan de savoir si le client a ouvert.
+  vuLe      DateTime?
+
+  createdAt DateTime @default(now())
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, clientId])
+}
+
+/* ========================================================================== */
+/* Phase 11 — Assistant IA                                                    */
+/* ========================================================================== */
+
+enum TypeActionIA {
+  MISE_AU_PROPRE
+  STRUCTURER_DEVIS
+}
+
+enum DecisionIA {
+  PROPOSEE
+  ACCEPTEE
+  REJETEE
+}
+
+/// Trace d'un appel à l'assistant.
+///
+/// Sans elle, il serait impossible de répondre à la question « d'où vient cette
+/// phrase ? » sur un document remis à un client. La proposition est conservée
+/// telle quelle, y compris rejetée : c'est le rejet qui documente le jugement
+/// professionnel de l'artisan (§22).
+model AiAction {
+  id       String       @id @default(cuid())
+  type     TypeActionIA
+  decision DecisionIA   @default(PROPOSEE)
+
+  /// Texte réellement transmis au fournisseur, APRÈS caviardage.
+  demandeEnvoyee String
+  proposition    String @default("")
+  /// Renseigné quand l'appel a échoué : l'échec est une donnée, pas un silence.
+  erreur         String @default("")
+
+  createdAt DateTime  @default(now())
+  decideLe  DateTime?
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+}
+
+/* ========================================================================== */
+/* Phase 13 — Contrats d'entretien et garanties                               */
+/* ========================================================================== */
+
+enum PeriodiciteContrat {
+  MENSUELLE
+  TRIMESTRIELLE
+  SEMESTRIELLE
+  ANNUELLE
+  BIENNALE
+}
+
+enum StatutContrat {
+  ACTIF
+  SUSPENDU
+  RESILIE
+}
+
+/// Contrat d'entretien.
+///
+/// `derniereVisiteLe` est la SOURCE de l'échéance : Plombéo ne coche jamais une
+/// visite tout seul. Faire avancer l'échéance à la date prévue plutôt qu'à la
+/// visite réelle produirait un contrat « à jour » sans qu'aucun technicien ne
+/// soit passé — sur un entretien de chaudière, l'écart est sérieux.
+model MaintenanceContract {
+  id      String             @id @default(cuid())
+  libelle String
+  statut  StatutContrat      @default(ACTIF)
+  periodicite PeriodiciteContrat @default(ANNUELLE)
+
+  debutLe          DateTime  @default(now())
+  finLe            DateTime?
+  /// Dernière visite RÉELLEMENT effectuée. Nulle tant qu'aucune n'a eu lieu.
+  derniereVisiteLe DateTime?
+
+  /// Montant convenu, saisi. Plombéo ne facture pas tout seul : l'échéance
+  /// produit une notification, jamais une facture (§14, Phase 5).
+  montantTtcCents Int    @default(0)
+  notes           String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, statut])
+  @@index([clientId])
+}
+
+/// Garantie enregistrée.
+///
+/// Plombéo ne QUALIFIE aucune garantie : il enregistre un libellé, une date de
+/// début et une durée saisis par l'artisan, et compare des dates. La nature
+/// (légale, contractuelle, constructeur), l'étendue et les obligations qui en
+/// découlent relèvent du droit applicable
+/// [À VÉRIFIER — SOURCE OFFICIELLE ET CONSEIL JURIDIQUE].
+///
+/// Aucune durée par défaut n'est proposée : suggérer « 10 ans » serait déjà un
+/// conseil juridique.
+model Warranty {
+  id      String @id @default(cuid())
+  libelle String
+
+  debutLe    DateTime
+  dureeMois  Int
+  /// Ce que l'artisan a noté sur l'étendue. Texte libre, jamais interprété.
+  precisions String @default("")
+
+  createdAt DateTime @default(now())
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  equipmentId String?
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  interventionId String?
+  intervention   Intervention? @relation(fields: [interventionId], references: [id], onDelete: SetNull)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([equipmentId])
+}
+
+/* ========================================================================== */
+/* Phase 14 — SaaS : invitations, abonnements                                 */
+/* ========================================================================== */
+
+/// Invitation à rejoindre une organisation.
+///
+/// Le jeton est HACHÉ, expirant et à usage unique, comme le lien du portail
+/// (Phase 10). Aucun compte n'est créé avant acceptation : un compte créé
+/// d'avance est un compte sans mot de passe choisi, donc une porte ouverte en
+/// attente.
+///
+/// Le RÔLE est figé ici, jamais choisi par l'invité.
+model Invitation {
+  id        String @id @default(cuid())
+  tokenHash String @unique
+
+  email String
+  role  Role
+
+  expiresAt  DateTime
+  accepteeLe DateTime?
+  revokeeLe  DateTime?
+
+  createdAt DateTime @default(now())
+  /// Qui a invité : une invitation est un acte, elle doit avoir un auteur.
+  parEmail  String   @default("")
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, accepteeLe])
+}
+
+/// Offre d'abonnement.
+///
+/// Existe pour porter la structure. RIEN N'ENCAISSE : aucun prestataire de
+/// paiement n'est retenu, et prétendre le contraire serait la fausse garantie
+/// que le §76 interdit.
+model Plan {
+  id      String @id @default(cuid())
+  code    String @unique
+  libelle String
+
+  prixMensuelCents Int @default(0)
+  maxUtilisateurs  Int @default(1)
+
+  abonnements Subscription[]
+}
+
+enum EtatAbonnement {
+  ESSAI
+  ACTIF
+  SUSPENDU
+  RESILIE
+}
+
+model Subscription {
+  id   String         @id @default(cuid())
+  etat EtatAbonnement @default(ESSAI)
+
+  debutLe DateTime  @default(now())
+  finLe   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
