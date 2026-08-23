@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #1c2624;
+  --ink-2: #2b3b37;
+  --muted: #6b7570;
+  --line: #e4e0d3;
+  --cream: #f5f1e8;
+  --paper: #fbf9f4;
+  --white: #ffffff;
+  --sage: #4f7d6c;
+  --sage-d: #3a5f52;
+  --sage-l: #eaf1ec;
+  --sage-line: #c7d9d1;
+  --coral: #c0503f;
+  --coral-l: #f6e6e1;
+  --danger: #b3402f;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-white: var(--white);
+  --color-sage: var(--sage);
+  --color-sage-d: var(--sage-d);
+  --color-sage-l: var(--sage-l);
+  --color-sage-line: var(--sage-line);
+  --color-coral: var(--coral);
+  --color-coral-l: var(--coral-l);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-sans);
+
+  --radius-card: 20px;
+  --radius-pill: 999px;
+  --radius-control: 12px;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
