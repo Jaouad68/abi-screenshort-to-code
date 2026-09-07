@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --ink-2: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --brand: #0f766e;
+  --brand-d: #115e59;
+  --brand-l: #ccfbf1;
+  --accent: #f59e0b;
+  --accent-d: #b45309;
+  --accent-l: #fef3c7;
+  --danger: #dc2626;
+  --danger-l: #fee2e2;
+  --ok: #16a34a;
+  --ok-l: #dcfce7;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-d: var(--brand-d);
+  --color-brand-l: var(--brand-l);
+  --color-accent: var(--accent);
+  --color-accent-d: var(--accent-d);
+  --color-accent-l: var(--accent-l);
+  --color-danger: var(--danger);
+  --color-danger-l: var(--danger-l);
+  --color-ok: var(--ok);
+  --color-ok-l: var(--ok-l);
+
+  --radius-card: 16px;
+  --radius-control: 10px;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+/* Styles d'impression : masque l'interface, ne garde que le document. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+}
