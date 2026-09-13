@@ -16,6 +16,11 @@ export function eurosToCents(euros: string | number): number {
   return Math.round(n * 100);
 }
 
+/** 5.5 → "5,5" ; 20 → "20" (taux de TVA, notation FR sans zéro inutile). */
+export function formatTaux(taux: number): string {
+  return taux.toLocaleString("fr-FR", { maximumFractionDigits: 3 });
+}
+
 /** 1500 (quantité × 1000) → "1,5" (sans zéros inutiles). */
 export function formatQuantite(quantiteMilli: number): string {
   const q = quantiteMilli / 1000;

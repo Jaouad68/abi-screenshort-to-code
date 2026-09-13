@@ -14,6 +14,7 @@ const migrations = [
   "prisma/migrations/0_init/migration.sql",
   "prisma/migrations/1_factures_logo_acompte/migration.sql",
   "prisma/migrations/2_relances_commande/migration.sql",
+  "prisma/migrations/3_taux_tva_decimal/migration.sql",
 ];
 for (const m of migrations) {
   const sql = readFileSync(m, "utf8");

@@ -61,10 +61,10 @@ export function ParametresForm({ company }: { company: Company }) {
                 type="number"
                 min={0}
                 max={20}
-                step={1}
+                step={0.5}
                 defaultValue={company.tauxTvaDefaut}
                 className={champ}
-                inputMode="numeric"
+                inputMode="decimal"
               />
             </div>
             <div>

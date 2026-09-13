@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculerTotaux, montantLigneHtCents, calculerAcompte } from "@/lib/calcul";
-import { formatCents, formatQuantite } from "@/lib/money";
+import { formatCents, formatQuantite, formatTaux } from "@/lib/money";
 import { formatDate, ajouterJours } from "@/lib/date";
 import { Logo } from "@/components/Logo";
 import { PrintButton } from "@/components/PrintButton";
@@ -145,7 +145,7 @@ export default async function ImprimerDevisPage({
                   <td className="px-2 py-2 text-right tabular-nums">
                     {formatCents(l.prixUnitaireCents)}
                   </td>
-                  <td className="px-2 py-2 text-right tabular-nums">{l.tauxTva} %</td>
+                  <td className="px-2 py-2 text-right tabular-nums">{formatTaux(l.tauxTva)} %</td>
                   <td className="px-2 py-2 text-right tabular-nums font-medium">
                     {formatCents(montantLigneHtCents(l))}
                   </td>
@@ -164,7 +164,7 @@ export default async function ImprimerDevisPage({
             </div>
             {totaux.ventilationTva.map((v) => (
               <div key={v.taux} className="flex justify-between py-1 text-muted">
-                <dt>TVA {v.taux} %</dt>
+                <dt>TVA {formatTaux(v.taux)} %</dt>
                 <dd className="tabular-nums">{formatCents(v.montantTvaCents)}</dd>
               </div>
             ))}

@@ -1,6 +1,6 @@
 import type { Company, Client, Devis, DevisLigne } from "@/generated/prisma/client";
 import { calculerTotaux, montantLigneHtCents, calculerAcompte } from "@/lib/calcul";
-import { formatCents, formatQuantite } from "@/lib/money";
+import { formatCents, formatQuantite, formatTaux } from "@/lib/money";
 import { formatDate, ajouterJours } from "@/lib/date";
 
 function esc(s: string): string {
@@ -33,7 +33,7 @@ export function devisEnHtml(
         </td>
         <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${formatQuantite(l.quantiteMilli)} ${esc(l.unite)}</td>
         <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${formatCents(l.prixUnitaireCents)}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${l.tauxTva} %</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${formatTaux(l.tauxTva)} %</td>
         <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right"><strong>${formatCents(montantLigneHtCents(l))}</strong></td>
       </tr>`,
     )
@@ -42,7 +42,7 @@ export function devisEnHtml(
   const tvaHtml = totaux.ventilationTva
     .map(
       (v) =>
-        `<tr><td style="color:#64748b">TVA ${v.taux} %</td><td style="text-align:right">${formatCents(v.montantTvaCents)}</td></tr>`,
+        `<tr><td style="color:#64748b">TVA ${formatTaux(v.taux)} %</td><td style="text-align:right">${formatCents(v.montantTvaCents)}</td></tr>`,
     )
     .join("");
 

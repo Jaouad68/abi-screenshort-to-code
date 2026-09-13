@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatCents } from "@/lib/money";
+import { formatCents, formatTaux } from "@/lib/money";
 import { btnPrimaire } from "@/lib/ui";
 
 export default async function PrestationsPage() {
@@ -39,7 +39,7 @@ export default async function PrestationsPage() {
                 <div className="min-w-0">
                   <p className="font-semibold truncate">{p.libelle}</p>
                   <p className="text-sm text-muted">
-                    TVA {p.tauxTva} %{!p.actif && " · masquée"}
+                    TVA {formatTaux(p.tauxTva)} %{!p.actif && " · masquée"}
                   </p>
                 </div>
                 <span className="shrink-0 text-right">

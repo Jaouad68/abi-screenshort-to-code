@@ -55,7 +55,7 @@ const ligneSchema = z.object({
   quantiteMilli: z.number().int().min(0),
   unite: z.string().trim().min(1),
   prixUnitaireCents: z.number().int(),
-  tauxTva: z.number().int().min(0).max(20),
+  tauxTva: z.number().min(0).max(20),
 });
 
 const payloadSchema = z.object({

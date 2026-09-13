@@ -44,7 +44,7 @@ model Company {
   logoDataUrl     String   @default("")
   prefixeDevis    String   @default("DEV")
   prefixeFacture  String   @default("FAC")
-  tauxTvaDefaut   Int      @default(20)
+  tauxTvaDefaut   Float    @default(20)
   dureeValidite   Int      @default(30)
   relanceJours    Int      @default(7)
   mentionsLegales String   @default("")
@@ -80,7 +80,7 @@ model Prestation {
   description       String   @default("")
   unite             String   @default("u")
   prixUnitaireCents Int      @default(0)
-  tauxTva           Int      @default(20)
+  tauxTva           Float    @default(20)
   actif             Boolean  @default(true)
   createdAt         DateTime @default(now())
 
@@ -140,7 +140,7 @@ model DevisLigne {
   quantiteMilli     Int    @default(1000)
   unite             String @default("u")
   prixUnitaireCents Int    @default(0)
-  tauxTva           Int    @default(20)
+  tauxTva           Float  @default(20)
   ordre             Int    @default(0)
 
   @@index([devisId])
@@ -204,7 +204,7 @@ model FactureLigne {
   quantiteMilli     Int     @default(1000)
   unite             String  @default("u")
   prixUnitaireCents Int     @default(0)
-  tauxTva           Int     @default(20)
+  tauxTva           Float   @default(20)
   ordre             Int     @default(0)
 
   @@index([factureId])

@@ -12,7 +12,7 @@ const schema = z.object({
   description: z.string().trim(),
   unite: z.string().trim().min(1),
   prix: z.string().trim(),
-  tauxTva: z.coerce.number().int().min(0).max(20),
+  tauxTva: z.coerce.number().min(0).max(20),
 });
 
 export type PrestationFormState = {

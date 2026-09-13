@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { enregistrerDevis, type DevisPayload } from "../actions";
 import { calculerTotaux, calculerAcompte, TAUX_TVA, UNITES } from "@/lib/calcul";
-import { formatCents, eurosToCents, quantiteToMilli } from "@/lib/money";
+import { formatCents, formatTaux, eurosToCents, quantiteToMilli } from "@/lib/money";
 import { champ, label, btnPrimaire, btnSecondaire } from "@/lib/ui";
 
 type LigneUI = {
@@ -310,7 +310,7 @@ export function DevisEditor({
                   >
                     {TAUX_TVA.map((t) => (
                       <option key={t} value={t}>
-                        {t} %
+                        {formatTaux(t)} %
                       </option>
                     ))}
                   </select>
@@ -360,7 +360,7 @@ export function DevisEditor({
           {totaux.ventilationTva.map((v) => (
             <div key={v.taux} className="flex justify-between text-muted">
               <dt>
-                TVA {v.taux} % (sur {formatCents(v.baseHtCents)})
+                TVA {formatTaux(v.taux)} % (sur {formatCents(v.baseHtCents)})
               </dt>
               <dd className="tabular-nums">{formatCents(v.montantTvaCents)}</dd>
             </div>

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import type { Prestation } from "@/generated/prisma/client";
 import type { PrestationFormState } from "./actions";
 import { TAUX_TVA, UNITES } from "@/lib/calcul";
+import { formatTaux } from "@/lib/money";
 import { champ, label, btnPrimaire } from "@/lib/ui";
 
 type Action = (
@@ -95,7 +96,7 @@ export function PrestationForm({
           >
             {TAUX_TVA.map((t) => (
               <option key={t} value={t}>
-                {t} %
+                {formatTaux(t)} %
               </option>
             ))}
           </select>
