@@ -574,7 +574,6 @@ footer a:hover{color:var(--paper);}
         <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <button class="tool-btn" id="themeToggle" title="Mode sombre" aria-label="Basculer le thème clair ou sombre" aria-pressed="false"></button>
-      <button class="tool-btn" id="musicToggle" title="Air de cour (style baroque)" aria-label="Activer ou couper l'air de cour" aria-pressed="false"></button>
     </div>
   </div>
   <p class="breadcrumb visually-hidden" id="breadcrumb" aria-live="polite">Vous êtes ici : Accueil</p>
@@ -743,7 +742,7 @@ footer a:hover{color:var(--paper);}
   <div class="container">
     <div>
       <h4>À propos</h4>
-      <p>Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certaines paternités (Catherine-Charlotte de Gramont, Anne de Rohan-Chabot) restent des rumeurs de cour jamais confirmées par les historiens et sont signalées comme telles, de même que les enfants jamais reconnus officiellement par le roi (Louise de Maisonblanche, l'aîné inconnu de Madame de Montespan). L'air de cour joué en fond est une composition originale dans le style baroque de Versailles (synthétisée dans le navigateur), et non l'enregistrement d'une œuvre existante.</p>
+      <p>Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certaines paternités (Catherine-Charlotte de Gramont, Anne de Rohan-Chabot) restent des rumeurs de cour jamais confirmées par les historiens et sont signalées comme telles, de même que les enfants jamais reconnus officiellement par le roi (Louise de Maisonblanche, l'aîné inconnu de Madame de Montespan).</p>
     </div>
     <div>
       <h4>Sources historiques</h4>
@@ -780,8 +779,6 @@ footer a:hover{color:var(--paper);}
 const ICONS = {
   sun:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>',
   moon:'<svg class="icon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4 6.8 6.8 0 0 0 20 14.5Z"/></svg>',
-  volume:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M17 9a4.5 4.5 0 0 1 0 6"/></svg>',
-  volumeOff:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>',
   crown:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 18h16M4.5 18l-1-9 4.5 3.2L12 6l4 6.2L20.5 9l-1 9"/></svg>',
   calendar:'<svg class="icon" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
   users:'<svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15.5 14a5 5 0 0 1 5.5 5"/></svg>',
@@ -1221,300 +1218,6 @@ function initCurtain(){
     requestAnimationFrame(()=>{ curtain.classList.add('open'); });
     setTimeout(()=>{ curtain.classList.add('hidden'); }, 1100);
   });
-}
-
-// ============================================================
-// AMBIANCE SONORE — un menuet de style baroque, entièrement synthétisé
-// (Web Audio API), pas de fichier audio externe.
-//
-// Impossible d'intégrer un véritable enregistrement d'époque ici : le
-// réseau de cet environnement refuse toute requête vers des sources audio
-// (Wikimedia, IMSLP, archive.org…), et même en y ayant accès, un fichier
-// audio réel casserait la contrainte « un seul fichier HTML, 100% hors
-// ligne » et poserait la question des droits selon l'interprétation
-// utilisée. On compose donc une pièce originale dans l'esprit des airs de
-// cour joués à Versailles (mesure à 3 temps de menuet, harmonie en ré
-// mineur typique du répertoire de Lully, timbre de clavecin synthétisé)
-// plutôt que de prétendre reproduire une pièce précise de mémoire sans
-// partition vérifiée.
-// ============================================================
-const N = { // fréquences (Hz), tempérament égal
-  C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00, A3:220.00, Bb2:116.54, Bb3:233.08,
-  D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, Bb4:466.16, C5:523.25, D5:587.33
-};
-// Menuet en ré mineur, 8 mesures à 3 temps (24 temps), phrase mélodique
-// ornée sur une basse en mouvement (i – VI – III – VII – III – VI – iv – V),
-// bouclée : la cadence sur le degré V ramène naturellement vers le i du
-// début de la boucle suivante.
-const MENUET_MELODY = [
-  {n:'D5',d:1},{n:'C5',d:1},{n:'Bb4',d:1},
-  {n:'A4',d:3},
-  {n:'Bb4',d:1},{n:'C5',d:1},{n:'D5',d:1},
-  {n:'C5',d:2},{n:'A4',d:1},
-  {n:'Bb4',d:1},{n:'A4',d:1},{n:'G4',d:1},
-  {n:'F4',d:2},{n:'E4',d:1},
-  {n:'F4',d:1},{n:'G4',d:1},{n:'A4',d:1},
-  {n:'D4',d:3}
-];
-const MENUET_BASS = [
-  {n:'D3',d:3},{n:'Bb2',d:3},{n:'F3',d:3},{n:'C3',d:3},
-  {n:'F3',d:3},{n:'Bb2',d:3},{n:'G3',d:3},{n:'A3',d:3}
-];
-const MENUET_TEMPO = 116; // temps par minute, tempo de menuet
-const SEC_PER_BEAT = 60 / MENUET_TEMPO;
-const MENUET_BEATS = MENUET_MELODY.reduce((s,n)=>s+n.d, 0);
-const MENUET_LOOP_SEC = MENUET_BEATS * SEC_PER_BEAT;
-
-// --- Fabrique du timbre : buffers partagés (générés une seule fois) -------
-let reverbImpulseCache = null;
-function getReverbImpulse(ctx){
-  // Petite réverbération de salon/galerie générée par du bruit filtré en
-  // décroissance exponentielle — aucun fichier, mais un vrai sentiment
-  // d'espace au lieu d'un son synthé complètement « sec ».
-  if(!reverbImpulseCache){
-    const seconds = 1.3, decayPow = 3.4, rate = ctx.sampleRate;
-    const length = Math.floor(rate*seconds);
-    reverbImpulseCache = ctx.createBuffer(2, length, rate);
-    for(let ch=0; ch<2; ch++){
-      const data = reverbImpulseCache.getChannelData(ch);
-      for(let i=0;i<length;i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/length, decayPow);
-    }
-  }
-  return reverbImpulseCache;
-}
-let pluckNoiseCache = null;
-function getPluckNoiseBuffer(ctx){
-  if(!pluckNoiseCache){
-    const len = Math.floor(ctx.sampleRate*0.05);
-    pluckNoiseCache = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d = pluckNoiseCache.getChannelData(0);
-    for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
-  }
-  return pluckNoiseCache;
-}
-
-// Une note de clavecin plus travaillée qu'un simple ton synthé :
-// - un très bref bruit filtré à l'attaque (le « chiff » du bec de plume
-//   qui pince la corde) au lieu d'un déclenchement instantané et propre ;
-// - trois harmoniques (fondamentale + octave + douzième, en ondes douces)
-//   plutôt qu'une onde carrée crue, pour un spectre moins agressif ;
-// - un filtre passe-bas dont la coupure s'assombrit pendant la tenue de la
-//   note : le pincement brillant qui s'éteint vers un ton plus rond, comme
-//   une vraie corde pincée ;
-// - une légère position stéréo, et un départ vers un bus de réverbération
-//   partagé pour donner de l'espace au lieu d'un son plaqué au centre.
-function harpsichordNote(ctx, buses, freq, t0, dur, peak, pan=0){
-  const noiseSrc = ctx.createBufferSource();
-  noiseSrc.buffer = getPluckNoiseBuffer(ctx);
-  const noiseFilter = ctx.createBiquadFilter();
-  noiseFilter.type = 'bandpass';
-  noiseFilter.frequency.value = Math.min(6500, freq*5);
-  noiseFilter.Q.value = 0.9;
-  const noiseEnv = ctx.createGain();
-  noiseEnv.gain.setValueAtTime(peak*0.35, t0);
-  noiseEnv.gain.exponentialRampToValueAtTime(0.0001, t0+0.02);
-  noiseSrc.connect(noiseFilter); noiseFilter.connect(noiseEnv); noiseEnv.connect(buses.dry);
-
-  const osc1 = ctx.createOscillator(); osc1.type = 'triangle'; osc1.frequency.value = freq;
-  const osc2 = ctx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = freq*2;
-  const osc3 = ctx.createOscillator(); osc3.type = 'sine'; osc3.frequency.value = freq*3;
-  const g2 = ctx.createGain(); g2.gain.value = .24;
-  const g3 = ctx.createGain(); g3.gain.value = .10;
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass'; filter.Q.value = 0.6;
-  filter.frequency.setValueAtTime(Math.min(9000, freq*11), t0);
-  filter.frequency.exponentialRampToValueAtTime(Math.max(500, Math.min(2600, freq*3)), t0 + Math.min(dur*0.85, 0.9));
-
-  const env = ctx.createGain();
-  env.gain.setValueAtTime(0.0001, t0);
-  env.gain.linearRampToValueAtTime(peak, t0 + 0.006);
-  env.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak*0.24), t0 + 0.16);
-  env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-
-  osc1.connect(env); osc2.connect(g2); g2.connect(env); osc3.connect(g3); g3.connect(env);
-  env.connect(filter);
-
-  let outNode = filter;
-  if(ctx.createStereoPanner){
-    const panner = ctx.createStereoPanner();
-    panner.pan.value = Math.max(-1, Math.min(1, pan));
-    filter.connect(panner);
-    outNode = panner;
-  }
-  outNode.connect(buses.dry);
-  const send = ctx.createGain(); send.gain.value = .25;
-  outNode.connect(send); send.connect(buses.wet);
-
-  const stopAt = t0 + dur + 0.05;
-  osc1.start(t0); osc2.start(t0); osc3.start(t0); noiseSrc.start(t0);
-  osc1.stop(stopAt); osc2.stop(stopAt); osc3.stop(stopAt); noiseSrc.stop(t0+0.03);
-}
-
-let audioCtx = null, musicMaster = null, musicBuses = null, musicCompressor = null, musicTimer = null, musicPlaying = false;
-function scheduleMenuetLoop(startAt){
-  if(!musicPlaying) return;
-  // Micro-variations de timing et de vélocité : un jeu parfaitement
-  // mécanique sonne artificiel, un léger flottement humain (quelques
-  // millisecondes, quelques % de volume) rend la boucle plus vivante sans
-  // en changer la mélodie ni dérégler le calage de la boucle suivante.
-  const jitter = () => (Math.random()-0.5) * 0.012;
-  let t = startAt;
-  MENUET_MELODY.forEach(({n,d})=>{
-    const pan = 0.18 + (Math.random()-0.5)*0.1;
-    const vel = .3 * (0.93 + Math.random()*0.14);
-    harpsichordNote(audioCtx, musicBuses, N[n], t + jitter(), d*SEC_PER_BEAT*0.9, vel, pan);
-    t += d*SEC_PER_BEAT;
-  });
-  let tb = startAt;
-  MENUET_BASS.forEach(({n,d})=>{
-    const pan = -0.22 + (Math.random()-0.5)*0.08;
-    const vel = .22 * (0.94 + Math.random()*0.12);
-    harpsichordNote(audioCtx, musicBuses, N[n], tb + jitter(), d*SEC_PER_BEAT*0.95, vel, pan);
-    tb += d*SEC_PER_BEAT;
-  });
-  // Reprogramme la boucle suivante un peu avant la fin de celle-ci.
-  musicTimer = setTimeout(()=> scheduleMenuetLoop(startAt + MENUET_LOOP_SEC), (MENUET_LOOP_SEC - 1) * 1000);
-}
-
-// Sur iOS, la sortie de la Web Audio API peut rester coupée par le
-// commutateur silencieux physique même quand audioCtx.state vaut déjà
-// "running" (cet état ne reflète que le graphe de traitement, pas la
-// catégorie de session audio réellement utilisée par le système). Le
-// contournement standard consiste à lire aussi, sur le même geste, un
-// élément <audio> HTML (même silencieux) : cela bascule la session audio
-// dans la catégorie « lecture », qui elle ignore le commutateur silencieux
-// et s'applique ensuite à la sortie de la Web Audio API également.
-const SILENT_WAV = 'data:audio/wav;base64,UklGRiwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQgAAACAgICAgICAgA==';
-let unlockAudioEl = null;
-function unlockIOSAudioSession(){
-  try{
-    unlockAudioEl = unlockAudioEl || Object.assign(new Audio(SILENT_WAV), { loop:false, playsInline:true, volume:1 });
-    const p = unlockAudioEl.play();
-    if(p?.catch) p.catch(()=>{});
-  }catch(err){ /* pas bloquant : la Web Audio API peut fonctionner sans */ }
-}
-
-// Retourne une Promise<boolean> : true seulement si le contexte audio est
-// réellement passé à l'état "running". Certains navigateurs (notamment
-// Safari iOS) acceptent l'appel à resume() sans erreur tout en restant
-// "suspended" si le geste déclencheur n'est pas jugé assez explicite —
-// afficher le bouton comme actif dans ce cas mentirait sur ce qui se joue
-// réellement (or rien).
-async function startMenuet(){
-  if(!window.AudioContext && !window.webkitAudioContext) return false;
-  unlockIOSAudioSession();
-  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === 'suspended'){
-    try{ await audioCtx.resume(); }catch(err){ /* ignoré : contrôlé juste après */ }
-  }
-  if(audioCtx.state !== 'running') return false;
-
-  musicMaster = audioCtx.createGain();
-  musicMaster.gain.setValueAtTime(0, audioCtx.currentTime);
-  musicMaster.gain.linearRampToValueAtTime(.85, audioCtx.currentTime + 1.5);
-  musicMaster.connect(audioCtx.destination);
-
-  // Un limiteur doux en bout de chaîne évite tout écrêtage quand plusieurs
-  // notes (mélodie + basse) sonnent ensemble, sans se faire entendre sur
-  // une seule voix.
-  musicCompressor = audioCtx.createDynamicsCompressor();
-  musicCompressor.threshold.value = -20;
-  musicCompressor.knee.value = 22;
-  musicCompressor.ratio.value = 3;
-  musicCompressor.attack.value = 0.004;
-  musicCompressor.release.value = 0.22;
-  musicCompressor.connect(musicMaster);
-
-  // Bus sec + bus de réverbération partagés par toutes les notes (voir
-  // harpsichordNote) : donne une vraie sensation d'espace (galerie) plutôt
-  // qu'un son plaqué au centre.
-  const dryBus = audioCtx.createGain(); dryBus.gain.value = 1;
-  const wetBus = audioCtx.createGain(); wetBus.gain.value = 1;
-  const convolver = audioCtx.createConvolver();
-  convolver.buffer = getReverbImpulse(audioCtx);
-  const reverbReturn = audioCtx.createGain(); reverbReturn.gain.value = .85;
-  dryBus.connect(musicCompressor);
-  wetBus.connect(convolver); convolver.connect(reverbReturn); reverbReturn.connect(musicCompressor);
-  musicBuses = { dry: dryBus, wet: wetBus };
-
-  musicPlaying = true;
-  scheduleMenuetLoop(audioCtx.currentTime + 0.1);
-  return true;
-}
-function stopMenuet(){
-  musicPlaying = false;
-  if(musicTimer) clearTimeout(musicTimer);
-  if(musicMaster && audioCtx){
-    const g = musicMaster;
-    g.gain.cancelScheduledValues(audioCtx.currentTime);
-    g.gain.setValueAtTime(g.gain.value, audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + .6);
-    setTimeout(()=>{ try{ g.disconnect(); }catch(e){} }, 700);
-  }
-  musicMaster = null; musicBuses = null; musicCompressor = null;
-}
-
-function initMusicToggle(){
-  const btn = $('#musicToggle');
-  let wantsMusic = true;
-  let starting = false; // verrou anti-concurrence : le clic sur le bouton
-  // bulle aussi jusqu'au document (voir tryUnlock plus bas), qui tenterait
-  // sinon un second démarrage en parallèle et doublerait la lecture.
-  try{ wantsMusic = localStorage.getItem('lxiv-music') !== 'off'; }catch(err){}
-
-  function syncBtn(){
-    btn.innerHTML = icon(musicPlaying ? 'volume' : 'volumeOff');
-    btn.setAttribute('aria-pressed', String(musicPlaying));
-    btn.title = musicPlaying ? "Couper l'air de cour" : "Jouer un air de cour (style baroque)";
-  }
-  syncBtn();
-
-  async function attemptStart(){
-    if(musicPlaying || starting) return musicPlaying;
-    starting = true;
-    const ok = await startMenuet();
-    starting = false;
-    return ok;
-  }
-
-  btn.addEventListener('click', async ()=>{
-    if(musicPlaying){
-      stopMenuet();
-      wantsMusic = false;
-      syncBtn();
-    } else {
-      wantsMusic = true;
-      const ok = await attemptStart();
-      syncBtn();
-      if(!ok){
-        // L'appareil ou le navigateur a refusé de débloquer le son (ex. mode
-        // silencieux sur iOS) : on le dit plutôt que d'afficher un bouton
-        // « actif » muet.
-        btn.title = "Son bloqué par l'appareil (vérifiez le mode silencieux) — réessayer";
-      }
-    }
-    try{ localStorage.setItem('lxiv-music', wantsMusic ? 'on' : 'off'); }catch(err){}
-  });
-
-  // Les navigateurs bloquent tout son avant un geste de l'utilisateur — et
-  // sur Safari iOS, un simple pointerdown/touchstart ne suffit PAS à
-  // débloquer l'audio (il peut n'être que le début d'un geste de défilement) :
-  // seul un clic/tap complet ou une touche relâchée compte comme une
-  // activation valable. On tente donc le déblocage sur le premier clic/tap
-  // ou la première touche, et on réessaie silencieusement aux suivants tant
-  // que ça n'a pas fonctionné (utilisateur n'ayant pas coupé le son lui-même).
-  if(wantsMusic){
-    const tryUnlock = async ()=>{
-      if(!wantsMusic) return;
-      const ok = await attemptStart();
-      if(ok){
-        syncBtn();
-        ['click','keyup'].forEach(ev=> document.removeEventListener(ev, tryUnlock));
-      }
-    };
-    ['click','keyup'].forEach(ev=> document.addEventListener(ev, tryUnlock));
-  }
 }
 
 /* ============================================================
@@ -2332,7 +2035,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   safe('particules', initParticles);
   safe('compteurs', animateCounters);
   safe('rideau', initCurtain);
-  safe('ambiance sonore', initMusicToggle);
   safe('filtres arbre', initTreeFilters);
   safe('arbre D3', renderTree);
   safe('fiches', renderFiches);
