@@ -1232,6 +1232,24 @@ function scheduleMenuetLoop(startAt){
   musicTimer = setTimeout(()=> scheduleMenuetLoop(startAt + MENUET_LOOP_SEC), (MENUET_LOOP_SEC - 1) * 1000);
 }
 
+// Sur iOS, la sortie de la Web Audio API peut rester coupée par le
+// commutateur silencieux physique même quand audioCtx.state vaut déjà
+// "running" (cet état ne reflète que le graphe de traitement, pas la
+// catégorie de session audio réellement utilisée par le système). Le
+// contournement standard consiste à lire aussi, sur le même geste, un
+// élément <audio> HTML (même silencieux) : cela bascule la session audio
+// dans la catégorie « lecture », qui elle ignore le commutateur silencieux
+// et s'applique ensuite à la sortie de la Web Audio API également.
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiwAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQgAAACAgICAgICAgA==';
+let unlockAudioEl = null;
+function unlockIOSAudioSession(){
+  try{
+    unlockAudioEl = unlockAudioEl || Object.assign(new Audio(SILENT_WAV), { loop:false, playsInline:true, volume:1 });
+    const p = unlockAudioEl.play();
+    if(p?.catch) p.catch(()=>{});
+  }catch(err){ /* pas bloquant : la Web Audio API peut fonctionner sans */ }
+}
+
 // Retourne une Promise<boolean> : true seulement si le contexte audio est
 // réellement passé à l'état "running". Certains navigateurs (notamment
 // Safari iOS) acceptent l'appel à resume() sans erreur tout en restant
@@ -1240,6 +1258,7 @@ function scheduleMenuetLoop(startAt){
 // réellement (or rien).
 async function startMenuet(){
   if(!window.AudioContext && !window.webkitAudioContext) return false;
+  unlockIOSAudioSession();
   audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
   if(audioCtx.state === 'suspended'){
     try{ await audioCtx.resume(); }catch(err){ /* ignoré : contrôlé juste après */ }
