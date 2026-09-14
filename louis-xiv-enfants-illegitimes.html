@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Les Enfants du Roi-Soleil — Enfants illégitimes de Louis XIV</title>
+<meta name="description" content="Exploration interactive et documentée des enfants illégitimes de Louis XIV : arbre généalogique, fiches biographiques, galerie des maîtresses, chronologie du règne et statistiques." />
+<meta name="keywords" content="Louis XIV, Roi-Soleil, enfants illégitimes, La Vallière, Montespan, Fontanges, histoire de France, XVIIe siècle, Versailles" />
+<meta name="author" content="Application historique interactive" />
+<meta property="og:title" content="Les Enfants du Roi-Soleil" />
+<meta property="og:description" content="Arbre généalogique interactif, fiches biographiques et données historiques sur la descendance illégitime de Louis XIV." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.85em' font-size='80'>⚜️</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+
+<style>
+/* ============================================================
+   VARIABLES CSS — Charte graphique du Roi-Soleil
+   ============================================================ */
+:root{
+  --or-royal:#C9A84C;
+  --or-brillant:#FFD700;
+  --bordeaux:#6B0F1A;
+  --bleu-royal:#1B3A6B;
+  --parchemin:#F5E6C8;
+  --brun-antique:#3D2B1F;
+  --blanc-ivoire:#FEFAE0;
+
+  --font-titre:'Cinzel Decorative', serif;
+  --font-corps:'EB Garamond', serif;
+  --font-data:'Lato', sans-serif;
+
+  --radius:10px;
+  --transition:300ms ease-in-out;
+
+  --bg:var(--parchemin);
+  --bg-elevated:var(--blanc-ivoire);
+  --text:var(--brun-antique);
+  --text-muted:#6b5a45;
+  --accent:var(--bordeaux);
+  --accent2:var(--bleu-royal);
+  --border-color:rgba(61,43,31,.25);
+  --shadow-gold:0 4px 20px rgba(201,168,76,.35);
+  --font-scale:1;
+}
+
+[data-theme="dark"]{
+  --bg:#1a1410;
+  --bg-elevated:#241c16;
+  --text:var(--parchemin);
+  --text-muted:#c9b78f;
+  --border-color:rgba(201,168,76,.3);
+  --shadow-gold:0 4px 24px rgba(255,215,0,.18);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-corps);
+  font-size:calc(17px * var(--font-scale));
+  line-height:1.6;
+  transition:background var(--transition), color var(--transition);
+  cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><text y="18" font-size="18">⚜</text></svg>') 12 12, auto;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:var(--font-titre); color:var(--accent); margin:0 0 .5em; letter-spacing:.02em;}
+[data-theme="dark"] h1,[data-theme="dark"] h2,[data-theme="dark"] h3,[data-theme="dark"] h4{color:var(--or-brillant);}
+p{margin:0 0 1em;}
+a{color:var(--accent2); text-decoration:none;}
+img,svg{max-width:100%;}
+button{font-family:var(--font-data); cursor:pointer;}
+:focus-visible{outline:3px solid var(--or-brillant); outline-offset:2px;}
+
+/* Scrollbar custom royal */
+::-webkit-scrollbar{width:14px; height:14px;}
+::-webkit-scrollbar-track{background:var(--parchemin);}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--or-royal),var(--bordeaux)); border-radius:8px; border:3px solid var(--parchemin);}
+
+.visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+
+/* ============================================================
+   COMPOSANTS RÉUTILISABLES
+   ============================================================ */
+.container{max-width:1280px; margin:0 auto; padding:0 24px;}
+.section{padding:80px 0; position:relative;}
+.section-title{text-align:center; font-size:clamp(1.8rem,4vw,3rem); margin-bottom:.3em;}
+.section-sub{text-align:center; color:var(--text-muted); max-width:640px; margin:0 auto 3em; font-style:italic;}
+
+.fleur-divider{display:flex; align-items:center; justify-content:center; gap:16px; margin:1.5em 0; color:var(--or-royal);}
+.fleur-divider::before,.fleur-divider::after{content:''; height:1px; width:80px; background:linear-gradient(90deg,transparent,var(--or-royal));}
+.fleur-divider::after{background:linear-gradient(90deg,var(--or-royal),transparent);}
+
+.ornate-border{
+  border:2px solid var(--or-royal);
+  border-radius:var(--radius);
+  position:relative;
+  box-shadow:var(--shadow-gold);
+}
+.ornate-border::before,.ornate-border::after{
+  content:'⚜';
+  position:absolute; font-size:1.4rem; color:var(--or-royal);
+  top:-14px; background:var(--bg-elevated); padding:0 6px;
+}
+.ornate-border::before{left:16px;}
+.ornate-border::after{right:16px;}
+
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:14px 32px;
+  background:linear-gradient(135deg,var(--or-royal),var(--or-brillant));
+  color:var(--brun-antique);
+  border:none; border-radius:50px;
+  font-family:var(--font-data); font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; font-size:.85rem;
+  box-shadow:var(--shadow-gold);
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.btn:hover{transform:translateY(-3px) scale(1.03); box-shadow:0 10px 28px rgba(201,168,76,.5);}
+.btn.btn-ghost{background:transparent; border:2px solid var(--or-royal); color:var(--or-royal);}
+
+.card{
+  background:var(--bg-elevated);
+  border-radius:var(--radius);
+  padding:24px;
+  border:1px solid var(--border-color);
+  box-shadow:0 4px 16px rgba(61,43,31,.12);
+  transition:transform var(--transition), box-shadow var(--transition);
+}
+.card:hover{transform:translateY(-6px); box-shadow:var(--shadow-gold);}
+
+.badge{display:inline-block; padding:3px 12px; border-radius:20px; font-size:.72rem; font-weight:700; font-family:var(--font-data); letter-spacing:.03em;}
+.badge-ok{background:#2e7d32; color:#fff;}
+.badge-no{background:#8d6e63; color:#fff;}
+.badge-jeune{background:var(--bordeaux); color:#fff;}
+.badge-adulte{background:var(--bleu-royal); color:#fff;}
+
+.portrait{
+  width:96px; height:96px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-titre); font-size:1.6rem; color:#fff;
+  border:4px solid var(--or-royal);
+  box-shadow:0 0 0 3px var(--bg-elevated), var(--shadow-gold);
+  flex-shrink:0;
+  background:conic-gradient(var(--c1,#8B1A1A),var(--c2,#3D2B1F));
+  position:relative;
+}
+.portrait::after{content:'⚜'; position:absolute; bottom:-6px; font-size:.9rem; color:var(--or-brillant); text-shadow:0 0 4px #000;}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(20,14,10,.75);
+  display:none; align-items:flex-start; justify-content:center;
+  padding:5vh 16px; z-index:1000; overflow-y:auto;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--bg-elevated); max-width:760px; width:100%;
+  border-radius:var(--radius); padding:32px; position:relative;
+  border:3px solid var(--or-royal); box-shadow:0 20px 60px rgba(0,0,0,.5);
+  animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{opacity:0; transform:translateY(-20px) scale(.97);} to{opacity:1; transform:none;}}
+.modal-close{position:absolute; top:16px; right:16px; background:none; border:none; font-size:1.6rem; color:var(--accent); line-height:1;}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+.nav{
+  position:sticky; top:0; z-index:200;
+  background:linear-gradient(180deg, var(--bg-elevated) 85%, transparent);
+  border-bottom:1px solid var(--border-color);
+  backdrop-filter:blur(6px);
+}
+.nav-inner{display:flex; align-items:center; justify-content:space-between; padding:12px 24px; max-width:1280px; margin:0 auto; gap:16px; flex-wrap:wrap;}
+.nav-brand{font-family:var(--font-titre); font-size:1.1rem; color:var(--accent); display:flex; gap:8px; align-items:center;}
+[data-theme="dark"] .nav-brand{color:var(--or-brillant);}
+.nav-links{display:flex; gap:4px; list-style:none; margin:0; padding:0; flex-wrap:wrap;}
+.nav-links a{
+  display:block; padding:8px 14px; border-radius:20px; font-family:var(--font-data); font-size:.85rem; font-weight:700;
+  color:var(--text); transition:background var(--transition), color var(--transition);
+}
+.nav-links a:hover, .nav-links a.active{background:var(--or-royal); color:var(--brun-antique);}
+.nav-tools{display:flex; gap:8px; align-items:center;}
+.tool-btn{
+  background:var(--bg); border:1px solid var(--border-color); color:var(--text);
+  width:36px; height:36px; border-radius:50%; font-size:.95rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.tool-btn:hover{background:var(--or-royal); color:#fff;}
+.breadcrumb{font-family:var(--font-data); font-size:.75rem; color:var(--text-muted); padding:6px 24px; max-width:1280px; margin:0 auto;}
+.breadcrumb a{color:var(--accent2);}
+
+.search-global{
+  width:100%; max-width:1280px; margin:0 auto; padding:0 24px 10px;
+  display:flex; gap:10px; flex-wrap:wrap;
+}
+.search-global input[type="search"]{
+  flex:1; min-width:200px; padding:10px 16px; border-radius:24px;
+  border:1px solid var(--border-color); background:var(--bg); color:var(--text); font-family:var(--font-data);
+}
+.filter-chip{
+  padding:6px 14px; border-radius:16px; border:1px solid var(--or-royal); background:transparent;
+  color:var(--text); font-size:.78rem; font-family:var(--font-data); font-weight:700;
+}
+.filter-chip.active{background:var(--or-royal); color:#fff;}
+
+/* ============================================================
+   MODULE 1 — HERO
+   ============================================================ */
+.hero{
+  position:relative; min-height:100vh; display:flex; align-items:center; justify-content:center;
+  text-align:center; overflow:hidden;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(255,215,0,.25), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(201,168,76,.04) 0 2px, transparent 2px 40px),
+    linear-gradient(160deg, #2b1d12, #4a2f1b 40%, #6b4423 70%, #2b1d12);
+}
+#particles-canvas{position:absolute; inset:0; width:100%; height:100%;}
+.hero-content{position:relative; z-index:2; color:var(--blanc-ivoire); padding:24px;}
+.hero-eyebrow{font-family:var(--font-data); letter-spacing:.3em; text-transform:uppercase; font-size:.8rem; color:var(--or-brillant); margin-bottom:16px;}
+.hero h1{
+  font-size:clamp(2.4rem,7vw,5.5rem); color:var(--or-brillant);
+  text-shadow:0 0 30px rgba(255,215,0,.4), 0 4px 0 var(--bordeaux);
+  margin-bottom:.2em;
+}
+.hero-quote{
+  font-family:var(--font-corps); font-style:italic; font-size:clamp(1.1rem,2.5vw,1.6rem);
+  color:var(--parchemin); margin:1.2em auto; max-width:600px; position:relative;
+}
+.hero-counters{display:flex; flex-wrap:wrap; gap:40px; justify-content:center; margin:2.5em 0;}
+.counter-item{min-width:120px;}
+.counter-num{font-family:var(--font-titre); font-size:2.6rem; color:var(--or-brillant); display:block;}
+.counter-label{font-family:var(--font-data); font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:var(--parchemin);}
+.hero-actions{display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:1em;}
+
+.curtain{position:fixed; inset:0; z-index:500; display:flex; pointer-events:none;}
+.curtain-panel{flex:1; background:linear-gradient(90deg,var(--bordeaux),#8a1424); box-shadow:inset -10px 0 30px rgba(0,0,0,.4); transition:transform 1.1s cubic-bezier(.77,0,.18,1);}
+.curtain-panel.right{transform-origin:right;}
+.curtain.open .curtain-panel.left{transform:translateX(-101%);}
+.curtain.open .curtain-panel.right{transform:translateX(101%);}
+.curtain.hidden{display:none;}
+
+/* ============================================================
+   MODULE 2 — ARBRE GÉNÉALOGIQUE
+   ============================================================ */
+.tree-toolbar{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;}
+.tree-wrap{
+  position:relative; background:var(--bg-elevated); border-radius:var(--radius);
+  border:2px solid var(--or-royal); box-shadow:var(--shadow-gold);
+  overflow:hidden; height:640px;
+}
+#tree-svg{width:100%; height:100%; cursor:grab;}
+#tree-svg:active{cursor:grabbing;}
+.tree-node circle{stroke-width:2.5px; transition:r var(--transition);}
+.tree-node text{font-family:var(--font-data); font-weight:700; fill:var(--text);}
+.tree-link{fill:none; stroke-width:2.5px; opacity:.7;}
+.tree-tooltip{
+  position:absolute; pointer-events:none; background:var(--brun-antique); color:var(--blanc-ivoire);
+  padding:8px 12px; border-radius:6px; font-family:var(--font-data); font-size:.78rem; opacity:0; transition:opacity .15s;
+  border:1px solid var(--or-royal); z-index:20; max-width:220px;
+}
+.tree-legend{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:16px; font-family:var(--font-data); font-size:.8rem;}
+.tree-legend span{display:inline-flex; align-items:center; gap:6px;}
+.tree-legend i{width:14px; height:14px; border-radius:50%; display:inline-block;}
+
+/* ============================================================
+   MODULE 3 — FICHES
+   ============================================================ */
+.fiches-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:24px;}
+.fiche-card{display:flex; flex-direction:column; gap:12px; text-align:left;}
+.fiche-card .top{display:flex; gap:14px; align-items:center;}
+.fiche-card h3{font-size:1.05rem; margin:0;}
+.fiche-card .titre{color:var(--text-muted); font-size:.85rem; font-style:italic;}
+.fiche-card .dates{font-family:var(--font-data); font-size:.78rem; color:var(--text-muted);}
+.fiche-card .badges{display:flex; gap:6px; flex-wrap:wrap;}
+.fiche-card .mere-tag{font-size:.72rem; font-family:var(--font-data); padding:3px 10px; border-radius:12px; color:#fff; align-self:flex-start;}
+.no-results{text-align:center; padding:40px; color:var(--text-muted); font-style:italic; grid-column:1/-1;}
+
+.detail-grid{display:grid; grid-template-columns:1fr; gap:8px; font-family:var(--font-corps);}
+.detail-section{margin-top:18px; padding-top:14px; border-top:1px dashed var(--border-color);}
+.detail-section h4{font-family:var(--font-data); text-transform:uppercase; font-size:.8rem; letter-spacing:.08em; color:var(--accent2); margin-bottom:8px;}
+[data-theme="dark"] .detail-section h4{color:var(--or-royal);}
+.kv{display:grid; grid-template-columns:140px 1fr; gap:4px 12px; font-size:.92rem; margin-bottom:4px;}
+.kv dt{font-weight:700; color:var(--text-muted); font-family:var(--font-data); font-size:.78rem;}
+.mini-timeline{list-style:none; margin:0; padding:0; border-left:2px solid var(--or-royal);}
+.mini-timeline li{padding:6px 0 6px 16px; position:relative; font-size:.9rem;}
+.mini-timeline li::before{content:''; position:absolute; left:-6px; top:12px; width:10px; height:10px; border-radius:50%; background:var(--or-brillant); border:2px solid var(--bordeaux);}
+.modal-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;}
+.detail-nav{display:flex; justify-content:space-between; margin-top:20px; gap:10px;}
+
+/* ============================================================
+   MODULE 4 — MAÎTRESSES
+   ============================================================ */
+.maitresses-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:28px;}
+.maitresse-card{display:flex; flex-direction:column; gap:12px;}
+.maitresse-card .portrait{width:120px; height:120px; margin:0 auto; font-size:2rem;}
+.maitresse-card h3{text-align:center;}
+.maitresse-meta{display:flex; justify-content:center; gap:18px; font-family:var(--font-data); font-size:.78rem; color:var(--text-muted); flex-wrap:wrap;}
+.maitresse-quote{border-left:3px solid var(--or-royal); padding-left:12px; font-style:italic; color:var(--text-muted);}
+.radar-wrap{max-width:260px; margin:0 auto;}
+
+/* ============================================================
+   MODULE 5 — TIMELINE
+   ============================================================ */
+.timeline-controls{display:flex; align-items:center; gap:16px; justify-content:center; margin-bottom:24px; flex-wrap:wrap; font-family:var(--font-data);}
+.timeline-controls input[type="range"]{width:min(500px,80vw); accent-color:var(--bordeaux);}
+.timeline-track-wrap{overflow-x:auto; padding-bottom:20px;}
+.timeline-track{position:relative; height:220px; min-width:1400px; margin:0 24px;}
+.timeline-axis{position:absolute; top:110px; left:0; right:0; height:3px; background:var(--or-royal); border-radius:3px;}
+.timeline-event{
+  position:absolute; top:118px; transform:translateX(-50%);
+  width:14px; height:14px; border-radius:50%; background:var(--bleu-royal); border:2px solid var(--blanc-ivoire);
+  cursor:pointer;
+}
+.timeline-event.naissance{background:#2e7d32;}
+.timeline-event.deces{background:var(--bordeaux);}
+.timeline-label{
+  position:absolute; transform:translateX(-50%); width:120px; text-align:center;
+  font-family:var(--font-data); font-size:.68rem; color:var(--text-muted);
+}
+.timeline-label.above{bottom:calc(220px - 100px); }
+.timeline-label.below{top:140px;}
+.timeline-year-tick{position:absolute; top:100px; font-family:var(--font-data); font-size:.68rem; color:var(--text-muted); transform:translateX(-50%);}
+
+/* ============================================================
+   MODULE 6 — STATS
+   ============================================================ */
+.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:28px;}
+.stat-card canvas{max-height:280px;}
+.stat-card h3{font-size:1rem; text-align:center;}
+.stat-card{min-height:380px;}
+.france-map-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; font-family:var(--font-data); font-size:.82rem;}
+.france-map-list .lieu{background:var(--bg); border:1px solid var(--border-color); border-radius:8px; padding:8px 10px;}
+.france-map-list .lieu b{color:var(--accent2);}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{background:var(--brun-antique); color:var(--parchemin); padding:50px 0 30px; margin-top:40px;}
+footer .container{display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+footer h4{color:var(--or-brillant); font-family:var(--font-data); font-size:.85rem; text-transform:uppercase; letter-spacing:.08em;}
+footer ul{list-style:none; padding:0; margin:0; font-size:.82rem; line-height:1.9;}
+footer a{color:var(--parchemin);}
+.footer-bottom{text-align:center; font-size:.75rem; opacity:.7; margin-top:30px;}
+
+.back-to-top{
+  position:fixed; bottom:24px; right:24px; z-index:150;
+  width:52px; height:52px; border-radius:50%; border:none;
+  background:linear-gradient(135deg,var(--or-royal),var(--or-brillant)); color:var(--brun-antique);
+  font-size:1.3rem; box-shadow:var(--shadow-gold); opacity:0; pointer-events:none; transition:opacity var(--transition), transform var(--transition);
+}
+.back-to-top.show{opacity:1; pointer-events:auto;}
+.back-to-top:hover{transform:translateY(-4px);}
+
+/* ============================================================
+   ANIMATIONS & KEYFRAMES
+   ============================================================ */
+@keyframes floatUp{0%{transform:translateY(0); opacity:.9;} 100%{transform:translateY(-120vh); opacity:0;}}
+.reveal{opacity:0; transform:translateY(30px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:none;}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.5);} 50%{box-shadow:0 0 0 10px rgba(255,215,0,0);}}
+
+/* ============================================================
+   MEDIA QUERIES
+   ============================================================ */
+@media (max-width:1024px){
+  .tree-wrap{height:520px;}
+}
+@media (max-width:768px){
+  .nav-links{display:none;}
+  .nav-links.open{display:flex; width:100%; flex-direction:column;}
+  .hero-counters{gap:20px;}
+  .section{padding:56px 0;}
+  .kv{grid-template-columns:110px 1fr;}
+}
+@media (max-width:320px){
+  .hero h1{font-size:1.9rem;}
+  .btn{padding:12px 20px; font-size:.75rem;}
+}
+@media print{
+  .nav, .breadcrumb, .search-global, footer, .back-to-top, #curtain, .tree-toolbar{display:none !important;}
+  body{background:#fff; color:#000;}
+}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- Curtain reveal effect -->
+<div class="curtain" id="curtain" aria-hidden="true">
+  <div class="curtain-panel left"></div>
+  <div class="curtain-panel right"></div>
+</div>
+
+<!-- ============ NAVIGATION ============ -->
+<nav class="nav" aria-label="Navigation principale">
+  <div class="nav-inner">
+    <div class="nav-brand">⚜️ Les Enfants du Roi-Soleil</div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#hero">Accueil</a></li>
+      <li><a href="#arbre">Arbre</a></li>
+      <li><a href="#fiches">Fiches</a></li>
+      <li><a href="#maitresses">Maîtresses</a></li>
+      <li><a href="#timeline">Chronologie</a></li>
+      <li><a href="#stats">Statistiques</a></li>
+    </ul>
+    <div class="nav-tools">
+      <button class="tool-btn" id="fontDown" title="Réduire la taille du texte" aria-label="Réduire la taille du texte">A-</button>
+      <button class="tool-btn" id="fontUp" title="Augmenter la taille du texte" aria-label="Augmenter la taille du texte">A+</button>
+      <button class="tool-btn" id="themeToggle" title="Basculer mode sombre / parchemin" aria-label="Basculer le thème">🌙</button>
+      <button class="tool-btn" id="musicToggle" title="Musique d'ambiance" aria-label="Activer ou couper la musique">🔇</button>
+    </div>
+  </div>
+  <p class="breadcrumb" id="breadcrumb" aria-live="polite">Vous êtes ici : <a href="#hero">Accueil</a></p>
+  <div class="search-global" role="search">
+    <label for="globalSearch" class="visually-hidden">Rechercher un enfant, une date ou un titre</label>
+    <input type="search" id="globalSearch" placeholder="🔍 Rechercher un nom, une date, un titre…" />
+    <button class="filter-chip" data-filter-type="mere" data-filter-value="all">Toutes les mères</button>
+    <button class="filter-chip" data-filter-type="statut" data-filter-value="all">Tous statuts</button>
+    <button class="filter-chip" data-filter-type="destin" data-filter-value="all">Tout destin</button>
+  </div>
+</nav>
+
+<!-- ============ MODULE 1 : HERO ============ -->
+<header class="hero" id="hero">
+  <canvas id="particles-canvas" aria-hidden="true"></canvas>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Versailles · 1638 – 1715</p>
+    <h1>Les Enfants<br>du Roi-Soleil</h1>
+    <p class="hero-quote">« L'État, c'est moi. »<br><span style="font-size:.7em; opacity:.7;">— attribué à Louis XIV</span></p>
+    <div class="hero-counters" id="heroCounters" aria-label="Chiffres clés du règne">
+      <div class="counter-item"><span class="counter-num" data-target="11">0</span><span class="counter-label">Enfants documentés</span></div>
+      <div class="counter-item"><span class="counter-num" data-target="4">0</span><span class="counter-label">Maîtresses officielles</span></div>
+      <div class="counter-item"><span class="counter-num" data-target="72">0</span><span class="counter-label">Années de règne</span></div>
+      <div class="counter-item"><span class="counter-num" data-target="8">0</span><span class="counter-label">Enfants légitimés</span></div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn" id="enterCourt">⚜ Entrer dans la Cour du Roi</button>
+      <a class="btn btn-ghost" href="#arbre">Voir l'arbre généalogique</a>
+    </div>
+  </div>
+</header>
+
+<main id="mainContent">
+<!-- ============ MODULE 2 : ARBRE GÉNÉALOGIQUE ============ -->
+<section class="section" id="arbre">
+  <div class="container">
+    <h2 class="section-title reveal">L'Arbre Généalogique</h2>
+    <p class="section-sub reveal">Louis XIV au sommet, ses branches illégitimes colorées par maîtresse. Cliquez sur un nœud pour ouvrir la fiche complète, survolez pour un aperçu rapide.</p>
+    <div class="tree-toolbar reveal" role="group" aria-label="Filtrer l'arbre par maîtresse">
+      <button class="filter-chip active" data-tree-filter="all">Toutes les branches</button>
+      <!-- injecté dynamiquement par maîtresse -->
+    </div>
+    <div class="tree-wrap ornate-border reveal">
+      <svg id="tree-svg" role="img" aria-label="Arbre généalogique interactif de Louis XIV et ses enfants illégitimes"></svg>
+      <div class="tree-tooltip" id="treeTooltip"></div>
+    </div>
+    <div class="tree-legend reveal" id="treeLegend"></div>
+    <div style="text-align:center; margin-top:18px;">
+      <button class="btn btn-ghost" id="exportTreePng">📷 Exporter l'arbre en PNG</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODULE 3 : FICHES ============ -->
+<section class="section" id="fiches" style="background:var(--bg-elevated);">
+  <div class="container">
+    <h2 class="section-title reveal">Fiches Individuelles</h2>
+    <p class="section-sub reveal">Identité, titres, destin et frise personnelle de chaque enfant illégitime reconnu de Louis XIV.</p>
+    <div class="fiches-grid" id="fichesGrid"></div>
+  </div>
+</section>
+
+<!-- ============ MODULE 4 : MAÎTRESSES ============ -->
+<section class="section" id="maitresses">
+  <div class="container">
+    <h2 class="section-title reveal">Galerie des Maîtresses</h2>
+    <p class="section-sub reveal">Les femmes qui ont partagé la vie et le pouvoir du Roi-Soleil.</p>
+    <div class="maitresses-grid" id="maitressesGrid"></div>
+  </div>
+</section>
+
+<!-- ============ MODULE 5 : TIMELINE ============ -->
+<section class="section" id="timeline" style="background:var(--bg-elevated);">
+  <div class="container">
+    <h2 class="section-title reveal">Chronologie du Règne (1661–1715)</h2>
+    <p class="section-sub reveal">Faites glisser le curseur pour naviguer dans le temps. Les points verts sont des naissances, les points bordeaux des décès, les points bleus des événements du règne.</p>
+    <div class="timeline-controls reveal">
+      <label for="timelineSlider">Année : <strong id="timelineYearLabel">1661</strong></label>
+      <input type="range" id="timelineSlider" min="1661" max="1715" value="1661" step="1" />
+    </div>
+    <div class="timeline-track-wrap reveal">
+      <div class="timeline-track" id="timelineTrack">
+        <div class="timeline-axis"></div>
+      </div>
+    </div>
+    <div class="tree-tooltip" id="timelineTooltip"></div>
+  </div>
+</section>
+
+<!-- ============ MODULE 6 : STATISTIQUES ============ -->
+<section class="section" id="stats" style="background:var(--bg-elevated);">
+  <div class="container">
+    <h2 class="section-title reveal">Statistiques &amp; Data Visualisation</h2>
+    <p class="section-sub reveal">Une lecture chiffrée de la descendance illégitime du Roi-Soleil.</p>
+    <div class="stats-grid">
+      <div class="card stat-card reveal">
+        <h3>Répartition des enfants par maîtresse</h3>
+        <canvas id="chartPie" aria-label="Camembert de répartition des enfants par maîtresse" role="img"></canvas>
+      </div>
+      <div class="card stat-card reveal">
+        <h3>Survie : mort jeune vs adulte</h3>
+        <canvas id="chartBar" aria-label="Diagramme en barres de la survie des enfants" role="img"></canvas>
+      </div>
+      <div class="card stat-card reveal">
+        <h3>Âge de la mère à chaque naissance</h3>
+        <canvas id="chartScatter" aria-label="Nuage de points de l'âge des maîtresses à la naissance de chaque enfant" role="img"></canvas>
+      </div>
+      <div class="card stat-card reveal">
+        <h3>Enfants légitimés / total</h3>
+        <canvas id="chartGauge" aria-label="Jauge du taux de légitimation" role="img"></canvas>
+      </div>
+      <div class="card stat-card reveal" style="grid-column:1/-1;">
+        <h3>Lieux de naissance et de décès</h3>
+        <div class="france-map-list" id="franceMapList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- Modal détail enfant -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <div>
+      <h4>À propos</h4>
+      <p style="font-size:.85rem;">Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certains points (ex. affaire Gramont) restent débattus par les historiens et sont signalés comme tels.</p>
+    </div>
+    <div>
+      <h4>Sources historiques</h4>
+      <ul>
+        <li>Saint-Simon, <em>Mémoires</em></li>
+        <li>Erlanger, P. <em>Louis XIV</em>, Fayard</li>
+        <li>Petitfils, J.-C. <em>Louis XIV</em>, Perrin, 1995</li>
+        <li>Cronin, V. <em>Louis XIV</em>, 1964</li>
+        <li>Dictionnaire de biographie française</li>
+        <li>Archives de la Cour de Versailles</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="#arbre">Arbre généalogique</a></li>
+        <li><a href="#fiches">Fiches individuelles</a></li>
+        <li><a href="#maitresses">Maîtresses</a></li>
+        <li><a href="#stats">Statistiques</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="footer-bottom">⚜️ Contenu pédagogique — © Règne de Louis XIV, 1643–1715. Reconstitution non officielle.</p>
+</footer>
+
+<button class="back-to-top" id="backToTop" aria-label="Retour en haut">⚜</button>
+
+<script>
+/* ============================================================
+   DATA — Modèle de données historique complet
+   ============================================================ */
+const MAITRESSES = [
+  {
+    id:'la-valliere',
+    nom:"Louise de La Vallière",
+    titre:"Duchesse de La Vallière et de Vaujours",
+    naissance:"1644-08-06", naissanceLieu:"Tours",
+    deces:"1710-06-06", decesLieu:"Couvent des Carmélites, Paris",
+    couleur:"#7D8C4A",
+    periode:"1661 – 1667 (favorite en titre)",
+    nbEnfants:4,
+    influence:{politique:2, mondaine:5, religieuse:8, artistique:3, militaire:1},
+    bio:"Demoiselle d'honneur d'Henriette d'Angleterre, Louise de La Vallière devient la première maîtresse officielle de Louis XIV à partir de 1661. Timide et pieuse, elle est vite éclipsée par Madame de Montespan. Rongée par le remords, elle se retire en 1674 au couvent des Carmélites de Paris sous le nom de Sœur Louise de la Miséricorde, où elle vit en pénitente pendant 36 ans jusqu'à sa mort en 1710.",
+    destin:"Retraite religieuse volontaire chez les Carmélites en 1674 ; vie de pénitence jusqu'à sa mort.",
+    citation:"« Je n'ai pu être une sainte auprès du Roi, je le serai aux pieds de Dieu. »"
+  },
+  {
+    id:'montespan',
+    nom:"Françoise-Athénaïs de Montespan",
+    titre:"Marquise de Montespan",
+    naissance:"1640-10-05", naissanceLieu:"Château de Lussac-les-Châteaux",
+    deces:"1707-05-27", decesLieu:"Bourbon-l'Archambault",
+    couleur:"#8B1A1A",
+    periode:"1667 – 1691 (favorite en titre, disgrâce dès 1680)",
+    nbEnfants:6,
+    influence:{politique:9, mondaine:10, religieuse:2, artistique:7, militaire:2},
+    bio:"Brillante, spirituelle et redoutée, la marquise de Montespan règne sur Versailles pendant plus d'une décennie et donne au roi six enfants légitimés. Compromise en 1680 par l'affaire des Poisons (soupçons de messes noires et d'empoisonnement pour reconquérir la faveur royale), elle est écartée de la cour. Elle se retire à l'abbaye de Fontevraud puis meurt à Bourbon-l'Archambault en 1707.",
+    destin:"Disgrâce progressive après l'affaire des Poisons (1680) ; retraite et œuvres de charité jusqu'à sa mort.",
+    citation:"« Elle avait de l'esprit comme un ange, et un caractère comme un démon. » — Saint-Simon"
+  },
+  {
+    id:'fontanges',
+    nom:"Marie-Angélique de Fontanges",
+    titre:"Duchesse de Fontanges",
+    naissance:"1661-01-01", naissanceLieu:"Château de Scorailles, Auvergne",
+    deces:"1681-06-28", decesLieu:"Abbaye de Port-Royal",
+    couleur:"#4A6FA5",
+    periode:"1679 – 1680 (faveur brève)",
+    nbEnfants:1,
+    influence:{politique:1, mondaine:6, religieuse:3, artistique:2, militaire:0},
+    bio:"D'une beauté célèbre mais peu instruite, Angélique de Fontanges devient brièvement la favorite du roi en 1679. Une grossesse difficile en 1680, dont l'enfant ne survit pas, ruine sa santé. Elle se retire à l'abbaye de Port-Royal où elle meurt en 1681 à seulement 20 ans ; des rumeurs d'empoisonnement (jamais prouvées) circulent alors à la cour.",
+    destin:"Décès prématuré en 1681 des suites de complications post-partum ; rumeurs d'empoisonnement non confirmées.",
+    citation:"« Elle était belle comme un ange et sotte comme un panier. » — Madame de Sévigné"
+  },
+  {
+    id:'gramont',
+    nom:"Catherine-Charlotte de Gramont",
+    titre:"Princesse de Monaco",
+    naissance:"1639-01-01", naissanceLieu:"France",
+    deces:"1678-06-03", decesLieu:"Paris",
+    couleur:"#6B4A8C",
+    periode:"Liaison alléguée, non confirmée par les historiens",
+    nbEnfants:0,
+    influence:{politique:1, mondaine:4, religieuse:1, artistique:1, militaire:0},
+    bio:"Princesse de Monaco par son mariage avec Louis Ier de Monaco, Catherine-Charlotte de Gramont est parfois citée par des mémorialistes de cour comme ayant eu une liaison avec Louis XIV. Aucun enfant reconnu ni acte de légitimation ne vient étayer cette rumeur : elle est rapportée ici pour mémoire historiographique, mais n'est pas retenue par la majorité des historiens du règne.",
+    destin:"Aucune descendance royale confirmée ; simple rumeur de cour rapportée par certains mémorialistes.",
+    citation:"Aucune citation authentifiée ne peut lui être attribuée avec certitude.",
+    disputee:true
+  }
+];
+
+// Chaque enfant : voir modèle de données dans les spécifications.
+const ENFANTS = [
+  {
+    id:"charles-la-baume-le-blanc", nom:"Charles de La Baume Le Blanc", titre:"(non titré, décédé en bas âge)",
+    mereId:"la-valliere", genre:"M",
+    naissance:{date:"1663-12-19", lieu:"Paris"},
+    deces:{date:"1665-07-15", lieu:"Château de Vincennes", age:1},
+    legitime:false, date_legitimation:null, survie:"jeune",
+    biographie:"Premier enfant connu de Louis XIV et de Louise de La Vallière, Charles naît dans le plus grand secret en 1663, sa mère devant dissimuler sa grossesse aux yeux de la cour. Il meurt à moins de deux ans, comme la majorité des nourrissons de son temps, sans avoir jamais été officiellement reconnu ni titré. Son existence n'est confirmée que par des correspondances et mémoires de l'époque.",
+    mariages:[], titres_successifs:[], enfants_legitimes:0,
+    anecdotes:["Sa naissance est tenue secrète pour préserver l'honneur de sa mère, alors demoiselle d'honneur non mariée."],
+    sources_historiques:["Mémoires de Mademoiselle de Montpensier", "Petitfils, Louis XIV, Perrin"]
+  },
+  {
+    id:"philippe-la-baume-le-blanc", nom:"Philippe de La Baume Le Blanc", titre:"(non titré, décédé en bas âge)",
+    mereId:"la-valliere", genre:"M",
+    naissance:{date:"1665-01-07", lieu:"Château de Saint-Germain-en-Laye"},
+    deces:{date:"1666-11-15", lieu:"Saint-Germain-en-Laye", age:1},
+    legitime:false, date_legitimation:null, survie:"jeune",
+    biographie:"Second fils de Louise de La Vallière, Philippe naît un peu moins de deux ans après son frère aîné Charles. Il ne survit pas non plus à la petite enfance, victime comme tant d'enfants du XVIIe siècle de la forte mortalité infantile, aggravée par des soins médicaux rudimentaires. Sa courte vie illustre la fragilité des liens dynastiques informels de l'époque.",
+    mariages:[], titres_successifs:[], enfants_legitimes:0,
+    anecdotes:["Son décès précède de peu la naissance de sa sœur Marie-Anne, seule survivante de la fratrie La Vallière avec Louis de Vermandois."],
+    sources_historiques:["Petitfils, Louis XIV, Perrin", "Dictionnaire de biographie française"]
+  },
+  {
+    id:"marie-anne-mlle-de-blois", nom:"Marie-Anne de Bourbon", titre:"Mademoiselle de Blois, Princesse de Conti",
+    mereId:"la-valliere", genre:"F",
+    naissance:{date:"1666-10-02", lieu:"Palais-Royal, Paris"},
+    deces:{date:"1739-05-03", lieu:"Paris", age:72},
+    legitime:true, date_legitimation:"1667",
+    survie:"adulte",
+    biographie:"Seule fille survivante de Louise de La Vallière, Marie-Anne est légitimée dès 1667 et élevée à la cour avec les honneurs de petite-fille de France. Réputée pour sa beauté et son élégance, elle épouse en 1680 Louis-Armand Ier de Bourbon, prince de Conti. Veuve dès 1685, elle mène ensuite une existence discrète mais respectée à la cour de Versailles jusqu'à un âge avancé pour l'époque, s'éteignant à 72 ans.",
+    mariages:[{conjoint:"Louis-Armand Ier de Bourbon, prince de Conti", date:"1680-01-16", lieu:"Chapelle du Palais-Royal"}],
+    titres_successifs:["Mademoiselle de Blois (1666)", "Princesse de Conti (1680)"],
+    enfants_legitimes:0,
+    anecdotes:["Surnommée « la belle Mademoiselle de Blois » pour sa grâce remarquée dès l'enfance.", "Reste veuve pendant plus de 50 ans après la mort de son époux en 1685."],
+    sources_historiques:["Saint-Simon, Mémoires", "Dictionnaire de biographie française"]
+  },
+  {
+    id:"louis-comte-de-vermandois", nom:"Louis de Bourbon", titre:"Comte de Vermandois, Amiral de France",
+    mereId:"la-valliere", genre:"M",
+    naissance:{date:"1667-10-02", lieu:"Château de Saint-Germain-en-Laye"},
+    deces:{date:"1683-11-18", lieu:"Courtrai (siège), Flandre", age:16},
+    legitime:true, date_legitimation:"1669",
+    survie:"jeune",
+    biographie:"Dernier enfant de Louise de La Vallière, Louis de Vermandois est légitimé en 1669 et nommé Amiral de France dès l'âge de deux ans, charge purement honorifique à cet âge. Impliqué adolescent dans une société secrète scandaleuse à la cour (1682), il est exilé un temps sur les théâtres militaires. Il meurt de fièvre à 16 ans lors du siège de Courtrai pendant les campagnes du Nord, sans alliance ni descendance.",
+    mariages:[], titres_successifs:["Comte de Vermandois (1667)", "Amiral de France (1669)"], enfants_legitimes:0,
+    anecdotes:["Sa mort à seulement 16 ans, loin de la cour, est perçue comme la conséquence indirecte de sa disgrâce après le scandale de 1682.", "Titre honorifique d'Amiral de France porté dès la petite enfance, tradition dynastique de l'époque."],
+    sources_historiques:["Saint-Simon, Mémoires", "Erlanger, Louis XIV, Fayard"]
+  },
+  {
+    id:"louis-auguste-duc-du-maine", nom:"Louis-Auguste de Bourbon", titre:"Duc du Maine",
+    mereId:"montespan", genre:"M",
+    naissance:{date:"1670-03-31", lieu:"Saint-Germain-en-Laye"},
+    deces:{date:"1736-05-14", lieu:"Château de Sceaux", age:66},
+    legitime:true, date_legitimation:"1673",
+    survie:"adulte",
+    biographie:"Aîné des enfants de Montespan, Louis-Auguste est élevé par Madame de Maintenon avant qu'elle ne devienne l'épouse secrète du roi. Boiteux de naissance, il compense par une vie de cour raffinée à Sceaux. En 1714, Louis XIV tente de lui conférer des droits de succession au trône, aussitôt annulés par le Régent à la mort du roi. Impliqué dans la conspiration de Cellamare (1718) contre le Régent, il est emprisonné puis gracié, se retirant définitivement à Sceaux.",
+    mariages:[{conjoint:"Anne-Louise Bénédicte de Bourbon-Condé, dite « Mademoiselle de Charolais »", date:"1692-05-19", lieu:"Versailles"}],
+    titres_successifs:["Duc du Maine (1673)", "Prétendant temporaire à la succession (1714, révoqué 1717)"],
+    enfants_legitimes:5,
+    anecdotes:["Gouverné dans l'enfance par Madame de Maintenon, future épouse morganatique de Louis XIV.", "Sa cour de Sceaux, animée par son épouse, devient un haut lieu des arts et des « Grandes Nuits ».", "Emprisonné à Doullens en 1718 après la conspiration de Cellamare visant le Régent."],
+    sources_historiques:["Saint-Simon, Mémoires", "Petitfils, Louis XIV, Perrin"]
+  },
+  {
+    id:"louis-cesar-comte-de-vexin", nom:"Louis-César de Bourbon", titre:"Comte de Vexin, Abbé de Saint-Denis",
+    mereId:"montespan", genre:"M",
+    naissance:{date:"1672-06-20", lieu:"Château de Tournai"},
+    deces:{date:"1683-01-10", lieu:"Paris", age:10},
+    legitime:true, date_legitimation:"1673",
+    survie:"jeune",
+    biographie:"De santé fragile dès la naissance, Louis-César est destiné très tôt à l'état ecclésiastique et reçoit dès l'enfance l'abbaye de Saint-Denis en commende, avec d'importants revenus. Il ne survivra pas à l'enfance, emporté par la maladie à seulement 10 ans, avant d'avoir pu exercer une quelconque charge religieuse effective.",
+    mariages:[], titres_successifs:["Comte de Vexin (1673)", "Abbé commendataire de Saint-Denis"], enfants_legitimes:0,
+    anecdotes:["Malgré son jeune âge, il perçoit les revenus considérables de l'abbaye de Saint-Denis.", "Sa mort rapproche, la même décennie, plusieurs enfants de Montespan disparus prématurément."],
+    sources_historiques:["Dictionnaire de biographie française", "Petitfils, Louis XIV, Perrin"]
+  },
+  {
+    id:"louise-francoise-mlle-de-nantes", nom:"Louise-Françoise de Bourbon", titre:"Mademoiselle de Nantes, Duchesse de Bourbon",
+    mereId:"montespan", genre:"F",
+    naissance:{date:"1673-06-01", lieu:"Château de Tournai"},
+    deces:{date:"1743-06-16", lieu:"Château de Bourbon-l'Archambault", age:70},
+    legitime:true, date_legitimation:"1673",
+    survie:"adulte",
+    biographie:"Mariée en 1685 à Louis III de Bourbon-Condé, duc de Bourbon, Louise-Françoise devient l'une des figures les plus influentes de la haute noblesse. Femme d'esprit et de caractère affirmé, elle tient une cour brillante et mène une existence longue, marquée par de nombreuses grossesses et une forte présence à Versailles jusque tard dans le règne suivant.",
+    mariages:[{conjoint:"Louis III de Bourbon-Condé, duc de Bourbon", date:"1685-07-24", lieu:"Versailles"}],
+    titres_successifs:["Mademoiselle de Nantes (1673)", "Duchesse de Bourbon (1685)"],
+    enfants_legitimes:8,
+    anecdotes:["Mère du futur duc de Bourbon, ministre principal de Louis XV.", "Réputée pour son esprit vif et ses reparties à la cour de Versailles."],
+    sources_historiques:["Saint-Simon, Mémoires", "Dictionnaire de biographie française"]
+  },
+  {
+    id:"louise-marie-anne-mlle-de-tours", nom:"Louise-Marie-Anne de Bourbon", titre:"Mademoiselle de Tours",
+    mereId:"montespan", genre:"F",
+    naissance:{date:"1674-11-15", lieu:"Château de Saint-Germain-en-Laye"},
+    deces:{date:"1681-09-15", lieu:"Versailles", age:6},
+    legitime:true, date_legitimation:"1674",
+    survie:"jeune",
+    biographie:"Cinquième enfant de la marquise de Montespan, Louise-Marie-Anne meurt à seulement 6 ans. Trop jeune pour avoir tenu un rôle à la cour, sa courte existence est surtout documentée par les registres de la maison royale et les correspondances évoquant le chagrin de son père à sa disparition.",
+    mariages:[], titres_successifs:["Mademoiselle de Tours (1674)"], enfants_legitimes:0,
+    anecdotes:["Sa mort en 1681 survient la même année que celle de la duchesse de Fontanges, endeuillant doublement la cour."],
+    sources_historiques:["Dictionnaire de biographie française"]
+  },
+  {
+    id:"francoise-marie-mlle-de-blois", nom:"Françoise-Marie de Bourbon", titre:"Mademoiselle de Blois, Duchesse d'Orléans",
+    mereId:"montespan", genre:"F",
+    naissance:{date:"1677-05-04", lieu:"Château de Maintenon"},
+    deces:{date:"1749-02-01", lieu:"Palais-Royal, Paris", age:71},
+    legitime:true, date_legitimation:"1677",
+    survie:"adulte",
+    biographie:"Dernière fille de Montespan, elle épouse en 1692 son cousin Philippe d'Orléans, futur Régent de France durant la minorité de Louis XV. Ce mariage, initialement mal accueilli par le jeune duc, se révèle un mariage d'État déterminant : devenue duchesse d'Orléans puis « Madame la Régente » de fait, elle occupe une position centrale à la cour jusqu'à sa mort en 1749.",
+    mariages:[{conjoint:"Philippe II d'Orléans, futur Régent de France", date:"1692-02-18", lieu:"Versailles"}],
+    titres_successifs:["Mademoiselle de Blois (1677)", "Duchesse d'Orléans (1692)"],
+    enfants_legitimes:8,
+    anecdotes:["Son mariage avec le futur Régent fait d'elle l'aïeule d'une large partie de la noblesse française des siècles suivants.", "Le duc d'Orléans, son époux, se serait d'abord opposé à ce mariage arrangé par Louis XIV."],
+    sources_historiques:["Saint-Simon, Mémoires", "Petitfils, Louis XIV, Perrin"]
+  },
+  {
+    id:"louis-alexandre-comte-de-toulouse", nom:"Louis-Alexandre de Bourbon", titre:"Comte de Toulouse, Grand Amiral de France",
+    mereId:"montespan", genre:"M",
+    naissance:{date:"1678-06-06", lieu:"Château de Saint-Germain-en-Laye"},
+    deces:{date:"1737-12-01", lieu:"Rambouillet", age:59},
+    legitime:true, date_legitimation:"1681",
+    survie:"adulte",
+    biographie:"Dernier enfant de Montespan et considéré comme le plus équilibré et le plus estimé de la fratrie, le comte de Toulouse mène une brillante carrière navale, notamment à la bataille de Málaga (1704). Contrairement à son frère le duc du Maine, il reste loyal au Régent après 1715 et ne participe à aucune conspiration. Il fonde la lignée des ducs de Penthièvre par son mariage avec Marie-Victoire de Noailles.",
+    mariages:[{conjoint:"Marie-Victoire-Sophie de Noailles", date:"1723-09-24", lieu:"Rambouillet"}],
+    titres_successifs:["Comte de Toulouse (1681)", "Grand Amiral de France (1683)", "Gouverneur de Bretagne"],
+    enfants_legitimes:1,
+    anecdotes:["Commande la flotte française à la bataille navale de Málaga en 1704.", "Seul des fils Montespan à conserver la pleine confiance du Régent après 1715.", "Père du duc de Penthièvre, aïeul par sa fille de la future reine Marie-Amélie."],
+    sources_historiques:["Saint-Simon, Mémoires", "Petitfils, Louis XIV, Perrin", "Archives de la Marine royale"]
+  },
+  {
+    id:"enfant-fontanges-1679", nom:"Enfant de la duchesse de Fontanges", titre:"(non né viable / non nommé)",
+    mereId:"fontanges", genre:"?",
+    naissance:{date:"1679-01-01", lieu:"Versailles (approx.)"},
+    deces:{date:"1679-01-01", lieu:"Versailles", age:0},
+    legitime:false, date_legitimation:null, survie:"mortne",
+    biographie:"En 1679, Angélique de Fontanges connaît une grossesse difficile dont l'enfant ne survit pas — mort-né ou décédé en couches selon les sources, qui divergent sur les circonstances exactes. Cet accouchement dramatique ruine durablement la santé de la jeune favorite, qui meurt elle-même moins de deux ans plus tard, en 1681. Aucun acte de légitimation n'existe pour cet enfant, dont même le sexe n'est pas fermement établi par les sources.",
+    mariages:[], titres_successifs:[], enfants_legitimes:0,
+    anecdotes:["Cet événement marque le début du déclin de santé, puis de la mort précoce, de la duchesse de Fontanges."],
+    sources_historiques:["Madame de Sévigné, Correspondance", "Petitfils, Louis XIV, Perrin"]
+  }
+];
+
+// Événements contextuels du règne pour la chronologie (Module 5)
+const EVENEMENTS_REGNE = [
+  {date:"1661-03-09", titre:"Mort de Mazarin — début du règne personnel", type:"politique"},
+  {date:"1662-06-05", titre:"Grand Carrousel des Tuileries", type:"culture"},
+  {date:"1667-05-24", titre:"Guerre de Dévolution (début)", type:"guerre"},
+  {date:"1668-05-02", titre:"Traité d'Aix-la-Chapelle", type:"politique"},
+  {date:"1672-04-06", titre:"Guerre de Hollande (début)", type:"guerre"},
+  {date:"1678-09-17", titre:"Paix de Nimègue", type:"politique"},
+  {date:"1680-01-01", titre:"Affaire des Poisons (procès)", type:"politique"},
+  {date:"1682-05-06", titre:"La cour s'installe à Versailles", type:"culture"},
+  {date:"1683-07-30", titre:"Mort de la reine Marie-Thérèse", type:"politique"},
+  {date:"1685-10-18", titre:"Révocation de l'Édit de Nantes", type:"politique"},
+  {date:"1688-09-27", titre:"Guerre de la Ligue d'Augsbourg (début)", type:"guerre"},
+  {date:"1697-09-20", titre:"Traité de Ryswick", type:"politique"},
+  {date:"1701-07-01", titre:"Guerre de Succession d'Espagne (début)", type:"guerre"},
+  {date:"1713-04-11", titre:"Traité d'Utrecht", type:"politique"},
+  {date:"1715-09-01", titre:"Mort de Louis XIV à Versailles", type:"politique"}
+];
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+const $ = (sel,ctx=document)=>ctx.querySelector(sel);
+const $$ = (sel,ctx=document)=>[...ctx.querySelectorAll(sel)];
+const byId = id => ENFANTS.find(e=>e.id===id);
+const mereOf = id => MAITRESSES.find(m=>m.id===id);
+const initials = nom => nom.split(' ').filter(w=>/^[A-ZÀ-Ý]/.test(w)).slice(0,2).map(w=>w[0]).join('');
+function formatDate(iso, approx){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-').map(Number);
+  const mois = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+  return `${d} ${mois[m-1]} ${y}${approx? ' (approx.)':''}`;
+}
+function yearOf(iso){ return Number(iso.split('-')[0]); }
+function ageAt(naissanceIso, dateIso){
+  return Math.max(0, yearOf(dateIso) - yearOf(naissanceIso));
+}
+function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); }; }
+
+/* ============================================================
+   ÉTAT GLOBAL / FILTRES
+   ============================================================ */
+const state = {
+  search:'', mere:'all', statut:'all', destin:'all', treeMere:'all', history:[]
+};
+
+function matchesFilters(enfant){
+  const mere = mereOf(enfant.mereId);
+  if(state.mere!=='all' && enfant.mereId!==state.mere) return false;
+  if(state.statut==='legitime' && !enfant.legitime) return false;
+  if(state.statut==='non-legitime' && enfant.legitime) return false;
+  if(state.destin!=='all' && enfant.survie!==state.destin) return false;
+  if(state.search){
+    const q = state.search.toLowerCase();
+    const hay = [enfant.nom, enfant.titre, mere?.nom, enfant.naissance.date, enfant.deces?.date].join(' ').toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+/* ============================================================
+   MODULE HERO — particules, compteurs, rideau, musique
+   ============================================================ */
+function initParticles(){
+  const canvas = $('#particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let w,h,particles;
+  function resize(){
+    w = canvas.width = canvas.offsetWidth;
+    h = canvas.height = canvas.offsetHeight;
+  }
+  function spawn(){
+    particles = Array.from({length:60}, ()=>({
+      x:Math.random()*w, y:h + Math.random()*h,
+      r:1+Math.random()*2.5, speed:.2+Math.random()*.6,
+      alpha:.3+Math.random()*.6
+    }));
+  }
+  resize(); spawn();
+  window.addEventListener('resize', debounce(()=>{resize(); spawn();},200));
+  function loop(){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#FFD700';
+    particles.forEach(p=>{
+      p.y -= p.speed; p.x += Math.sin(p.y*0.01)*.3;
+      if(p.y < -10){ p.y = h+10; p.x = Math.random()*w; }
+      ctx.globalAlpha = p.alpha;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function animateCounters(){
+  $$('.counter-num').forEach(el=>{
+    const target = Number(el.dataset.target);
+    let cur = 0;
+    const step = Math.max(1, Math.round(target/60));
+    const timer = setInterval(()=>{
+      cur += step;
+      if(cur>=target){ cur = target; clearInterval(timer); }
+      el.textContent = cur;
+    }, 25);
+  });
+}
+
+function initCurtain(){
+  const curtain = $('#curtain');
+  $('#enterCourt').addEventListener('click', ()=>{
+    curtain.classList.add('open');
+    setTimeout(()=>{ curtain.classList.add('hidden'); }, 1200);
+    document.getElementById('arbre').scrollIntoView({behavior:'smooth'});
+  });
+}
+
+function initMusicToggle(){
+  const btn = $('#musicToggle');
+  let playing = false;
+  // Pas de fichier audio externe (contrainte 100% offline) : simple simulation d'état.
+  btn.addEventListener('click', ()=>{
+    playing = !playing;
+    btn.textContent = playing ? '🔊' : '🔇';
+    btn.title = playing ? "Couper l'ambiance baroque" : "Activer l'ambiance baroque";
+  });
+}
+
+/* ============================================================
+   MODULE ARBRE — D3.js
+   ============================================================ */
+function buildHierarchyData(){
+  const filteredEnfants = ENFANTS.filter(e=> state.treeMere==='all' || e.mereId===state.treeMere);
+  const byMere = {};
+  filteredEnfants.forEach(e=>{
+    byMere[e.mereId] = byMere[e.mereId] || [];
+    byMere[e.mereId].push({ type:'enfant', data:e });
+  });
+  const mereNodes = MAITRESSES
+    .filter(m=> state.treeMere==='all' || m.id===state.treeMere)
+    .filter(m=> byMere[m.id] && byMere[m.id].length)
+    .map(m=>({ type:'mere', data:m, children: byMere[m.id] }));
+  return { type:'roi', data:{nom:'Louis XIV', titre:'Roi de France et de Navarre'}, children: mereNodes };
+}
+
+let treeSelection = null;
+function renderTree(){
+  const svg = d3.select('#tree-svg');
+  svg.selectAll('*').remove();
+  const wrap = $('.tree-wrap');
+  const width = wrap.clientWidth, height = wrap.clientHeight;
+  const g = svg.append('g').attr('class','zoom-layer');
+
+  const zoom = d3.zoom().scaleExtent([0.4,2.5]).on('zoom', (ev)=>{ g.attr('transform', ev.transform); });
+  svg.call(zoom).call(zoom.transform, d3.zoomIdentity.translate(width/2, 60).scale(0.85));
+
+  const rootData = d3.hierarchy(buildHierarchyData());
+  const treeLayout = d3.tree().size([width - 160, height - 140]);
+  treeLayout(rootData);
+
+  // Recentre : racine en haut-centre
+  rootData.each(d=>{ d.x -= (width-160)/2; });
+
+  const linkGen = d3.linkVertical().x(d=>d.x).y(d=>d.y);
+
+  g.selectAll('.tree-link')
+    .data(rootData.links())
+    .join('path')
+    .attr('class','tree-link')
+    .attr('stroke', d=>{
+      const target = d.target.data;
+      if(target.type==='mere') return target.data.couleur;
+      if(target.type==='enfant') return mereOf(target.data.mereId).couleur;
+      return 'var(--or-royal)';
+    })
+    .attr('d', linkGen)
+    .attr('stroke-dasharray', function(){ const len=this.getTotalLength(); return `${len} ${len}`; })
+    .attr('stroke-dashoffset', function(){ return this.getTotalLength(); })
+    .transition().duration(900).ease(d3.easeCubicOut)
+    .attr('stroke-dashoffset', 0);
+
+  const tooltip = $('#treeTooltip');
+  const node = g.selectAll('.tree-node')
+    .data(rootData.descendants())
+    .join('g')
+    .attr('class','tree-node')
+    .attr('transform', d=>`translate(${d.x},${d.y})`)
+    .attr('tabindex', 0)
+    .attr('role','button')
+    .attr('aria-label', d=> d.data.type==='enfant' ? d.data.data.nom : (d.data.type==='mere'? d.data.data.nom : 'Louis XIV'))
+    .style('cursor', d=> d.data.type==='enfant' ? 'pointer' : 'default')
+    .style('opacity', 0);
+
+  node.transition().delay((d,i)=>i*60).duration(500).style('opacity',1);
+
+  node.append('circle')
+    .attr('r', d=> d.data.type==='roi'?26 : d.data.type==='mere'?18:14)
+    .attr('fill', d=>{
+      if(d.data.type==='roi') return '#C9A84C';
+      if(d.data.type==='mere') return d.data.data.couleur;
+      return mereOf(d.data.data.mereId).couleur;
+    })
+    .attr('stroke', d=> d.data.type==='enfant' && !d.data.data.legitime ? '#8d6e63' : '#FFD700');
+
+  node.append('text')
+    .attr('dy', d=> d.data.type==='roi' ? 42 : d.data.type==='mere' ? 34 : 30)
+    .attr('text-anchor','middle')
+    .style('font-size', d=> d.data.type==='roi' ? '13px': '11px')
+    .text(d=>{
+      if(d.data.type==='roi') return '♛ Louis XIV';
+      if(d.data.type==='mere') return d.data.data.nom.split(' ').slice(-1)[0];
+      const e = d.data.data;
+      return `${e.nom.split(' ')[0]} ${e.survie==='jeune'?'☠️':e.survie==='mortne'?'✝':'👑'}`;
+    });
+
+  node.append('title').text(d=>{
+    if(d.data.type==='enfant'){
+      const e = d.data.data;
+      return `${e.nom}\n${e.titre}\n${formatDate(e.naissance.date)} – ${e.deces? formatDate(e.deces.date):'?'}\n${e.legitime? 'Légitimé ✓':'Non légitimé ✗'}`;
+    }
+    return d.data.data.nom;
+  });
+
+  node.on('mouseenter', (ev,d)=>{
+      if(d.data.type!=='enfant') return;
+      const e = d.data.data;
+      tooltip.innerHTML = `<strong>${e.nom}</strong><br>${e.titre}<br>${formatDate(e.naissance.date)} – ${e.deces? formatDate(e.deces.date):'?'}<br>${e.legitime?'✓ Légitimé':'✗ Non légitimé'}`;
+      tooltip.style.opacity = 1;
+    })
+    .on('mousemove', (ev)=>{
+      const rect = $('.tree-wrap').getBoundingClientRect();
+      tooltip.style.left = (ev.clientX - rect.left + 16) + 'px';
+      tooltip.style.top = (ev.clientY - rect.top + 8) + 'px';
+    })
+    .on('mouseleave', ()=>{ tooltip.style.opacity = 0; })
+    .on('click', (ev,d)=>{ if(d.data.type==='enfant') openFicheModal(d.data.data.id); })
+    .on('keydown', (ev,d)=>{ if((ev.key==='Enter'||ev.key===' ') && d.data.type==='enfant'){ ev.preventDefault(); openFicheModal(d.data.data.id); } });
+
+  treeSelection = svg;
+}
+
+function initTreeFilters(){
+  const toolbar = $('.tree-toolbar');
+  const legend = $('#treeLegend');
+  MAITRESSES.forEach(m=>{
+    const btn = document.createElement('button');
+    btn.className = 'filter-chip';
+    btn.style.borderColor = m.couleur;
+    btn.textContent = m.nom.split(' ').slice(-1)[0];
+    btn.dataset.treeFilter = m.id;
+    toolbar.appendChild(btn);
+
+    const li = document.createElement('span');
+    li.innerHTML = `<i style="background:${m.couleur}"></i> ${m.nom}`;
+    legend.appendChild(li);
+  });
+  toolbar.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-tree-filter]');
+    if(!btn) return;
+    $$('.tree-toolbar .filter-chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.treeMere = btn.dataset.treeFilter;
+    renderTree();
+  });
+}
+
+function exportTreePng(){
+  const svgEl = $('#tree-svg');
+  const serializer = new XMLSerializer();
+  const bgColor = getComputedStyle(document.body).getPropertyValue('--bg-elevated').trim() || '#FEFAE0';
+  let source = serializer.serializeToString(svgEl);
+  if(!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)){
+    source = source.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  const svgBlob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = ()=>{
+    const canvas = document.createElement('canvas');
+    canvas.width = svgEl.clientWidth * 2; canvas.height = svgEl.clientHeight * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = bgColor; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.scale(2,2);
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(blob=>{
+      const link = document.createElement('a');
+      link.download = 'arbre-genealogique-louis-xiv.png';
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    });
+  };
+  img.src = url;
+}
+
+/* ============================================================
+   MODULE FICHES — cartes + modal détail
+   ============================================================ */
+function renderFiches(){
+  const grid = $('#fichesGrid');
+  const list = ENFANTS.filter(matchesFilters);
+  grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = '<p class="no-results">Aucun enfant ne correspond à ces critères de recherche.</p>';
+    return;
+  }
+  list.forEach(e=>{
+    const mere = mereOf(e.mereId);
+    const card = document.createElement('article');
+    card.className = 'card fiche-card reveal in';
+    card.innerHTML = `
+      <span class="mere-tag" style="background:${mere.couleur}">${mere.nom}</span>
+      <div class="top">
+        <div class="portrait" style="--c1:${mere.couleur}; --c2:var(--brun-antique)">${initials(e.nom)}</div>
+        <div>
+          <h3>${e.nom}</h3>
+          <div class="titre">${e.titre}</div>
+          <div class="dates">${formatDate(e.naissance.date)} – ${e.deces? formatDate(e.deces.date): '—'}</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge ${e.legitime?'badge-ok':'badge-no'}">${e.legitime?'✓ Légitimé':'✗ Non légitimé'}</span>
+        <span class="badge ${e.survie==='jeune'||e.survie==='mortne' ? 'badge-jeune':'badge-adulte'}">${e.survie==='jeune'?'☠️ Mort jeune':e.survie==='mortne'?'✝ Mort-né':'👑 Survie adulte'}</span>
+      </div>
+      <button class="btn btn-ghost" data-open-fiche="${e.id}" style="align-self:flex-start;">Voir la fiche complète</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function ficheDetailHTML(e){
+  const mere = mereOf(e.mereId);
+  const events = [
+    {date:e.naissance.date, label:`Naissance à ${e.naissance.lieu}`},
+    ...(e.date_legitimation ? [{date:e.date_legitimation+'-01-01', label:`Légitimation par lettres patentes (${e.date_legitimation})`}] : []),
+    ...(e.mariages||[]).map(mg=>({date:mg.date, label:`Mariage avec ${mg.conjoint}`})),
+    ...(e.deces ? [{date:e.deces.date, label:`Décès à ${e.deces.lieu}${e.deces.age!=null?` (${e.deces.age} ans)`:''}`}] : [])
+  ].sort((a,b)=> a.date.localeCompare(b.date));
+
+  return `
+    <button class="modal-close" id="modalCloseBtn" aria-label="Fermer la fiche">✕</button>
+    <div class="top" style="margin-bottom:8px;">
+      <div class="portrait" style="width:80px;height:80px;--c1:${mere.couleur};--c2:var(--brun-antique)">${initials(e.nom)}</div>
+      <div>
+        <h2 id="modalTitle" style="margin-bottom:2px;">${e.nom}</h2>
+        <div class="titre" style="font-style:italic; color:var(--text-muted);">${e.titre}</div>
+      </div>
+    </div>
+    <div class="badges" style="margin-bottom:10px;">
+      <span class="badge ${e.legitime?'badge-ok':'badge-no'}">${e.legitime?'✓ Légitimé '+(e.date_legitimation?`(${e.date_legitimation})`:''):'✗ Non légitimé'}</span>
+      <span class="badge ${e.survie==='jeune'||e.survie==='mortne' ? 'badge-jeune':'badge-adulte'}">${e.survie==='jeune'?'☠️ Mort jeune':e.survie==='mortne'?'✝ Mort-né':'👑 Survie adulte'}</span>
+    </div>
+
+    <div class="detail-section">
+      <h4>Identité</h4>
+      <dl class="kv">
+        <dt>Naissance</dt><dd>${formatDate(e.naissance.date)} — ${e.naissance.lieu}</dd>
+        <dt>Décès</dt><dd>${e.deces? `${formatDate(e.deces.date)} — ${e.deces.lieu}${e.deces.age!=null?` (${e.deces.age} ans)`:''}` : 'Inconnu'}</dd>
+        <dt>Mère</dt><dd><a href="#maitresses" data-open-maitresse="${mere.id}">${mere.nom}</a></dd>
+      </dl>
+    </div>
+
+    <div class="detail-section">
+      <h4>Titre &amp; rang</h4>
+      <dl class="kv">
+        <dt>Titres</dt><dd>${(e.titres_successifs&&e.titres_successifs.length)? e.titres_successifs.join(' → ') : e.titre}</dd>
+        <dt>Enfants légitimes</dt><dd>${e.enfants_legitimes ?? 0}</dd>
+      </dl>
+    </div>
+
+    <div class="detail-section">
+      <h4>Destin</h4>
+      <p>${e.biographie}</p>
+      ${e.mariages && e.mariages.length ? `<dl class="kv"><dt>Mariage</dt><dd>${e.mariages.map(m=>`${m.conjoint} — ${formatDate(m.date)}, ${m.lieu}`).join('<br>')}</dd></dl>` : '<p style="font-style:italic;color:var(--text-muted)">Aucun mariage connu.</p>'}
+      ${e.anecdotes && e.anecdotes.length ? `<p><strong>Anecdotes :</strong></p><ul>${e.anecdotes.map(a=>`<li>${a}</li>`).join('')}</ul>` : ''}
+    </div>
+
+    <div class="detail-section">
+      <h4>Frise personnelle</h4>
+      <ul class="mini-timeline">
+        ${events.map(ev=>`<li><strong>${formatDate(ev.date)}</strong> — ${ev.label}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="detail-section">
+      <h4>Sources historiques</h4>
+      <ul style="font-size:.82rem; color:var(--text-muted);">${(e.sources_historiques||[]).map(s=>`<li>${s}</li>`).join('')}</ul>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="printFiche">🖨️ Exporter en PDF</button>
+      <button class="btn btn-ghost" id="copyQuote">📋 Copier la citation de la mère</button>
+      <button class="btn btn-ghost" id="shareFiche">🔗 Partager</button>
+    </div>
+    <div class="detail-nav">
+      <button class="btn btn-ghost" id="prevFiche">← Précédent</button>
+      <button class="btn btn-ghost" id="nextFiche">Suivant →</button>
+    </div>
+  `;
+}
+
+let currentFicheId = null;
+function openFicheModal(id){
+  currentFicheId = id;
+  const e = byId(id);
+  if(!e) return;
+  const overlay = $('#modalOverlay');
+  const content = $('#modalContent');
+  content.innerHTML = ficheDetailHTML(e);
+  overlay.classList.add('open');
+  location.hash = `enfant/${id}`;
+  updateBreadcrumb(`Fiche : ${e.nom}`);
+  content.querySelector('#modalCloseBtn').addEventListener('click', closeModal);
+  content.querySelector('#printFiche').addEventListener('click', ()=> window.print());
+  content.querySelector('#copyQuote').addEventListener('click', ()=>{
+    const mere = mereOf(e.mereId);
+    navigator.clipboard?.writeText(`${mere.citation} — à propos de ${mere.nom}`).catch(()=>{});
+    alert('Citation copiée dans le presse-papiers.');
+  });
+  content.querySelector('#shareFiche').addEventListener('click', ()=>{
+    const url = `${location.origin}${location.pathname}#enfant/${id}`;
+    navigator.clipboard?.writeText(url).catch(()=>{});
+    alert('Lien de la fiche copié : ' + url);
+  });
+  content.querySelector('#prevFiche').addEventListener('click', ()=> navigateFiche(-1));
+  content.querySelector('#nextFiche').addEventListener('click', ()=> navigateFiche(1));
+  const maitresseLink = content.querySelector('[data-open-maitresse]');
+  if(maitresseLink){
+    maitresseLink.addEventListener('click', (ev)=>{ ev.preventDefault(); closeModal(); document.getElementById('maitresses').scrollIntoView({behavior:'smooth'}); });
+  }
+  content.focus();
+}
+function navigateFiche(dir){
+  const idx = ENFANTS.findIndex(e=>e.id===currentFicheId);
+  const next = (idx + dir + ENFANTS.length) % ENFANTS.length;
+  openFicheModal(ENFANTS[next].id);
+}
+function closeModal(){
+  $('#modalOverlay').classList.remove('open');
+  history.pushState('', document.title, location.pathname + location.search);
+  updateBreadcrumb();
+}
+function updateBreadcrumb(extra){
+  const bc = $('#breadcrumb');
+  bc.innerHTML = `Vous êtes ici : <a href="#hero">Accueil</a>${extra? ' » ' + extra : ''}`;
+}
+
+// Navigation clavier entre fiches (flèches) quand la modale est ouverte
+document.addEventListener('keydown', (e)=>{
+  if(!$('#modalOverlay').classList.contains('open')) return;
+  if(e.key==='Escape') closeModal();
+  if(e.key==='ArrowRight') navigateFiche(1);
+  if(e.key==='ArrowLeft') navigateFiche(-1);
+});
+$('#modalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+// Deep linking au chargement
+function handleDeepLink(){
+  const m = location.hash.match(/^#enfant\/(.+)$/);
+  if(m && byId(m[1])) openFicheModal(m[1]);
+}
+
+/* ============================================================
+   MODULE MAÎTRESSES
+   ============================================================ */
+const radarCharts = {};
+function renderMaitresses(){
+  const grid = $('#maitressesGrid');
+  grid.innerHTML = '';
+  MAITRESSES.forEach(m=>{
+    const card = document.createElement('article');
+    card.className = 'card maitresse-card reveal in';
+    card.id = `maitresse-${m.id}`;
+    card.innerHTML = `
+      <div class="portrait" style="--c1:${m.couleur}; --c2:var(--brun-antique)">${initials(m.nom)}</div>
+      <h3>${m.nom}${m.disputee? ' <span class="badge badge-no" title="Enfant non confirmé par les historiens">non confirmé</span>':''}</h3>
+      <div class="maitresse-meta">
+        <span>📅 ${formatDate(m.naissance)} – ${formatDate(m.deces)}</span>
+        <span>👶 ${m.nbEnfants} enfant(s)</span>
+      </div>
+      <p style="font-size:.78rem; text-align:center; color:var(--text-muted);"><strong>Faveur :</strong> ${m.periode}</p>
+      <p>${m.bio}</p>
+      <p style="font-size:.85rem;"><strong>Destin :</strong> ${m.destin}</p>
+      <p class="maitresse-quote">${m.citation}</p>
+      <div class="radar-wrap"><canvas id="radar-${m.id}" aria-label="Radar d'influence de ${m.nom}" role="img"></canvas></div>
+    `;
+    grid.appendChild(card);
+  });
+
+  MAITRESSES.forEach(m=>{
+    const ctx = document.getElementById(`radar-${m.id}`);
+    if(radarCharts[m.id]) radarCharts[m.id].destroy();
+    radarCharts[m.id] = new Chart(ctx, {
+      type:'radar',
+      data:{
+        labels:['Politique','Mondaine','Religieuse','Artistique','Militaire'],
+        datasets:[{
+          label:m.nom,
+          data:[m.influence.politique, m.influence.mondaine, m.influence.religieuse, m.influence.artistique, m.influence.militaire],
+          backgroundColor:m.couleur+'55',
+          borderColor:m.couleur,
+          pointBackgroundColor:m.couleur
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{display:false}},
+        scales:{ r:{ suggestedMin:0, suggestedMax:10, ticks:{display:false} } }
+      }
+    });
+  });
+}
+
+/* ============================================================
+   MODULE TIMELINE
+   ============================================================ */
+function renderTimeline(){
+  const track = $('#timelineTrack');
+  const startYear = 1661, endYear = 1715;
+  const pxPerYear = 1400 / (endYear-startYear);
+  track.querySelectorAll('.timeline-event,.timeline-label,.timeline-year-tick').forEach(n=>n.remove());
+
+  for(let y=startYear; y<=endYear; y+=5){
+    const tick = document.createElement('div');
+    tick.className = 'timeline-year-tick';
+    tick.style.left = ((y-startYear)*pxPerYear)+'px';
+    tick.textContent = y;
+    track.appendChild(tick);
+  }
+
+  const tooltip = $('#timelineTooltip');
+  function addPoint(dateIso, label, cls, offsetIndex){
+    const y = yearOf(dateIso);
+    if(y<startYear || y>endYear) return;
+    const x = (y-startYear)*pxPerYear;
+    const dot = document.createElement('div');
+    dot.className = 'timeline-event ' + cls;
+    dot.style.left = x+'px';
+    dot.tabIndex = 0;
+    dot.setAttribute('role','button');
+    dot.setAttribute('aria-label', label);
+    dot.addEventListener('mouseenter', ()=>{ tooltip.textContent = label; tooltip.style.opacity=1; });
+    dot.addEventListener('mousemove', (ev)=>{
+      const rect = track.parentElement.getBoundingClientRect();
+      tooltip.style.left = (ev.clientX - rect.left + 16) + 'px';
+      tooltip.style.top = (ev.clientY - rect.top) + 'px';
+    });
+    dot.addEventListener('mouseleave', ()=>{ tooltip.style.opacity=0; });
+    dot.addEventListener('click', ()=> alert(label));
+    track.appendChild(dot);
+  }
+
+  EVENEMENTS_REGNE.forEach(ev=> addPoint(ev.date, `📜 ${ev.titre}`, 'evenement'));
+  ENFANTS.forEach(e=>{
+    addPoint(e.naissance.date, `👶 Naissance de ${e.nom}`, 'naissance');
+    if(e.deces) addPoint(e.deces.date, `⚰️ Décès de ${e.nom} (${e.deces.age ?? '?'} ans)`, 'deces');
+  });
+  MAITRESSES.forEach(m=>{
+    // marqueurs de début de faveur approximatifs déjà couverts par le texte; pas de doublon graphique nécessaire.
+  });
+}
+
+function initTimelineSlider(){
+  const slider = $('#timelineSlider');
+  const label = $('#timelineYearLabel');
+  slider.addEventListener('input', ()=>{
+    label.textContent = slider.value;
+    const pxPerYear = 1400 / (1715-1661);
+    const x = (slider.value-1661)*pxPerYear;
+    $('.timeline-track-wrap').scrollTo({left: Math.max(0,x-300), behavior:'smooth'});
+  });
+}
+
+/* ============================================================
+   MODULE STATS — Chart.js
+   ============================================================ */
+let charts = {};
+function renderStats(){
+  const ctxPie = $('#chartPie');
+  const pieData = MAITRESSES.map(m=>({label:m.nom.split(' ').slice(-1)[0], value: ENFANTS.filter(e=>e.mereId===m.id).length, color:m.couleur})).filter(d=>d.value>0);
+  charts.pie?.destroy();
+  charts.pie = new Chart(ctxPie, {
+    type:'pie',
+    data:{ labels:pieData.map(d=>d.label), datasets:[{ data:pieData.map(d=>d.value), backgroundColor:pieData.map(d=>d.color) }] },
+    options:{ plugins:{legend:{position:'bottom'}} }
+  });
+
+  const jeune = ENFANTS.filter(e=>e.survie==='jeune').length;
+  const mortne = ENFANTS.filter(e=>e.survie==='mortne').length;
+  const adulte = ENFANTS.filter(e=>e.survie==='adulte').length;
+  charts.bar?.destroy();
+  charts.bar = new Chart($('#chartBar'), {
+    type:'bar',
+    data:{
+      labels:['Mort-né','Mort jeune (<18 ans)',"Survie à l'âge adulte"],
+      datasets:[{ label:"Nombre d'enfants", data:[mortne, jeune, adulte], backgroundColor:['#3D2B1F','#6B0F1A','#1B3A6B'] }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, ticks:{stepSize:1} } } }
+  });
+
+  const scatterData = ENFANTS.filter(e=>e.mereId!=='fontanges' || e.id!=='enfant-fontanges-1679' ).map(e=>{
+    const mere = mereOf(e.mereId);
+    return { x: yearOf(e.naissance.date), y: ageAt(mere.naissance, e.naissance.date), label:e.nom, color:mere.couleur };
+  });
+  charts.scatter?.destroy();
+  charts.scatter = new Chart($('#chartScatter'), {
+    type:'scatter',
+    data:{ datasets:[{ label:'Âge de la mère à la naissance', data:scatterData, backgroundColor:scatterData.map(d=>d.color), pointRadius:7 }] },
+    options:{
+      plugins:{ tooltip:{ callbacks:{ label:(ctx)=> `${scatterData[ctx.dataIndex].label} — ${ctx.parsed.y} ans` } }, legend:{display:false} },
+      scales:{ x:{ title:{display:true, text:'Année de naissance'} }, y:{ title:{display:true, text:'Âge de la mère'} } }
+    }
+  });
+
+  const legitimes = ENFANTS.filter(e=>e.legitime).length;
+  const total = ENFANTS.length;
+  charts.gauge?.destroy();
+  charts.gauge = new Chart($('#chartGauge'), {
+    type:'doughnut',
+    data:{ labels:['Légitimés','Non légitimés'], datasets:[{ data:[legitimes, total-legitimes], backgroundColor:['#C9A84C','#3D2B1F'] }] },
+    options:{ circumference:180, rotation:270, cutout:'70%', plugins:{ legend:{position:'bottom'} } }
+  });
+  const gaugeCenter = document.createElement('div');
+
+  const list = $('#franceMapList');
+  list.innerHTML = '';
+  const lieux = new Set();
+  ENFANTS.forEach(e=>{
+    lieux.add(`${e.naissance.lieu}||Naissance de ${e.nom}`);
+    if(e.deces) lieux.add(`${e.deces.lieu}||Décès de ${e.nom}`);
+  });
+  [...lieux].forEach(entry=>{
+    const [lieu,label] = entry.split('||');
+    const div = document.createElement('div');
+    div.className = 'lieu';
+    div.innerHTML = `<b>${lieu}</b><br>${label}`;
+    list.appendChild(div);
+  });
+}
+
+/* ============================================================
+   RECHERCHE & FILTRES globaux
+   ============================================================ */
+function initSearchAndFilters(){
+  $('#globalSearch').addEventListener('input', debounce((e)=>{
+    state.search = e.target.value.trim();
+    renderFiches();
+  }, 250));
+
+  const mereChip = $('.search-global [data-filter-type="mere"]');
+  const statutChip = $('.search-global [data-filter-type="statut"]');
+  const destinChip = $('.search-global [data-filter-type="destin"]');
+
+  const cycles = {
+    mere: ['all', ...MAITRESSES.map(m=>m.id)],
+    statut: ['all','legitime','non-legitime'],
+    destin: ['all','adulte','jeune','mortne']
+  };
+  const labels = {
+    mere: id => id==='all' ? 'Toutes les mères' : mereOf(id).nom.split(' ').slice(-1)[0],
+    statut: id => ({all:'Tous statuts', legitime:'Légitimés', 'non-legitime':'Non légitimés'}[id]),
+    destin: id => ({all:'Tout destin', adulte:'Survie adulte', jeune:'Mort jeune', mortne:'Mort-né'}[id])
+  };
+  function cycle(chip, key){
+    const arr = cycles[key];
+    const idx = arr.indexOf(state[key]);
+    const next = arr[(idx+1)%arr.length];
+    state[key] = next;
+    chip.textContent = labels[key](next);
+    chip.classList.toggle('active', next!=='all');
+    renderFiches();
+  }
+  mereChip.addEventListener('click', ()=>cycle(mereChip,'mere'));
+  statutChip.addEventListener('click', ()=>cycle(statutChip,'statut'));
+  destinChip.addEventListener('click', ()=>cycle(destinChip,'destin'));
+
+  $('#fichesGrid').addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-open-fiche]');
+    if(btn) openFicheModal(btn.dataset.openFiche);
+  });
+}
+
+/* ============================================================
+   ACCESSIBILITÉ — thème, taille de police
+   ============================================================ */
+function initAccessibilityControls(){
+  const themeBtn = $('#themeToggle');
+  themeBtn.addEventListener('click', ()=>{
+    const isDark = document.body.getAttribute('data-theme')==='dark';
+    document.body.setAttribute('data-theme', isDark? 'light':'dark');
+    themeBtn.textContent = isDark ? '🌙' : '☀️';
+    try{ localStorage.setItem('lxiv-theme', isDark?'light':'dark'); }catch(err){}
+  });
+  try{
+    const saved = localStorage.getItem('lxiv-theme');
+    if(saved){ document.body.setAttribute('data-theme', saved); themeBtn.textContent = saved==='dark' ? '☀️':'🌙'; }
+  }catch(err){}
+
+  let scale = 1;
+  $('#fontUp').addEventListener('click', ()=>{ scale = Math.min(1.4, scale+0.1); document.documentElement.style.setProperty('--font-scale', scale); });
+  $('#fontDown').addEventListener('click', ()=>{ scale = Math.max(0.8, scale-0.1); document.documentElement.style.setProperty('--font-scale', scale); });
+}
+
+/* ============================================================
+   SCROLL — reveal, back to top, nav active, breadcrumb
+   ============================================================ */
+function initScrollBehaviors(){
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{ if(entry.isIntersecting) entry.target.classList.add('in'); });
+  }, {threshold:.12});
+  $$('.reveal').forEach(el=>observer.observe(el));
+
+  const backBtn = $('#backToTop');
+  window.addEventListener('scroll', debounce(()=>{
+    backBtn.classList.toggle('show', window.scrollY > 600);
+    const sections = ['hero','arbre','fiches','maitresses','timeline','stats'];
+    let current = sections[0];
+    for(const id of sections){
+      const el = document.getElementById(id);
+      if(el && el.getBoundingClientRect().top < window.innerHeight*0.4) current = id;
+    }
+    $$('.nav-links a').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+current));
+  }, 100));
+  backBtn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  initParticles();
+  animateCounters();
+  initCurtain();
+  initMusicToggle();
+  initTreeFilters();
+  renderTree();
+  renderFiches();
+  renderMaitresses();
+  renderTimeline();
+  initTimelineSlider();
+  renderStats();
+  initSearchAndFilters();
+  initAccessibilityControls();
+  initScrollBehaviors();
+  handleDeepLink();
+
+  $('#exportTreePng').addEventListener('click', exportTreePng);
+
+  window.addEventListener('resize', debounce(()=>{ renderTree(); }, 300));
+  window.addEventListener('hashchange', handleDeepLink);
+});
+</script>
+</body>
+</html>
