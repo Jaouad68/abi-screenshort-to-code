@@ -1083,14 +1083,25 @@ function exportTreePng(){
     ctx.scale(2,2);
     ctx.drawImage(img,0,0);
     URL.revokeObjectURL(url);
-    canvas.toBlob(blob=>{
-      const link = document.createElement('a');
-      link.download = 'arbre-genealogique-louis-xiv.png';
-      link.href = URL.createObjectURL(blob);
-      link.click();
-    });
+    canvas.toBlob(blob=> saveFile('arbre-genealogique-louis-xiv.png', blob));
   };
   img.src = url;
+}
+
+// Offre un fichier au visiteur : utilise la capacité "downloads" de l'Artifact
+// quand elle est disponible (claude.ai), sinon un lien <a download> classique
+// (ouverture locale du fichier HTML dans un navigateur).
+async function saveFile(filename, blob){
+  if(window.claude?.use){
+    try{
+      const downloads = await window.claude.use('downloads');
+      if(downloads){ await downloads.save({filename, data: blob}); return; }
+    }catch(err){ /* déclin ou erreur : on retente via le lien classique */ }
+  }
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = URL.createObjectURL(blob);
+  link.click();
 }
 
 /* ============================================================
