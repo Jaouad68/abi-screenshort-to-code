@@ -43,20 +43,37 @@
   --bg-elevated:var(--blanc-ivoire);
   --text:var(--brun-antique);
   --text-muted:#6b5a45;
-  --accent:var(--bordeaux);
-  --accent2:var(--bleu-royal);
   --border-color:rgba(61,43,31,.25);
   --shadow-gold:0 4px 20px rgba(201,168,76,.35);
   --font-scale:1;
+  --heading:var(--bordeaux);
+  --subheading:var(--bleu-royal);
+  --link:var(--bleu-royal);
 }
 
-[data-theme="dark"]{
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1410;
+    --bg-elevated:#241c16;
+    --text:var(--parchemin);
+    --text-muted:#c9b78f;
+    --border-color:rgba(201,168,76,.3);
+    --shadow-gold:0 4px 24px rgba(255,215,0,.18);
+    --heading:var(--or-brillant);
+    --subheading:var(--or-royal);
+    --link:var(--or-royal);
+  }
+}
+:root[data-theme="dark"]{
   --bg:#1a1410;
   --bg-elevated:#241c16;
   --text:var(--parchemin);
   --text-muted:#c9b78f;
   --border-color:rgba(201,168,76,.3);
   --shadow-gold:0 4px 24px rgba(255,215,0,.18);
+  --heading:var(--or-brillant);
+  --subheading:var(--or-royal);
+  --link:var(--or-royal);
 }
 
 /* ============================================================
@@ -75,10 +92,9 @@ body{
   cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><text y="18" font-size="18">⚜</text></svg>') 12 12, auto;
   overflow-x:hidden;
 }
-h1,h2,h3,h4{font-family:var(--font-titre); color:var(--accent); margin:0 0 .5em; letter-spacing:.02em;}
-[data-theme="dark"] h1,[data-theme="dark"] h2,[data-theme="dark"] h3,[data-theme="dark"] h4{color:var(--or-brillant);}
+h1,h2,h3,h4{font-family:var(--font-titre); color:var(--heading); margin:0 0 .5em; letter-spacing:.02em; text-wrap:balance;}
 p{margin:0 0 1em;}
-a{color:var(--accent2); text-decoration:none;}
+a{color:var(--link); text-decoration:none;}
 img,svg{max-width:100%;}
 button{font-family:var(--font-data); cursor:pointer;}
 :focus-visible{outline:3px solid var(--or-brillant); outline-offset:2px;}
@@ -171,7 +187,7 @@ button{font-family:var(--font-data); cursor:pointer;}
   animation:modalIn .3s ease;
 }
 @keyframes modalIn{from{opacity:0; transform:translateY(-20px) scale(.97);} to{opacity:1; transform:none;}}
-.modal-close{position:absolute; top:16px; right:16px; background:none; border:none; font-size:1.6rem; color:var(--accent); line-height:1;}
+.modal-close{position:absolute; top:16px; right:16px; background:none; border:none; font-size:1.6rem; color:var(--heading); line-height:1;}
 
 /* ============================================================
    NAVIGATION
@@ -183,8 +199,7 @@ button{font-family:var(--font-data); cursor:pointer;}
   backdrop-filter:blur(6px);
 }
 .nav-inner{display:flex; align-items:center; justify-content:space-between; padding:12px 24px; max-width:1280px; margin:0 auto; gap:16px; flex-wrap:wrap;}
-.nav-brand{font-family:var(--font-titre); font-size:1.1rem; color:var(--accent); display:flex; gap:8px; align-items:center;}
-[data-theme="dark"] .nav-brand{color:var(--or-brillant);}
+.nav-brand{font-family:var(--font-titre); font-size:1.1rem; color:var(--heading); display:flex; gap:8px; align-items:center;}
 .nav-links{display:flex; gap:4px; list-style:none; margin:0; padding:0; flex-wrap:wrap;}
 .nav-links a{
   display:block; padding:8px 14px; border-radius:20px; font-family:var(--font-data); font-size:.85rem; font-weight:700;
@@ -199,7 +214,7 @@ button{font-family:var(--font-data); cursor:pointer;}
 }
 .tool-btn:hover{background:var(--or-royal); color:#fff;}
 .breadcrumb{font-family:var(--font-data); font-size:.75rem; color:var(--text-muted); padding:6px 24px; max-width:1280px; margin:0 auto;}
-.breadcrumb a{color:var(--accent2);}
+.breadcrumb a{color:var(--link);}
 
 .search-global{
   width:100%; max-width:1280px; margin:0 auto; padding:0 24px 10px;
@@ -289,8 +304,7 @@ button{font-family:var(--font-data); cursor:pointer;}
 
 .detail-grid{display:grid; grid-template-columns:1fr; gap:8px; font-family:var(--font-corps);}
 .detail-section{margin-top:18px; padding-top:14px; border-top:1px dashed var(--border-color);}
-.detail-section h4{font-family:var(--font-data); text-transform:uppercase; font-size:.8rem; letter-spacing:.08em; color:var(--accent2); margin-bottom:8px;}
-[data-theme="dark"] .detail-section h4{color:var(--or-royal);}
+.detail-section h4{font-family:var(--font-data); text-transform:uppercase; font-size:.8rem; letter-spacing:.08em; color:var(--subheading); margin-bottom:8px;}
 .kv{display:grid; grid-template-columns:140px 1fr; gap:4px 12px; font-size:.92rem; margin-bottom:4px;}
 .kv dt{font-weight:700; color:var(--text-muted); font-family:var(--font-data); font-size:.78rem;}
 .mini-timeline{list-style:none; margin:0; padding:0; border-left:2px solid var(--or-royal);}
@@ -342,7 +356,7 @@ button{font-family:var(--font-data); cursor:pointer;}
 .stat-card{min-height:380px;}
 .france-map-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; font-family:var(--font-data); font-size:.82rem;}
 .france-map-list .lieu{background:var(--bg); border:1px solid var(--border-color); border-radius:8px; padding:8px 10px;}
-.france-map-list .lieu b{color:var(--accent2);}
+.france-map-list .lieu b{color:var(--link);}
 
 /* ============================================================
    FOOTER
@@ -394,7 +408,7 @@ footer a{color:var(--parchemin);}
 }
 </style>
 </head>
-<body data-theme="light">
+<body>
 
 <!-- Curtain reveal effect -->
 <div class="curtain" id="curtain" aria-hidden="true">
@@ -1471,16 +1485,22 @@ function initSearchAndFilters(){
    ============================================================ */
 function initAccessibilityControls(){
   const themeBtn = $('#themeToggle');
+  const root = document.documentElement;
+  const systemPrefersDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const effectiveTheme = () => root.getAttribute('data-theme') || (systemPrefersDark() ? 'dark' : 'light');
+  const syncIcon = () => { themeBtn.textContent = effectiveTheme()==='dark' ? '☀️' : '🌙'; };
+
   themeBtn.addEventListener('click', ()=>{
-    const isDark = document.body.getAttribute('data-theme')==='dark';
-    document.body.setAttribute('data-theme', isDark? 'light':'dark');
-    themeBtn.textContent = isDark ? '🌙' : '☀️';
-    try{ localStorage.setItem('lxiv-theme', isDark?'light':'dark'); }catch(err){}
+    const next = effectiveTheme()==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    syncIcon();
+    try{ localStorage.setItem('lxiv-theme', next); }catch(err){}
   });
   try{
     const saved = localStorage.getItem('lxiv-theme');
-    if(saved){ document.body.setAttribute('data-theme', saved); themeBtn.textContent = saved==='dark' ? '☀️':'🌙'; }
+    if(saved) root.setAttribute('data-theme', saved);
   }catch(err){}
+  syncIcon();
 
   let scale = 1;
   $('#fontUp').addEventListener('click', ()=>{ scale = Math.min(1.4, scale+0.1); document.documentElement.style.setProperty('--font-scale', scale); });
