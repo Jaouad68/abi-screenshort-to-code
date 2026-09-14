@@ -411,7 +411,7 @@ footer a{color:var(--parchemin);}
 <body>
 
 <!-- Curtain reveal effect -->
-<div class="curtain" id="curtain" aria-hidden="true">
+<div class="curtain hidden" id="curtain" aria-hidden="true">
   <div class="curtain-panel left"></div>
   <div class="curtain-panel right"></div>
 </div>
@@ -907,11 +907,16 @@ function animateCounters(){
 }
 
 function initCurtain(){
+  // Le rideau reste caché au repos (la page doit s'afficher entièrement dès
+  // le chargement) ; il n'apparaît, fermé, qu'au moment du clic, pour
+  // s'ouvrir aussitôt et révéler l'arbre généalogique.
   const curtain = $('#curtain');
   $('#enterCourt').addEventListener('click', ()=>{
-    curtain.classList.add('open');
-    setTimeout(()=>{ curtain.classList.add('hidden'); }, 1200);
+    curtain.classList.remove('hidden','open');
+    curtain.offsetHeight; // force le reflow pour rejouer la transition
+    requestAnimationFrame(()=>{ curtain.classList.add('open'); });
     document.getElementById('arbre').scrollIntoView({behavior:'smooth'});
+    setTimeout(()=>{ curtain.classList.add('hidden'); }, 1300);
   });
 }
 
