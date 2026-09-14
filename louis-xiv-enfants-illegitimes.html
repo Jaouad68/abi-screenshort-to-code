@@ -574,7 +574,7 @@ footer a:hover{color:var(--paper);}
         <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <button class="tool-btn" id="themeToggle" title="Mode sombre" aria-label="Basculer le thème clair ou sombre" aria-pressed="false"></button>
-      <button class="tool-btn" id="musicToggle" title="Ambiance sonore" aria-label="Activer ou couper l'ambiance sonore" aria-pressed="false"></button>
+      <button class="tool-btn" id="musicToggle" title="Air de cour (style baroque)" aria-label="Activer ou couper l'air de cour" aria-pressed="false"></button>
     </div>
   </div>
   <p class="breadcrumb visually-hidden" id="breadcrumb" aria-live="polite">Vous êtes ici : Accueil</p>
@@ -743,7 +743,7 @@ footer a:hover{color:var(--paper);}
   <div class="container">
     <div>
       <h4>À propos</h4>
-      <p>Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certains points (ex. affaire Gramont) restent débattus par les historiens et sont signalés comme tels.</p>
+      <p>Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certains points (ex. affaire Gramont) restent débattus par les historiens et sont signalés comme tels. L'air de cour joué en fond est une composition originale dans le style baroque de Versailles (synthétisée dans le navigateur), et non l'enregistrement d'une œuvre existante.</p>
     </div>
     <div>
       <h4>Sources historiques</h4>
@@ -1159,66 +1159,139 @@ function initCurtain(){
   });
 }
 
-// Ambiance sonore : un léger drone généré (Web Audio API), pas de fichier
-// externe. Le bouton reflète honnêtement ce qui se joue (aucun son tant
-// qu'on ne l'active pas), au lieu de changer d'icône sans effet réel.
-let audioCtx = null, audioNodes = null;
+// ============================================================
+// AMBIANCE SONORE — un menuet de style baroque, entièrement synthétisé
+// (Web Audio API), pas de fichier audio externe.
+//
+// Impossible d'intégrer un véritable enregistrement d'époque ici : le
+// réseau de cet environnement refuse toute requête vers des sources audio
+// (Wikimedia, IMSLP, archive.org…), et même en y ayant accès, un fichier
+// audio réel casserait la contrainte « un seul fichier HTML, 100% hors
+// ligne » et poserait la question des droits selon l'interprétation
+// utilisée. On compose donc une pièce originale dans l'esprit des airs de
+// cour joués à Versailles (mesure à 3 temps de menuet, harmonie en ré
+// mineur typique du répertoire de Lully, timbre de clavecin synthétisé)
+// plutôt que de prétendre reproduire une pièce précise de mémoire sans
+// partition vérifiée.
+// ============================================================
+const N = { // fréquences (Hz), tempérament égal
+  C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00, A3:220.00, Bb2:116.54, Bb3:233.08,
+  D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, Bb4:466.16, C5:523.25, D5:587.33
+};
+// Menuet en ré mineur, 8 mesures à 3 temps (24 temps), phrase mélodique
+// ornée sur une basse en mouvement (i – VI – III – VII – III – VI – iv – V),
+// bouclée : la cadence sur le degré V ramène naturellement vers le i du
+// début de la boucle suivante.
+const MENUET_MELODY = [
+  {n:'D5',d:1},{n:'C5',d:1},{n:'Bb4',d:1},
+  {n:'A4',d:3},
+  {n:'Bb4',d:1},{n:'C5',d:1},{n:'D5',d:1},
+  {n:'C5',d:2},{n:'A4',d:1},
+  {n:'Bb4',d:1},{n:'A4',d:1},{n:'G4',d:1},
+  {n:'F4',d:2},{n:'E4',d:1},
+  {n:'F4',d:1},{n:'G4',d:1},{n:'A4',d:1},
+  {n:'D4',d:3}
+];
+const MENUET_BASS = [
+  {n:'D3',d:3},{n:'Bb2',d:3},{n:'F3',d:3},{n:'C3',d:3},
+  {n:'F3',d:3},{n:'Bb2',d:3},{n:'G3',d:3},{n:'A3',d:3}
+];
+const MENUET_TEMPO = 116; // temps par minute, tempo de menuet
+const SEC_PER_BEAT = 60 / MENUET_TEMPO;
+const MENUET_BEATS = MENUET_MELODY.reduce((s,n)=>s+n.d, 0);
+const MENUET_LOOP_SEC = MENUET_BEATS * SEC_PER_BEAT;
+
+// Un « pincement » façon clavecin : attaque quasi instantanée, décroissance
+// rapide vers un plateau bas, puis extinction — au lieu d'un simple ton
+// synthé, deux oscillateurs (fondamentale + harmonique d'octave atténuée)
+// donnent un timbre plus brillant et métallique, proche du clavecin.
+function harpsichordNote(ctx, dest, freq, t0, dur, peak){
+  const osc1 = ctx.createOscillator(); osc1.type = 'triangle'; osc1.frequency.value = freq;
+  const osc2 = ctx.createOscillator(); osc2.type = 'square'; osc2.frequency.value = freq*2;
+  const g2 = ctx.createGain(); g2.gain.value = .16;
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0.0001, t0);
+  env.gain.linearRampToValueAtTime(peak, t0 + 0.006);
+  env.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak*0.22), t0 + 0.16);
+  env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc1.connect(env);
+  osc2.connect(g2); g2.connect(env);
+  env.connect(dest);
+  osc1.start(t0); osc2.start(t0);
+  osc1.stop(t0 + dur + 0.05); osc2.stop(t0 + dur + 0.05);
+}
+
+let audioCtx = null, musicMaster = null, musicTimer = null, musicPlaying = false;
+function scheduleMenuetLoop(startAt){
+  if(!musicPlaying) return;
+  let t = startAt;
+  MENUET_MELODY.forEach(({n,d})=>{ harpsichordNote(audioCtx, musicMaster, N[n], t, d*SEC_PER_BEAT*0.9, .22); t += d*SEC_PER_BEAT; });
+  let tb = startAt;
+  MENUET_BASS.forEach(({n,d})=>{ harpsichordNote(audioCtx, musicMaster, N[n], tb, d*SEC_PER_BEAT*0.95, .17); tb += d*SEC_PER_BEAT; });
+  // Reprogramme la boucle suivante un peu avant la fin de celle-ci.
+  musicTimer = setTimeout(()=> scheduleMenuetLoop(startAt + MENUET_LOOP_SEC), (MENUET_LOOP_SEC - 1) * 1000);
+}
+
+function startMenuet(){
+  if(!window.AudioContext && !window.webkitAudioContext) return false;
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  musicMaster = audioCtx.createGain();
+  musicMaster.gain.setValueAtTime(0, audioCtx.currentTime);
+  musicMaster.gain.linearRampToValueAtTime(.5, audioCtx.currentTime + 1.5);
+  musicMaster.connect(audioCtx.destination);
+  musicPlaying = true;
+  scheduleMenuetLoop(audioCtx.currentTime + 0.1);
+  return true;
+}
+function stopMenuet(){
+  musicPlaying = false;
+  if(musicTimer) clearTimeout(musicTimer);
+  if(musicMaster && audioCtx){
+    const g = musicMaster;
+    g.gain.cancelScheduledValues(audioCtx.currentTime);
+    g.gain.setValueAtTime(g.gain.value, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + .6);
+    setTimeout(()=>{ try{ g.disconnect(); }catch(e){} }, 700);
+  }
+  musicMaster = null;
+}
+
 function initMusicToggle(){
   const btn = $('#musicToggle');
-  btn.innerHTML = icon('volumeOff');
-  let playing = false;
+  let wantsMusic = true;
+  try{ wantsMusic = localStorage.getItem('lxiv-music') !== 'off'; }catch(err){}
 
-  function startDrone(){
-    if(!window.AudioContext && !window.webkitAudioContext) return false;
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const master = audioCtx.createGain();
-    master.gain.setValueAtTime(0, audioCtx.currentTime);
-    master.gain.linearRampToValueAtTime(.05, audioCtx.currentTime + 1.2);
-    master.connect(audioCtx.destination);
-    const freqs = [130.81, 196.00, 164.81]; // C3, G3, E3 : accord doux et stable
-    const oscs = freqs.map((f,i)=>{
-      const o = audioCtx.createOscillator();
-      o.type = 'sine';
-      o.frequency.value = f;
-      const g = audioCtx.createGain();
-      g.gain.value = .6;
-      const lfo = audioCtx.createOscillator();
-      lfo.frequency.value = .05 + i*.02;
-      const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = .15;
-      lfo.connect(lfoGain); lfoGain.connect(g.gain);
-      o.connect(g); g.connect(master);
-      o.start(); lfo.start();
-      return {o, lfo};
-    });
-    audioNodes = {master, oscs};
-    return true;
+  function syncBtn(){
+    btn.innerHTML = icon(musicPlaying ? 'volume' : 'volumeOff');
+    btn.setAttribute('aria-pressed', String(musicPlaying));
+    btn.title = musicPlaying ? "Couper l'air de cour" : "Jouer un air de cour (style baroque)";
   }
-  function stopDrone(){
-    if(!audioNodes) return;
-    const now = audioCtx.currentTime;
-    audioNodes.master.gain.linearRampToValueAtTime(0, now + .8);
-    setTimeout(()=>{
-      audioNodes.oscs.forEach(({o,lfo})=>{ try{o.stop(); lfo.stop();}catch(e){} });
-      audioNodes = null;
-    }, 900);
-  }
+  syncBtn();
 
   btn.addEventListener('click', ()=>{
-    playing = !playing;
-    btn.setAttribute('aria-pressed', String(playing));
-    if(playing){
-      const ok = startDrone();
-      if(!ok){ playing = false; return; }
-      btn.innerHTML = icon('volume');
-      btn.title = "Couper l'ambiance sonore";
+    if(musicPlaying){
+      stopMenuet();
+      wantsMusic = false;
     } else {
-      stopDrone();
-      btn.innerHTML = icon('volumeOff');
-      btn.title = "Activer l'ambiance sonore";
+      wantsMusic = true;
+      if(!startMenuet()) return;
     }
+    try{ localStorage.setItem('lxiv-music', wantsMusic ? 'on' : 'off'); }catch(err){}
+    syncBtn();
   });
+
+  // Les navigateurs bloquent tout son avant un geste de l'utilisateur : on
+  // démarre donc l'air de cour dès la toute première interaction avec la
+  // page (clic, appui, touche), sauf si l'utilisateur avait explicitement
+  // coupé le son lors d'une visite précédente.
+  if(wantsMusic){
+    const unlock = ()=>{
+      ['pointerdown','keydown','touchstart'].forEach(ev=> document.removeEventListener(ev, unlock));
+      if(startMenuet()) syncBtn();
+    };
+    ['pointerdown','keydown','touchstart'].forEach(ev=> document.addEventListener(ev, unlock, {once:true}));
+  }
 }
 
 /* ============================================================
