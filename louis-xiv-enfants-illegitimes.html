@@ -1225,20 +1225,29 @@ let audioCtx = null, musicMaster = null, musicTimer = null, musicPlaying = false
 function scheduleMenuetLoop(startAt){
   if(!musicPlaying) return;
   let t = startAt;
-  MENUET_MELODY.forEach(({n,d})=>{ harpsichordNote(audioCtx, musicMaster, N[n], t, d*SEC_PER_BEAT*0.9, .22); t += d*SEC_PER_BEAT; });
+  MENUET_MELODY.forEach(({n,d})=>{ harpsichordNote(audioCtx, musicMaster, N[n], t, d*SEC_PER_BEAT*0.9, .3); t += d*SEC_PER_BEAT; });
   let tb = startAt;
-  MENUET_BASS.forEach(({n,d})=>{ harpsichordNote(audioCtx, musicMaster, N[n], tb, d*SEC_PER_BEAT*0.95, .17); tb += d*SEC_PER_BEAT; });
+  MENUET_BASS.forEach(({n,d})=>{ harpsichordNote(audioCtx, musicMaster, N[n], tb, d*SEC_PER_BEAT*0.95, .22); tb += d*SEC_PER_BEAT; });
   // Reprogramme la boucle suivante un peu avant la fin de celle-ci.
   musicTimer = setTimeout(()=> scheduleMenuetLoop(startAt + MENUET_LOOP_SEC), (MENUET_LOOP_SEC - 1) * 1000);
 }
 
-function startMenuet(){
+// Retourne une Promise<boolean> : true seulement si le contexte audio est
+// réellement passé à l'état "running". Certains navigateurs (notamment
+// Safari iOS) acceptent l'appel à resume() sans erreur tout en restant
+// "suspended" si le geste déclencheur n'est pas jugé assez explicite —
+// afficher le bouton comme actif dans ce cas mentirait sur ce qui se joue
+// réellement (or rien).
+async function startMenuet(){
   if(!window.AudioContext && !window.webkitAudioContext) return false;
   audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
+  if(audioCtx.state === 'suspended'){
+    try{ await audioCtx.resume(); }catch(err){ /* ignoré : contrôlé juste après */ }
+  }
+  if(audioCtx.state !== 'running') return false;
   musicMaster = audioCtx.createGain();
   musicMaster.gain.setValueAtTime(0, audioCtx.currentTime);
-  musicMaster.gain.linearRampToValueAtTime(.5, audioCtx.currentTime + 1.5);
+  musicMaster.gain.linearRampToValueAtTime(.8, audioCtx.currentTime + 1.5);
   musicMaster.connect(audioCtx.destination);
   musicPlaying = true;
   scheduleMenuetLoop(audioCtx.currentTime + 0.1);
@@ -1260,6 +1269,9 @@ function stopMenuet(){
 function initMusicToggle(){
   const btn = $('#musicToggle');
   let wantsMusic = true;
+  let starting = false; // verrou anti-concurrence : le clic sur le bouton
+  // bulle aussi jusqu'au document (voir tryUnlock plus bas), qui tenterait
+  // sinon un second démarrage en parallèle et doublerait la lecture.
   try{ wantsMusic = localStorage.getItem('lxiv-music') !== 'off'; }catch(err){}
 
   function syncBtn(){
@@ -1269,28 +1281,50 @@ function initMusicToggle(){
   }
   syncBtn();
 
-  btn.addEventListener('click', ()=>{
+  async function attemptStart(){
+    if(musicPlaying || starting) return musicPlaying;
+    starting = true;
+    const ok = await startMenuet();
+    starting = false;
+    return ok;
+  }
+
+  btn.addEventListener('click', async ()=>{
     if(musicPlaying){
       stopMenuet();
       wantsMusic = false;
+      syncBtn();
     } else {
       wantsMusic = true;
-      if(!startMenuet()) return;
+      const ok = await attemptStart();
+      syncBtn();
+      if(!ok){
+        // L'appareil ou le navigateur a refusé de débloquer le son (ex. mode
+        // silencieux sur iOS) : on le dit plutôt que d'afficher un bouton
+        // « actif » muet.
+        btn.title = "Son bloqué par l'appareil (vérifiez le mode silencieux) — réessayer";
+      }
     }
     try{ localStorage.setItem('lxiv-music', wantsMusic ? 'on' : 'off'); }catch(err){}
-    syncBtn();
   });
 
-  // Les navigateurs bloquent tout son avant un geste de l'utilisateur : on
-  // démarre donc l'air de cour dès la toute première interaction avec la
-  // page (clic, appui, touche), sauf si l'utilisateur avait explicitement
-  // coupé le son lors d'une visite précédente.
+  // Les navigateurs bloquent tout son avant un geste de l'utilisateur — et
+  // sur Safari iOS, un simple pointerdown/touchstart ne suffit PAS à
+  // débloquer l'audio (il peut n'être que le début d'un geste de défilement) :
+  // seul un clic/tap complet ou une touche relâchée compte comme une
+  // activation valable. On tente donc le déblocage sur le premier clic/tap
+  // ou la première touche, et on réessaie silencieusement aux suivants tant
+  // que ça n'a pas fonctionné (utilisateur n'ayant pas coupé le son lui-même).
   if(wantsMusic){
-    const unlock = ()=>{
-      ['pointerdown','keydown','touchstart'].forEach(ev=> document.removeEventListener(ev, unlock));
-      if(startMenuet()) syncBtn();
+    const tryUnlock = async ()=>{
+      if(!wantsMusic) return;
+      const ok = await attemptStart();
+      if(ok){
+        syncBtn();
+        ['click','keyup'].forEach(ev=> document.removeEventListener(ev, tryUnlock));
+      }
     };
-    ['pointerdown','keydown','touchstart'].forEach(ev=> document.addEventListener(ev, unlock, {once:true}));
+    ['click','keyup'].forEach(ev=> document.addEventListener(ev, tryUnlock));
   }
 }
 
