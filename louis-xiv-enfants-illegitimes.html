@@ -600,8 +600,8 @@ footer a:hover{color:var(--paper);}
     <h1>Les enfants du Roi-Soleil</h1>
     <p class="hero-quote">« L'État, c'est moi. »<cite>attribué à Louis XIV</cite></p>
     <div class="hero-stats" aria-label="Chiffres clés du règne">
-      <div class="stat-tile"><span class="stat-num" data-target="11">0</span><span class="stat-label">Enfants documentés</span></div>
-      <div class="stat-tile"><span class="stat-num" data-target="4">0</span><span class="stat-label">Maîtresses officielles</span></div>
+      <div class="stat-tile"><span class="stat-num" data-target="14">0</span><span class="stat-label">Enfants documentés</span></div>
+      <div class="stat-tile"><span class="stat-num" data-target="6">0</span><span class="stat-label">Maîtresses &amp; liaisons</span></div>
       <div class="stat-tile"><span class="stat-num" data-target="72">0</span><span class="stat-label">Années de règne</span></div>
       <div class="stat-tile"><span class="stat-num" data-target="8">0</span><span class="stat-label">Enfants légitimés</span></div>
     </div>
@@ -743,7 +743,7 @@ footer a:hover{color:var(--paper);}
   <div class="container">
     <div>
       <h4>À propos</h4>
-      <p>Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certains points (ex. affaire Gramont) restent débattus par les historiens et sont signalés comme tels. L'air de cour joué en fond est une composition originale dans le style baroque de Versailles (synthétisée dans le navigateur), et non l'enregistrement d'une œuvre existante.</p>
+      <p>Application historique interactive et non officielle sur la descendance illégitime de Louis XIV, réalisée à des fins pédagogiques. Toutes les données sont basées sur des sources historiques reconnues ; certaines paternités (Catherine-Charlotte de Gramont, Anne de Rohan-Chabot) restent des rumeurs de cour jamais confirmées par les historiens et sont signalées comme telles, de même que les enfants jamais reconnus officiellement par le roi (Louise de Maisonblanche, l'aîné inconnu de Madame de Montespan). L'air de cour joué en fond est une composition originale dans le style baroque de Versailles (synthétisée dans le navigateur), et non l'enregistrement d'une œuvre existante.</p>
     </div>
     <div>
       <h4>Sources historiques</h4>
@@ -824,11 +824,40 @@ const MAITRESSES = [
     deces:"1707-05-27", decesLieu:"Bourbon-l'Archambault",
     couleur:"#8B1A1A",
     periode:"1667 – 1691 (favorite en titre, disgrâce dès 1680)",
-    nbEnfants:6,
+    nbEnfants:7,
     influence:{politique:9, mondaine:10, religieuse:2, artistique:7, militaire:2},
-    bio:"Brillante, spirituelle et redoutée, la marquise de Montespan règne sur Versailles pendant plus d'une décennie et donne au roi six enfants légitimés. Compromise en 1680 par l'affaire des Poisons (soupçons de messes noires et d'empoisonnement pour reconquérir la faveur royale), elle est écartée de la cour. Elle se retire à l'abbaye de Fontevraud puis meurt à Bourbon-l'Archambault en 1707.",
+    bio:"Brillante, spirituelle et redoutée, la marquise de Montespan règne sur Versailles pendant plus d'une décennie et donne au roi sept enfants, dont six seront légitimés. Compromise en 1680 par l'affaire des Poisons (soupçons de messes noires et d'empoisonnement pour reconquérir la faveur royale), elle est écartée de la cour. Elle se retire à l'abbaye de Fontevraud puis meurt à Bourbon-l'Archambault en 1707.",
     destin:"Disgrâce progressive après l'affaire des Poisons (1680) ; retraite et œuvres de charité jusqu'à sa mort.",
     citation:"« Elle avait de l'esprit comme un ange, et un caractère comme un démon. » — Saint-Simon"
+  },
+  {
+    id:'rohan-chabot',
+    nom:"Anne de Rohan-Chabot",
+    titre:"Princesse de Soubise",
+    naissance:"1648-01-01", naissanceLieu:"France",
+    deces:"1709-02-04", decesLieu:"France",
+    couleur:"#4A6B5C",
+    periode:"1669 (liaison brève, alléguée)",
+    nbEnfants:1,
+    influence:{politique:2, mondaine:5, religieuse:1, artistique:1, militaire:0},
+    bio:"Épouse du prince de Soubise, Anne de Rohan-Chabot devient brièvement, selon la rumeur de cour, la maîtresse de Louis XIV en 1669 lors d'un séjour à Chambord. La naissance peu après d'un fils, officiellement déclaré celui du prince de Soubise, alimente aussitôt des soupçons de paternité royale — jamais confirmés ni totalement démentis, entretenus par la générosité financière du roi envers le prince et par une ressemblance que plusieurs contemporains disaient frappante.",
+    destin:"Retour à une vie de cour discrète après 1669 ; rumeur de paternité royale jamais tranchée par les historiens.",
+    citation:"« On disait tout bas que le fils du prince de Soubise ressemblait fort au Roi. » — rumeur de cour rapportée par les mémorialistes",
+    disputee:true
+  },
+  {
+    id:'oeillets',
+    nom:"Claude de Vin des Œillets",
+    titre:"Demoiselle des Œillets",
+    naissance:"1637-01-01", naissanceLieu:"Provence",
+    deces:"1687-05-18", decesLieu:"Paris",
+    couleur:"#7A5230",
+    periode:"vers 1675 (liaison brève et discrète)",
+    nbEnfants:1,
+    influence:{politique:1, mondaine:2, religieuse:0, artistique:1, militaire:0},
+    bio:"Fille de comédiens, Claude de Vin devient avant 1669 la dame de compagnie de confiance de Madame de Montespan. Vers 1675, elle a une liaison avec Louis XIV dont naît une fille, jamais reconnue par le roi. Compromise en 1679-1680 dans l'affaire des Poisons — on lui prête plus de cinquante visites chez les devineresses —, elle échappe aux poursuites grâce à la protection du roi et de Colbert, au prix de la disgrâce définitive de Montespan.",
+    destin:"Jamais inquiétée malgré l'affaire des Poisons ; meurt à Paris en 1687 sans que sa fille n'ait été reconnue par le roi.",
+    citation:"Aucune citation authentifiée ne peut lui être attribuée avec certitude."
   },
   {
     id:'fontanges',
@@ -864,23 +893,23 @@ const MAITRESSES = [
 // Chaque enfant : voir modèle de données dans les spécifications.
 const ENFANTS = [
   {
-    id:"charles-la-baume-le-blanc", nom:"Charles de La Baume Le Blanc", titre:"(non titré, décédé en bas âge)",
+    id:"charles-la-baume-le-blanc", nom:"Charles-Louis de La Baume Le Blanc", titre:"(non titré, décédé en bas âge)",
     mereId:"la-valliere", genre:"M",
-    naissance:{date:"1663-12-19", lieu:"Paris"},
+    naissance:{date:"1663-11-19", lieu:"Paris"},
     deces:{date:"1665-07-15", lieu:"Château de Vincennes", age:1},
     legitime:false, date_legitimation:null, survie:"jeune",
-    biographie:"Premier enfant connu de Louis XIV et de Louise de La Vallière, Charles naît dans le plus grand secret en 1663, sa mère devant dissimuler sa grossesse aux yeux de la cour. Il meurt à moins de deux ans, comme la majorité des nourrissons de son temps, sans avoir jamais été officiellement reconnu ni titré. Son existence n'est confirmée que par des correspondances et mémoires de l'époque.",
+    biographie:"Premier enfant connu de Louis XIV et de Louise de La Vallière, Charles-Louis naît dans le plus grand secret en novembre 1663, sa mère devant dissimuler sa grossesse aux yeux de la cour. Il est baptisé sous une fausse identité, déclaré fils d'un « M. de Lincourt » et d'une « Mademoiselle Élisabeth de Beux ». Il meurt à moins de deux ans, comme la majorité des nourrissons de son temps, sans avoir jamais été officiellement reconnu ni titré.",
     mariages:[], titres_successifs:[], enfants_legitimes:0,
-    anecdotes:["Sa naissance est tenue secrète pour préserver l'honneur de sa mère, alors demoiselle d'honneur non mariée."],
+    anecdotes:["Sa naissance est tenue secrète pour préserver l'honneur de sa mère, alors demoiselle d'honneur non mariée.", "Son acte de baptême le déclare fils de « M. de Lincourt », une identité d'emprunt destinée à masquer sa filiation royale."],
     sources_historiques:["Mémoires de Mademoiselle de Montpensier", "Petitfils, Louis XIV, Perrin"]
   },
   {
     id:"philippe-la-baume-le-blanc", nom:"Philippe de La Baume Le Blanc", titre:"(non titré, décédé en bas âge)",
     mereId:"la-valliere", genre:"M",
-    naissance:{date:"1665-01-07", lieu:"Château de Saint-Germain-en-Laye"},
-    deces:{date:"1666-11-15", lieu:"Saint-Germain-en-Laye", age:1},
+    naissance:{date:"1665-01-07", lieu:"Hôtel de Brion, Paris"},
+    deces:{date:"1666-07-15", lieu:"Saint-Germain-en-Laye", age:1},
     legitime:false, date_legitimation:null, survie:"jeune",
-    biographie:"Second fils de Louise de La Vallière, Philippe naît un peu moins de deux ans après son frère aîné Charles. Il ne survit pas non plus à la petite enfance, victime comme tant d'enfants du XVIIe siècle de la forte mortalité infantile, aggravée par des soins médicaux rudimentaires. Sa courte vie illustre la fragilité des liens dynastiques informels de l'époque.",
+    biographie:"Second fils de Louise de La Vallière, Philippe naît un peu plus d'un an après son frère aîné Charles-Louis, et comme lui est baptisé sous une fausse identité (déclaré fils d'un « François Derssy » et d'une « Marguerite Bernard »). Il ne survit pas non plus à la petite enfance, victime comme tant d'enfants du XVIIe siècle de la forte mortalité infantile. Le jour exact de sa mort en 1666 varie selon les sources ; seule l'année fait consensus.",
     mariages:[], titres_successifs:[], enfants_legitimes:0,
     anecdotes:["Son décès précède de peu la naissance de sa sœur Marie-Anne, seule survivante de la fratrie La Vallière avec Louis de Vermandois."],
     sources_historiques:["Petitfils, Louis XIV, Perrin", "Dictionnaire de biographie française"]
@@ -910,6 +939,17 @@ const ENFANTS = [
     mariages:[], titres_successifs:["Comte de Vermandois (1667)", "Amiral de France (1669)"], enfants_legitimes:0,
     anecdotes:["Sa mort à seulement 16 ans, loin de la cour, est perçue comme la conséquence indirecte de sa disgrâce après le scandale de 1682.", "Titre honorifique d'Amiral de France porté dès la petite enfance, tradition dynastique de l'époque."],
     sources_historiques:["Saint-Simon, Mémoires", "Erlanger, Louis XIV, Fayard"]
+  },
+  {
+    id:"montespan-aine-1669", nom:"Enfant aîné de Madame de Montespan", titre:"(non titré, identité incertaine)",
+    mereId:"montespan", genre:"?",
+    naissance:{date:"1669-03-15", lieu:"Paris (naissance tenue secrète)"},
+    deces:{date:"1672-01-01", lieu:"lieu inconnu", age:3},
+    legitime:false, date_legitimation:null, survie:"jeune",
+    biographie:"Premier enfant né de la liaison entre Louis XIV et la marquise de Montespan, cet enfant vient au monde à la mi-mars 1669, avant même que la relation ne soit de notoriété publique à la cour — un an avant le futur duc du Maine, présenté à tort comme l'aîné de la fratrie. Le secret entourant sa naissance est tel que les sources divergent jusque sur son identité : certaines évoquent une fille prénommée Louise, d'autres restent muettes sur son sexe. Il meurt vers l'âge de trois ans, en 1672, avant qu'aucune démarche de légitimation n'ait pu être engagée.",
+    mariages:[], titres_successifs:[], enfants_legitimes:0,
+    anecdotes:["Antérieur de plus d'un an au duc du Maine, il n'est pourtant documenté que par des mémoires et correspondances indirectes, jamais par un acte officiel — ce qui explique qu'il soit resté longtemps absent des généalogies usuelles de Louis XIV."],
+    sources_historiques:["Petitfils, Louis XIV, Perrin", "Correspondance de Madame de Sévigné"]
   },
   {
     id:"louis-auguste-duc-du-maine", nom:"Louis-Auguste de Bourbon", titre:"Duc du Maine",
@@ -984,23 +1024,47 @@ const ENFANTS = [
     deces:{date:"1737-12-01", lieu:"Rambouillet", age:59},
     legitime:true, date_legitimation:"1681",
     survie:"adulte",
-    biographie:"Dernier enfant de Montespan et considéré comme le plus équilibré et le plus estimé de la fratrie, le comte de Toulouse mène une brillante carrière navale, notamment à la bataille de Málaga (1704). Contrairement à son frère le duc du Maine, il reste loyal au Régent après 1715 et ne participe à aucune conspiration. Il fonde la lignée des ducs de Penthièvre par son mariage avec Marie-Victoire de Noailles.",
-    mariages:[{conjoint:"Marie-Victoire-Sophie de Noailles", date:"1723-09-24", lieu:"Rambouillet"}],
+    biographie:"Dernier enfant de Montespan et considéré comme le plus équilibré et le plus estimé de la fratrie, le comte de Toulouse mène une brillante carrière navale, notamment à la bataille de Málaga (1704). Contrairement à son frère le duc du Maine, il reste loyal au Régent après 1715 et ne participe à aucune conspiration. Il épouse par amour, en secret, la veuve de son propre neveu, et fonde la lignée des ducs de Penthièvre par son mariage avec Marie-Victoire de Noailles.",
+    mariages:[{conjoint:"Marie-Victoire-Sophie de Noailles", date:"1723-02-02", lieu:"Paris"}],
     titres_successifs:["Comte de Toulouse (1681)", "Grand Amiral de France (1683)", "Gouverneur de Bretagne"],
     enfants_legitimes:1,
-    anecdotes:["Commande la flotte française à la bataille navale de Málaga en 1704.", "Seul des fils Montespan à conserver la pleine confiance du Régent après 1715.", "Père du duc de Penthièvre, aïeul par sa fille de la future reine Marie-Amélie."],
+    anecdotes:["Commande la flotte française à la bataille navale de Málaga en 1704.", "Seul des fils Montespan à conserver la pleine confiance du Régent après 1715.", "Son mariage de 1723, célébré en secret, ne sera rendu public qu'après la mort du Régent la même année.", "Père du duc de Penthièvre, aïeul par sa fille de la future reine Marie-Amélie."],
     sources_historiques:["Saint-Simon, Mémoires", "Petitfils, Louis XIV, Perrin", "Archives de la Marine royale"]
   },
   {
-    id:"enfant-fontanges-1679", nom:"Enfant de la duchesse de Fontanges", titre:"(non né viable / non nommé)",
-    mereId:"fontanges", genre:"?",
-    naissance:{date:"1679-01-01", lieu:"Versailles (approx.)"},
-    deces:{date:"1679-01-01", lieu:"Versailles", age:0},
-    legitime:false, date_legitimation:null, survie:"mortne",
-    biographie:"En 1679, Angélique de Fontanges connaît une grossesse difficile dont l'enfant ne survit pas — mort-né ou décédé en couches selon les sources, qui divergent sur les circonstances exactes. Cet accouchement dramatique ruine durablement la santé de la jeune favorite, qui meurt elle-même moins de deux ans plus tard, en 1681. Aucun acte de légitimation n'existe pour cet enfant, dont même le sexe n'est pas fermement établi par les sources.",
+    id:"enfant-fontanges-1679", nom:"Fils de la duchesse de Fontanges", titre:"(non titré, non nommé)",
+    mereId:"fontanges", genre:"M",
+    naissance:{date:"1679-12-20", lieu:"Versailles (approx.)"},
+    deces:{date:"1680-01-20", lieu:"Versailles (approx.)", age:0},
+    legitime:false, date_legitimation:null, survie:"jeune",
+    biographie:"Fin décembre 1679, Angélique de Fontanges met au monde un fils, environ un an après le début de sa liaison avec le roi. L'accouchement, prématuré et difficile, ruine durablement sa santé : elle commence à souffrir d'hémorragies dès le printemps suivant. L'enfant ne lui survit qu'environ un mois. Sa mère elle-même meurt un an et demi plus tard, en juin 1681, sans jamais s'être remise de ces couches.",
     mariages:[], titres_successifs:[], enfants_legitimes:0,
-    anecdotes:["Cet événement marque le début du déclin de santé, puis de la mort précoce, de la duchesse de Fontanges."],
-    sources_historiques:["Madame de Sévigné, Correspondance", "Petitfils, Louis XIV, Perrin"]
+    anecdotes:["Sa naissance et sa mort, très rapprochées, marquent le début du déclin de santé irréversible de la duchesse de Fontanges."],
+    sources_historiques:["Madame de Caylus, Souvenirs", "Petitfils, Louis XIV, Perrin"]
+  },
+  {
+    id:"louise-de-maisonblanche", nom:"Louise de Maisonblanche", titre:"Baronne de La Queue (par mariage)",
+    mereId:"oeillets", genre:"F",
+    naissance:{date:"1676-06-17", lieu:"Paris"},
+    deces:{date:"1718-09-12", lieu:"La Queue-les-Yvelines", age:42},
+    legitime:false, date_legitimation:null, survie:"adulte",
+    biographie:"Fille de Louis XIV et de Claude de Vin des Œillets, Louise est déclarée à sa naissance comme la fille de l'ancien officier de cavalerie Philippe de Maisonblanche — une couverture destinée à masquer sa véritable filiation. Contrairement à ses demi-frères et sœurs issus de Montespan, elle ne sera jamais reconnue ni légitimée par le roi. Elle épouse en 1696 Bernard de Prez, devenant baronne de La Queue, et mène une existence éloignée de la cour jusqu'à sa mort à 42 ans.",
+    mariages:[{conjoint:"Bernard de Prez, baron de La Queue", date:"1696-04-17", lieu:"Chapelle du séminaire des Missions étrangères, Paris"}],
+    titres_successifs:["Baronne de La Queue (1696, par mariage)"],
+    enfants_legitimes:0,
+    anecdotes:["Seule fille de Louis XIV, parmi celles couramment recensées par les historiens, à n'avoir jamais reçu la moindre reconnaissance officielle de son vivant.", "Son acte de baptême la déclare fille de Philippe de Maisonblanche, une fausse identité paternelle — d'où son nom."],
+    sources_historiques:["Dictionnaire de biographie française", "Petitfils, Louis XIV, Perrin"]
+  },
+  {
+    id:"armand-gaston-rohan-soubise", nom:"Armand-Gaston de Rohan-Soubise", titre:"Cardinal de Rohan, prince-évêque de Strasbourg",
+    mereId:"rohan-chabot", genre:"M",
+    naissance:{date:"1674-06-26", lieu:"France"},
+    deces:{date:"1749-07-19", lieu:"Paris", age:75},
+    legitime:false, date_legitimation:null, survie:"adulte",
+    biographie:"Officiellement fils de François de Rohan, prince de Soubise, Armand-Gaston fait une brillante carrière ecclésiastique : évêque de Strasbourg en 1704, cardinal en 1712, puis grand aumônier de France en 1713. Dès son vivant, la rumeur de cour le disait fils naturel de Louis XIV plutôt que du prince de Soubise, s'appuyant sur la générosité financière du roi envers ce dernier et sur une ressemblance que plusieurs contemporains disaient frappante. Aucune preuve n'est jamais venue confirmer cette filiation, que la plupart des historiens traitent aujourd'hui comme une rumeur non vérifiable plutôt qu'un fait établi.",
+    mariages:[], titres_successifs:["Évêque de Strasbourg (1704)", "Cardinal (1712)", "Grand aumônier de France (1713)"], enfants_legitimes:0,
+    anecdotes:["Jamais marié, conformément à son état ecclésiastique.", "Louis XIV octroya au prince de Soubise, son père officiel, d'importantes sommes d'argent « en considération de ses services » — un geste que les contemporains interprétèrent comme un aveu silencieux."],
+    sources_historiques:["Saint-Simon, Mémoires", "Dictionnaire de biographie française"]
   }
 ];
 
@@ -2070,7 +2134,7 @@ function renderStatsCharts(){
       } }
   });
 
-  const scatterData = ENFANTS.filter(e=> e.id!=='enfant-fontanges-1679').map(e=>{
+  const scatterData = ENFANTS.map(e=>{
     const mere = mereOf(e.mereId);
     return { x: yearOf(e.naissance.date), y: ageAt(mere.naissance, e.naissance.date), label:e.nom, color:mere.couleur };
   });
