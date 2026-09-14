@@ -950,10 +950,14 @@ function buildHierarchyData(){
 
 let treeSelection = null;
 function renderTree(){
+  const wrapEl = $('.tree-wrap');
+  if(typeof d3 === 'undefined'){
+    wrapEl.innerHTML = '<p class="no-results" style="padding:60px 24px;">⚠️ La bibliothèque D3.js n\'a pas pu se charger (réseau ou bloqueur de scripts) : l\'arbre interactif est momentanément indisponible. Les fiches, la galerie et les statistiques restent consultables plus bas.</p>';
+    return;
+  }
   const svg = d3.select('#tree-svg');
   svg.selectAll('*').remove();
-  const wrap = $('.tree-wrap');
-  const width = wrap.clientWidth, height = wrap.clientHeight;
+  const width = wrapEl.clientWidth, height = wrapEl.clientHeight;
   const g = svg.append('g').attr('class','zoom-layer');
 
   const zoom = d3.zoom().scaleExtent([0.4,2.5]).on('zoom', (ev)=>{ g.attr('transform', ev.transform); });
@@ -1303,6 +1307,10 @@ function renderMaitresses(){
     grid.appendChild(card);
   });
 
+  if(typeof Chart === 'undefined'){
+    $$('.radar-wrap').forEach(el=>{ el.innerHTML = '<p style="font-size:.75rem; color:var(--text-muted); font-style:italic;">Graphique d\'influence indisponible (Chart.js non chargé).</p>'; });
+    return;
+  }
   MAITRESSES.forEach(m=>{
     const ctx = document.getElementById(`radar-${m.id}`);
     if(radarCharts[m.id]) radarCharts[m.id].destroy();
@@ -1392,6 +1400,20 @@ function initTimelineSlider(){
    ============================================================ */
 let charts = {};
 function renderStats(){
+  if(typeof Chart === 'undefined'){
+    $$('#stats .stat-card canvas').forEach(c=>{
+      c.replaceWith(Object.assign(document.createElement('p'), {
+        className:'no-results', style:'padding:20px;',
+        textContent:"Graphique indisponible (Chart.js n'a pas pu se charger)."
+      }));
+    });
+  } else {
+    renderStatsCharts();
+  }
+  renderFranceList();
+}
+
+function renderStatsCharts(){
   const ctxPie = $('#chartPie');
   const pieData = MAITRESSES.map(m=>({label:m.nom.split(' ').slice(-1)[0], value: ENFANTS.filter(e=>e.mereId===m.id).length, color:m.couleur})).filter(d=>d.value>0);
   charts.pie?.destroy();
@@ -1436,8 +1458,9 @@ function renderStats(){
     data:{ labels:['Légitimés','Non légitimés'], datasets:[{ data:[legitimes, total-legitimes], backgroundColor:['#C9A84C','#3D2B1F'] }] },
     options:{ circumference:180, rotation:270, cutout:'70%', plugins:{ legend:{position:'bottom'} } }
   });
-  const gaugeCenter = document.createElement('div');
+}
 
+function renderFranceList(){
   const list = $('#franceMapList');
   list.innerHTML = '';
   const lieux = new Set();
@@ -1549,27 +1572,36 @@ function initScrollBehaviors(){
 /* ============================================================
    INIT
    ============================================================ */
+// Exécute chaque étape d'initialisation isolément : une exception dans un
+// module (par ex. une bibliothèque CDN indisponible) ne doit jamais empêcher
+// les autres modules de s'afficher ou les boutons de rester réactifs.
+function safe(label, fn){
+  try{ fn(); }
+  catch(err){ console.error(`[Louis XIV] échec du module "${label}" :`, err); }
+}
+
 document.addEventListener('DOMContentLoaded', ()=>{
-  initParticles();
-  animateCounters();
-  initCurtain();
-  initMusicToggle();
-  initTreeFilters();
-  renderTree();
-  renderFiches();
-  renderMaitresses();
-  renderTimeline();
-  initTimelineSlider();
-  renderStats();
-  initSearchAndFilters();
-  initAccessibilityControls();
-  initScrollBehaviors();
-  handleDeepLink();
+  safe('particules', initParticles);
+  safe('compteurs', animateCounters);
+  safe('rideau', initCurtain);
+  safe('musique', initMusicToggle);
+  safe('filtres arbre', initTreeFilters);
+  safe('arbre D3', renderTree);
+  safe('fiches', renderFiches);
+  safe('maîtresses', renderMaitresses);
+  safe('timeline', renderTimeline);
+  safe('slider timeline', initTimelineSlider);
+  safe('stats Chart.js', renderStats);
+  safe('recherche/filtres', initSearchAndFilters);
+  safe('accessibilité', initAccessibilityControls);
+  safe('scroll', initScrollBehaviors);
+  safe('deep link', handleDeepLink);
 
-  $('#exportTreePng').addEventListener('click', exportTreePng);
+  const exportBtn = $('#exportTreePng');
+  if(exportBtn) exportBtn.addEventListener('click', ()=> safe('export PNG', exportTreePng));
 
-  window.addEventListener('resize', debounce(()=>{ renderTree(); }, 300));
-  window.addEventListener('hashchange', handleDeepLink);
+  window.addEventListener('resize', debounce(()=> safe('arbre D3 (resize)', renderTree), 300));
+  window.addEventListener('hashchange', ()=> safe('deep link', handleDeepLink));
 });
 </script>
 </body>
