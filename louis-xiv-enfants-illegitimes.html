@@ -387,7 +387,7 @@ svg.icon{width:1em; height:1em; display:inline-block; vertical-align:-.15em; str
 }
 .tree-legend{display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:18px; font-family:var(--font-ui); font-size:.82rem; color:var(--ink-muted);}
 .tree-legend span{display:inline-flex; align-items:center; gap:7px;}
-.tree-actions{display:flex; justify-content:center; margin-top:20px;}
+.tree-actions{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:20px;}
 
 /* ============================================================
    FICHES
@@ -632,6 +632,10 @@ footer a:hover{color:var(--paper);}
     </div>
     <div class="tree-legend reveal" id="treeLegend"></div>
     <div class="tree-actions reveal">
+      <button class="btn btn-ghost btn-sm" id="resetTreeBtn">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M4.5 15a8 8 0 1 0 2-8.6L4 10"/></svg>
+        Recentrer la vue
+      </button>
       <button class="btn btn-ghost btn-sm" id="exportTreePng">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7 9.5 4h5L16 7"/><circle cx="12" cy="13.5" r="3.2"/></svg>
         Exporter l'arbre en PNG
@@ -1243,25 +1247,45 @@ function treeUnavailable(){
   if(exportBtn){ exportBtn.disabled = true; exportBtn.parentElement.setAttribute('hidden',''); }
 }
 
+let resetTreeView = null;
 function renderTree(){
   const wrapEl = $('.tree-card');
   if(typeof d3 === 'undefined'){ treeUnavailable(); return; }
 
   const svg = d3.select('#tree-svg');
   svg.selectAll('*').remove();
-  const width = Math.max(320, wrapEl.clientWidth), height = Math.max(320, wrapEl.clientHeight);
-  const innerW = Math.max(160, width - 160), innerH = Math.max(160, height - 140);
+  const width = Math.max(280, wrapEl.clientWidth), height = Math.max(320, wrapEl.clientHeight);
   const g = svg.append('g').attr('class','zoom-layer');
 
-  const zoom = d3.zoom().scaleExtent([0.4,2.5]).on('zoom', (ev)=>{ g.attr('transform', ev.transform); });
-  svg.call(zoom).call(zoom.transform, d3.zoomIdentity.translate(width/2, 60).scale(0.85));
-
+  // Espacement FIXE par nœud (et non « toute la largeur du conteneur divisée
+  // par le nombre d'enfants ») : avec .size(), une branche à 6 enfants sur
+  // mobile écrasait les nœuds les uns contre les autres et les étiquettes se
+  // chevauchaient totalement. Avec .nodeSize(), chaque enfant dispose d'un
+  // espace constant, suffisant pour son étiquette, quel que soit leur nombre
+  // ou la largeur de l'écran ; si l'arbre déborde du cadre, on le fait tenir
+  // par un zoom initial ajusté (jamais en dessous d'un seuil lisible), et
+  // l'utilisateur peut glisser/zoomer pour explorer le reste.
+  const DX = 132, DY = 152;
   const rootData = d3.hierarchy(buildHierarchyData());
-  const treeLayout = d3.tree().size([innerW, innerH]);
+  const treeLayout = d3.tree().nodeSize([DX, DY]);
   treeLayout(rootData);
 
-  // Recentre : racine en haut-centre
-  rootData.each(d=>{ d.x -= innerW/2; });
+  const xs = rootData.descendants().map(d=>d.x);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const centerX = (minX + maxX) / 2;
+  rootData.each(d=>{ d.x -= centerX; });
+  const treeWidth = maxX - minX;
+
+  const zoom = d3.zoom().scaleExtent([0.3,2.5]).on('zoom', (ev)=>{ g.attr('transform', ev.transform); });
+  svg.call(zoom);
+  // Ajuste le zoom initial pour montrer l'ensemble de la branche quand elle
+  // tient sans réduire le texte sous un seuil lisible (0.6) ; au-delà, on
+  // affiche à taille lisible et l'utilisateur explore le reste en glissant.
+  const fitScale = width / (treeWidth + 240);
+  const initialScale = Math.min(1.1, Math.max(0.6, fitScale));
+  const initialTransform = d3.zoomIdentity.translate(width/2, 58).scale(initialScale);
+  svg.call(zoom.transform, initialTransform);
+  resetTreeView = ()=> svg.transition().duration(isReducedMotion()?0:450).call(zoom.transform, initialTransform);
 
   const linkGen = d3.linkVertical().x(d=>d.x).y(d=>d.y);
   const reduced = isReducedMotion();
@@ -1314,7 +1338,7 @@ function renderTree(){
   node.append('text')
     .attr('dy', d=> d.data.type==='roi' ? 42 : d.data.type==='mere' ? 34 : 30)
     .attr('text-anchor','middle')
-    .style('font-size', d=> d.data.type==='roi' ? '13px': '11px')
+    .style('font-size', d=> d.data.type==='roi' ? '13px' : d.data.type==='mere' ? '12px' : '10.5px')
     .text(d=>{
       if(d.data.type==='roi') return '♛ Louis XIV';
       if(d.data.type==='mere') return d.data.data.nom.split(' ').slice(-1)[0];
@@ -2027,6 +2051,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   const exportBtn = $('#exportTreePng');
   if(exportBtn) exportBtn.addEventListener('click', ()=> safe('export PNG', exportTreePng));
+  $('#resetTreeBtn')?.addEventListener('click', ()=> safe('recentrer arbre', ()=> resetTreeView && resetTreeView()));
 
   window.addEventListener('resize', debounce(()=> safe('arbre D3 (resize)', renderTree), 300));
   window.addEventListener('hashchange', ()=> safe('deep link', handleDeepLink));
