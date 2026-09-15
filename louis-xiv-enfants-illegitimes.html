@@ -1413,15 +1413,62 @@ function renderTree(){
 
   if(!reduced) node.transition().delay((d,i)=>i*50).duration(400).style('opacity',1);
 
+  // Nœuds façon « médaillon de cour » : un anneau doré entoure chaque
+  // portrait, comme un cadre de miniature peinte. Aucun portrait réel
+  // n'existe pour la quasi-totalité de ces enfants (beaucoup sont morts en
+  // bas âge, avant tout portrait officiel) : plutôt que d'attribuer un faux
+  // visage à une personne réelle, chaque médaillon contient un buste
+  // stylisé généré en SVG, coloré comme avant par maîtresse/branche, et
+  // légèrement rogné par le cadre circulaire — à la manière d'un camée.
+  const nodeRadius = d => d.data.type==='roi' ? 26 : d.data.type==='mere' ? 18 : 14;
+  const nodeFill = d=>{
+    if(d.data.type==='roi') return cssVar('--gold-tint') || '#C9A84C';
+    if(d.data.type==='mere') return d.data.data.couleur;
+    return mereOf(d.data.data.mereId).couleur;
+  };
+  // Teintes du buste FIXES (indépendantes du thème clair/sombre), tout comme
+  // les couleurs de branche elles-mêmes : un ivoire pour les médaillons
+  // maîtresse/enfant (fonds saturés sombres) et une encre foncée pour le roi
+  // (fond doré, plus clair) — vérifié par calcul de contraste WCAG dans les
+  // deux thèmes (>=4.4:1 sur toutes les branches, >=4.6:1 sur le roi).
+  const AVATAR_TONE_LIGHT = 'rgba(250,247,241,.92)';
+  const AVATAR_TONE_DARK = '#241C15';
+  const avatarTone = d => d.data.type==='roi' ? AVATAR_TONE_DARK : AVATAR_TONE_LIGHT;
+
+  const defs = svg.append('defs');
+  [14,18,26].forEach(r=>{
+    defs.append('clipPath').attr('id', `avatarClip-${r}`).append('circle').attr('r', r);
+  });
+
   node.append('circle')
-    .attr('r', d=> d.data.type==='roi'?26 : d.data.type==='mere'?18:14)
-    .attr('fill', d=>{
-      if(d.data.type==='roi') return cssVar('--gold-tint') || '#C9A84C';
-      if(d.data.type==='mere') return d.data.data.couleur;
-      return mereOf(d.data.data.mereId).couleur;
-    })
+    .attr('class','tree-frame')
+    .attr('r', d=> nodeRadius(d) + 3)
+    .attr('fill','none')
+    .attr('stroke', cssVar('--gold'))
+    .attr('stroke-width', 1.5)
+    .style('opacity', .75);
+
+  node.append('circle')
+    .attr('r', nodeRadius)
+    .attr('fill', nodeFill)
     .attr('stroke', d=> d.data.type==='enfant' && !d.data.data.legitime ? cssVar('--ink-muted') : cssVar('--surface'))
     .attr('stroke-width', 2.5);
+
+  // Buste générique (tête + épaules), rogné par le cadre circulaire comme
+  // dans un camée : un simple SVG procédural, jamais un vrai visage.
+  const avatar = node.append('g').attr('class','tree-avatar')
+    .attr('clip-path', d=> `url(#avatarClip-${nodeRadius(d)})`)
+    .style('pointer-events','none');
+  avatar.append('circle')
+    .attr('cy', d=> -nodeRadius(d)*0.18)
+    .attr('r', d=> nodeRadius(d)*0.40)
+    .attr('fill', avatarTone);
+  avatar.append('path')
+    .attr('d', d=>{
+      const R = nodeRadius(d);
+      return `M ${-R*0.66} ${R*1.05} Q ${-R*0.66} ${R*0.18} 0 ${R*0.18} Q ${R*0.66} ${R*0.18} ${R*0.66} ${R*1.05} Z`;
+    })
+    .attr('fill', avatarTone);
 
   node.append('text')
     .attr('dy', d=> d.data.type==='roi' ? 42 : d.data.type==='mere' ? 34 : 30)
