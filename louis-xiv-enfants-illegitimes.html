@@ -423,6 +423,17 @@ svg.icon{width:1em; height:1em; display:inline-block; vertical-align:-.15em; str
 }
 #tree-svg{width:100%; height:100%; cursor:grab; display:block;}
 #tree-svg:active{cursor:grabbing;}
+.tree-empty-note{
+  display:flex; align-items:flex-start; gap:10px; max-width:640px; margin:0 auto 20px;
+  padding:14px 18px; border-radius:12px; text-align:left;
+  font-family:var(--font-ui); font-size:.85rem; line-height:1.5; color:var(--ink-muted);
+  background:color-mix(in srgb, var(--surface) 94%, transparent);
+  border:1px solid var(--line); box-shadow:var(--shadow-1);
+}
+.tree-empty-note svg{flex:none; width:20px; height:20px; margin-top:1px; color:var(--gold);}
+.tree-empty-note strong{color:var(--ink);}
+.tree-empty-note p{margin:0;}
+.tree-empty-note[hidden]{display:none;}
 .tree-node text{font-family:var(--font-ui); font-weight:600; fill:var(--ink);}
 .tree-link{fill:none; stroke-width:2px; opacity:.55;}
 .tree-controls-hint{
@@ -675,6 +686,7 @@ footer a:hover{color:var(--paper);}
       <button class="filter-chip active" data-tree-filter="all" aria-pressed="true">Toutes les branches</button>
       <!-- injecté dynamiquement par maîtresse -->
     </div>
+    <div class="tree-empty-note" id="treeEmptyNote" hidden></div>
     <div class="card tree-card reveal">
       <svg id="tree-svg" role="img" aria-label="Arbre généalogique interactif de Louis XIV et ses enfants illégitimes"></svg>
       <div class="tree-tooltip" id="treeTooltip"></div>
@@ -1281,10 +1293,16 @@ function buildHierarchyData(){
     byMere[e.mereId] = byMere[e.mereId] || [];
     byMere[e.mereId].push({ type:'enfant', data:e });
   });
+  // Vue « Toutes les branches » : on masque les maîtresses sans aucun enfant
+  // reconnu (ex. Gramont, simple liaison alléguée) pour ne pas encombrer
+  // l'arbre d'ensemble. Mais quand l'utilisateur sélectionne EXPLICITEMENT
+  // cette maîtresse via un filtre, il faut au contraire toujours afficher
+  // son nœud (sans quoi l'arbre paraît vide/cassé, avec pour seul contenu
+  // le roi isolé) : c'est ce nœud, feuille sans enfant, qui porte
+  // l'explication historique (voir renderTree -> note « aucun enfant »).
   const mereNodes = MAITRESSES
-    .filter(m=> state.treeMere==='all' || m.id===state.treeMere)
-    .filter(m=> byMere[m.id] && byMere[m.id].length)
-    .map(m=>({ type:'mere', data:m, children: byMere[m.id] }));
+    .filter(m=> state.treeMere==='all' ? (byMere[m.id] && byMere[m.id].length) : m.id===state.treeMere)
+    .map(m=>({ type:'mere', data:m, children: byMere[m.id] || [] }));
   return { type:'roi', data:{nom:'Louis XIV', titre:'Roi de France et de Navarre'}, children: mereNodes };
 }
 
@@ -1304,6 +1322,26 @@ function renderTree(){
 
   const svg = d3.select('#tree-svg');
   svg.selectAll('*').remove();
+
+  // Filtre sur une maîtresse sans aucun enfant reconnu (ex. Gramont, simple
+  // liaison alléguée non retenue par les historiens) : l'arbre ne contiendrait
+  // alors que Louis XIV isolé, ce qui ressemble à un arbre cassé/vide. On
+  // affiche à la place une note explicite, placée au-dessus du cadre (donc
+  // hors du canevas zoomable à hauteur fixe, pour ne jamais se superposer
+  // au roi ni à la feuille affichée juste en dessous).
+  const hierarchyData = buildHierarchyData();
+  const emptyNote = $('#treeEmptyNote');
+  const selectedMere = state.treeMere !== 'all' ? mereOf(state.treeMere) : null;
+  const selectedHasNoChild = selectedMere && !(hierarchyData.children.length && hierarchyData.children[0].children.length);
+  if(emptyNote){
+    if(selectedHasNoChild){
+      emptyNote.innerHTML = `${icon('scroll')}<p><strong>${selectedMere.nom}</strong> — ${selectedMere.disputee ? 'liaison alléguée par certains mémorialistes de cour, mais non retenue par la majorité des historiens : aucun enfant reconnu ni acte de légitimation ne lui est attribué.' : 'aucun enfant enregistré pour cette sélection.'}</p>`;
+      emptyNote.hidden = false;
+    } else {
+      emptyNote.hidden = true;
+    }
+  }
+
   const width = Math.max(280, wrapEl.clientWidth), height = Math.max(320, wrapEl.clientHeight);
   const g = svg.append('g').attr('class','zoom-layer');
 
@@ -1316,7 +1354,7 @@ function renderTree(){
   // par un zoom initial ajusté (jamais en dessous d'un seuil lisible), et
   // l'utilisateur peut glisser/zoomer pour explorer le reste.
   const DX = 132, DY = 152;
-  const rootData = d3.hierarchy(buildHierarchyData());
+  const rootData = d3.hierarchy(hierarchyData);
   const treeLayout = d3.tree().nodeSize([DX, DY]);
   treeLayout(rootData);
 
