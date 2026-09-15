@@ -1379,13 +1379,26 @@ function renderTree(){
   // ou la largeur de l'écran ; si l'arbre déborde du cadre, on le fait tenir
   // par un zoom initial ajusté (jamais en dessous d'un seuil lisible), et
   // l'utilisateur peut glisser/zoomer pour explorer le reste.
-  const DX = 132, DY = 152;
+  const DX = 184, DY = 152;
   const rootData = d3.hierarchy(hierarchyData);
   const treeLayout = d3.tree().nodeSize([DX, DY]);
   treeLayout(rootData);
 
+  // Époux et « épouse » (le roi et chaque maîtresse) sur la même ligne : on
+  // garde la hiérarchie de données telle quelle (roi -> mère -> enfant, cf.
+  // buildHierarchyData) pour ne rien casser côté filtres/notes vides, mais on
+  // ne dessine plus le roi comme un nœud unique au sommet — on affiche à la
+  // place une copie de son médaillon juste à gauche de CHAQUE mère, à la même
+  // hauteur, reliées par un petit trait de mariage. Les enfants descendent du
+  // milieu du couple plutôt que de la mère seule (voir linkGen plus bas).
+  const COUPLE_GAP = 92;
+  const mereNodes = rootData.descendants().filter(d=> d.data.type==='mere');
+
   const xs = rootData.descendants().map(d=>d.x);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  // Le médaillon du roi déborde à gauche de chaque mère : on l'intègre au
+  // calcul de centrage pour que le couple ne soit jamais coupé par le cadre.
+  const kingXs = mereNodes.map(d=> d.x - COUPLE_GAP);
+  const minX = Math.min(...xs, ...kingXs), maxX = Math.max(...xs);
   const centerX = (minX + maxX) / 2;
   rootData.each(d=>{ d.x -= centerX; });
   const treeWidth = maxX - minX;
@@ -1397,23 +1410,28 @@ function renderTree(){
   // affiche à taille lisible et l'utilisateur explore le reste en glissant.
   const fitScale = width / (treeWidth + 240);
   const initialScale = Math.min(1.1, Math.max(0.6, fitScale));
-  const initialTransform = d3.zoomIdentity.translate(width/2, 58).scale(initialScale);
+  // Le couple roi+mère (plus haut désormais que le roi seul ne l'était,
+  // puisqu'il occupe la position autrefois réservée à la mère, à DY du
+  // sommet théorique) doit rester la première rangée visible, avec la même
+  // marge de respiration en haut du cadre qu'avant.
+  const initialTransform = d3.zoomIdentity.translate(width/2, 58 - DY*initialScale).scale(initialScale);
   svg.call(zoom.transform, initialTransform);
   resetTreeView = ()=> svg.transition().duration(isReducedMotion()?0:450).call(zoom.transform, initialTransform);
 
-  const linkGen = d3.linkVertical().x(d=>d.x).y(d=>d.y);
+  // Les liens roi -> mère disparaissent (le roi n'est plus un niveau à part,
+  // voir plus haut) : il ne reste que les liens mère -> enfant, dont le point
+  // de départ est décalé au milieu du couple roi+mère plutôt qu'au centre de
+  // la mère seule, pour que la descendance parte visuellement de l'union.
+  const linkGen = d3.linkVertical()
+    .x(d=> d.data.type==='mere' ? d.x - COUPLE_GAP/2 : d.x)
+    .y(d=>d.y);
   const reduced = isReducedMotion();
 
   const links = g.selectAll('.tree-link')
-    .data(rootData.links())
+    .data(rootData.links().filter(l=> l.target.data.type==='enfant'))
     .join('path')
     .attr('class','tree-link')
-    .attr('stroke', d=>{
-      const target = d.target.data;
-      if(target.type==='mere') return target.data.couleur;
-      if(target.type==='enfant') return mereOf(target.data.mereId).couleur;
-      return cssVar('--gold');
-    })
+    .attr('stroke', d=> mereOf(d.target.data.data.mereId).couleur)
     .attr('d', linkGen);
 
   if(reduced){
@@ -1426,14 +1444,17 @@ function renderTree(){
   }
 
   const tooltip = $('#treeTooltip');
+  // Le roi n'a plus de nœud propre au sommet : il est rendu séparément, en
+  // copie à côté de chaque mère (voir plus bas). On l'exclut donc ici pour
+  // ne pas afficher un médaillon fantôme isolé sans lien.
   const node = g.selectAll('.tree-node')
-    .data(rootData.descendants())
+    .data(rootData.descendants().filter(d=> d.data.type !== 'roi'))
     .join('g')
     .attr('class','tree-node')
     .attr('transform', d=>`translate(${d.x},${d.y})`)
     .attr('tabindex', d=> d.data.type==='enfant' ? 0 : -1)
     .attr('role', d=> d.data.type==='enfant' ? 'button' : 'img')
-    .attr('aria-label', d=> d.data.type==='enfant' ? `Voir la fiche de ${d.data.data.nom}` : (d.data.type==='mere'? d.data.data.nom : 'Louis XIV, Roi de France et de Navarre'))
+    .attr('aria-label', d=> d.data.type==='enfant' ? `Voir la fiche de ${d.data.data.nom}` : d.data.data.nom)
     .style('cursor', d=> d.data.type==='enfant' ? 'pointer' : 'default')
     .style('opacity', reduced ? 1 : 0);
 
@@ -1446,20 +1467,14 @@ function renderTree(){
   // visage à une personne réelle, chaque médaillon contient un buste
   // stylisé généré en SVG, coloré comme avant par maîtresse/branche, et
   // légèrement rogné par le cadre circulaire — à la manière d'un camée.
-  const nodeRadius = d => d.data.type==='roi' ? 26 : d.data.type==='mere' ? 18 : 14;
-  const nodeFill = d=>{
-    if(d.data.type==='roi') return cssVar('--gold-tint') || '#C9A84C';
-    if(d.data.type==='mere') return d.data.data.couleur;
-    return mereOf(d.data.data.mereId).couleur;
-  };
-  // Teintes du buste FIXES (indépendantes du thème clair/sombre), tout comme
-  // les couleurs de branche elles-mêmes : un ivoire pour les médaillons
-  // maîtresse/enfant (fonds saturés sombres) et une encre foncée pour le roi
-  // (fond doré, plus clair) — vérifié par calcul de contraste WCAG dans les
-  // deux thèmes (>=4.4:1 sur toutes les branches, >=4.6:1 sur le roi).
-  const AVATAR_TONE_LIGHT = 'rgba(250,247,241,.92)';
-  const AVATAR_TONE_DARK = '#241C15';
-  const avatarTone = d => d.data.type==='roi' ? AVATAR_TONE_DARK : AVATAR_TONE_LIGHT;
+  // (Le roi, lui, n'apparaît plus dans cette sélection : voir plus bas.)
+  const nodeRadius = d => d.data.type==='mere' ? 18 : 14;
+  const nodeFill = d=> d.data.type==='mere' ? d.data.data.couleur : mereOf(d.data.data.mereId).couleur;
+  // Teinte du buste FIXE (indépendante du thème clair/sombre), tout comme les
+  // couleurs de branche elles-mêmes : un ivoire lisible sur ces fonds saturés
+  // sombres, vérifié par calcul de contraste WCAG (>=4.4:1 sur toutes les
+  // branches).
+  const AVATAR_TONE = 'rgba(250,247,241,.92)';
 
   const defs = svg.append('defs');
   [14,18,26].forEach(r=>{
@@ -1481,32 +1496,20 @@ function renderTree(){
     .attr('stroke-width', 2.5);
 
   // Buste générique (tête + épaules), rogné par le cadre circulaire comme
-  // dans un camée : un simple SVG procédural, jamais un vrai visage — sauf
-  // pour Louis XIV lui-même, seul portrait de cette galerie qui soit à la
-  // fois authentique et parfaitement documenté (voir KING_PORTRAIT).
+  // dans un camée : un simple SVG procédural, jamais un vrai visage.
   const avatar = node.append('g').attr('class','tree-avatar')
     .attr('clip-path', d=> `url(#avatarClip-${nodeRadius(d)})`)
     .style('pointer-events','none');
-
-  avatar.filter(d=> d.data.type==='roi').append('image')
-    .attr('href', KING_PORTRAIT)
-    .attr('x', d=> -nodeRadius(d))
-    .attr('y', d=> -nodeRadius(d))
-    .attr('width', d=> nodeRadius(d)*2)
-    .attr('height', d=> nodeRadius(d)*2)
-    .attr('preserveAspectRatio','xMidYMid slice');
-
-  const genericAvatar = avatar.filter(d=> d.data.type!=='roi');
-  genericAvatar.append('circle')
+  avatar.append('circle')
     .attr('cy', d=> -nodeRadius(d)*0.18)
     .attr('r', d=> nodeRadius(d)*0.40)
-    .attr('fill', avatarTone);
-  genericAvatar.append('path')
+    .attr('fill', AVATAR_TONE);
+  avatar.append('path')
     .attr('d', d=>{
       const R = nodeRadius(d);
       return `M ${-R*0.66} ${R*1.05} Q ${-R*0.66} ${R*0.18} 0 ${R*0.18} Q ${R*0.66} ${R*0.18} ${R*0.66} ${R*1.05} Z`;
     })
-    .attr('fill', avatarTone);
+    .attr('fill', AVATAR_TONE);
 
   node.append('text')
     .attr('dy', d=> d.data.type==='roi' ? 42 : d.data.type==='mere' ? 34 : 30)
@@ -1544,6 +1547,65 @@ function renderTree(){
     .on('blur', ()=>{ tooltip.style.opacity = 0; })
     .on('click', (ev,d)=>{ if(d.data.type==='enfant') openFicheModal(d.data.data.id); })
     .on('keydown', (ev,d)=>{ if((ev.key==='Enter'||ev.key===' ') && d.data.type==='enfant'){ ev.preventDefault(); openFicheModal(d.data.data.id); } });
+
+  // Copie du médaillon royal à côté de CHAQUE mère (même hauteur), reliée par
+  // un trait de mariage : Louis XIV n'a pas eu une seule « épouse » mais six
+  // liaisons distinctes, donc plutôt qu'un roi unique tout en haut relié en
+  // diagonale à chacune, on le rejoue une fois par couple, comme dans un
+  // arbre généalogique classique où chaque union occupe sa propre rangée.
+  const KING_COPY_R = 26;
+  g.selectAll('.tree-marriage-line')
+    .data(mereNodes)
+    .join('line')
+    .attr('class','tree-marriage-line')
+    .attr('x1', d=> d.x - COUPLE_GAP + KING_COPY_R + 3)
+    .attr('y1', d=> d.y)
+    .attr('x2', d=> d.x - 21)
+    .attr('y2', d=> d.y)
+    .attr('stroke', cssVar('--gold'))
+    .attr('stroke-width', 2)
+    .style('opacity', reduced ? 1 : 0);
+
+  const couples = g.selectAll('.tree-king-copy')
+    .data(mereNodes)
+    .join('g')
+    .attr('class','tree-king-copy')
+    .attr('transform', d=> `translate(${d.x - COUPLE_GAP},${d.y})`)
+    .attr('role','img')
+    .attr('tabindex', -1)
+    .attr('aria-label', 'Louis XIV, Roi de France et de Navarre')
+    .style('opacity', reduced ? 1 : 0);
+
+  if(!reduced){
+    g.selectAll('.tree-marriage-line').transition().delay((d,i)=>i*50).duration(400).style('opacity',1);
+    couples.transition().delay((d,i)=>i*50).duration(400).style('opacity',1);
+  }
+
+  couples.append('circle')
+    .attr('class','tree-frame')
+    .attr('r', KING_COPY_R+3)
+    .attr('fill','none')
+    .attr('stroke', cssVar('--gold'))
+    .attr('stroke-width', 1.5)
+    .style('opacity', .75);
+  couples.append('circle')
+    .attr('r', KING_COPY_R)
+    .attr('fill', cssVar('--gold-tint') || '#C9A84C')
+    .attr('stroke', cssVar('--surface'))
+    .attr('stroke-width', 2.5);
+  couples.append('g')
+    .attr('clip-path', `url(#avatarClip-${KING_COPY_R})`)
+    .style('pointer-events','none')
+    .append('image')
+      .attr('href', KING_PORTRAIT)
+      .attr('x', -KING_COPY_R).attr('y', -KING_COPY_R)
+      .attr('width', KING_COPY_R*2).attr('height', KING_COPY_R*2)
+      .attr('preserveAspectRatio','xMidYMid slice');
+  couples.append('text')
+    .attr('dy', 42).attr('text-anchor','middle')
+    .style('font-size','13px')
+    .text('♛ Louis XIV');
+  couples.append('title').text('Louis XIV, Roi de France et de Navarre');
 }
 
 function initTreeFilters(){
