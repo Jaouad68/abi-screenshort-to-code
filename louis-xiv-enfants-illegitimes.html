@@ -1203,6 +1203,25 @@ function safe(label, fn){
   catch(err){ console.error(`[Louis XIV] échec du module "${label}" :`, err); }
 }
 
+// Attend qu'une bibliothèque externe chargée depuis un CDN (D3, Chart.js)
+// soit disponible avant de lancer le rendu qui en dépend, plutôt que de ne
+// vérifier qu'une seule fois au DOMContentLoaded. Sur une page HTML classique,
+// un <script src> sans async/defer placé en <head> a toujours fini de
+// s'exécuter avant le DOMContentLoaded — mais certains hébergeurs de page
+// (dont l'aperçu Artifact) réinjectent ces balises dynamiquement pour
+// appliquer leur propre politique de sécurité, ce qui les rend asynchrones
+// de fait et peut faire arriver le DOMContentLoaded avant elles : sans cette
+// attente, l'arbre et les graphiques se déclaraient "indisponibles" alors que
+// la bibliothèque finissait par charger une fraction de seconde plus tard.
+function whenReady(checkFn, run, {retries=40, interval=125} = {}){
+  if(checkFn()){ run(); return; }
+  let n = 0;
+  const timer = setInterval(()=>{
+    if(checkFn()){ clearInterval(timer); run(); }
+    else if(++n >= retries){ clearInterval(timer); run(); } // budget épuisé : le module lancé affichera lui-même son repli "indisponible"
+  }, interval);
+}
+
 /* ============================================================
    HERO — particules, compteurs, rideau, ambiance sonore
    ============================================================ */
@@ -1831,6 +1850,14 @@ function renderMaitresses(){
     grid.appendChild(card);
   });
 
+  // Les radars d'influence dépendent de Chart.js : on laisse les cartes
+  // (déjà complètes sans lui) s'afficher tout de suite, et on attend la
+  // bibliothèque séparément pour ne pas retarder tout le reste si jamais
+  // elle met un instant à charger (voir whenReady()).
+  whenReady(()=> typeof Chart !== 'undefined', renderMaitressesRadars);
+}
+
+function renderMaitressesRadars(){
   if(typeof Chart === 'undefined'){
     $$('.radar-wrap').forEach(el=>{ el.innerHTML = `<p style="font-size:.8rem; color:var(--ink-muted); font-family:var(--font-ui); text-align:center;">Graphique d'influence indisponible (Chart.js non chargé).</p>`; });
     return;
@@ -2191,12 +2218,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   safe('compteurs', animateCounters);
   safe('rideau', initCurtain);
   safe('filtres arbre', initTreeFilters);
-  safe('arbre D3', renderTree);
+  whenReady(()=> typeof d3 !== 'undefined', ()=> safe('arbre D3', renderTree));
   safe('fiches', renderFiches);
   safe('maîtresses', renderMaitresses);
   safe('timeline', renderTimeline);
   safe('slider timeline', initTimelineSlider);
-  safe('stats Chart.js', renderStats);
+  whenReady(()=> typeof Chart !== 'undefined', ()=> safe('stats Chart.js', renderStats));
   safe('recherche/filtres', initSearchAndFilters);
   safe('accessibilité', initAccessibilityControls);
   safe('scroll', initScrollBehaviors);
