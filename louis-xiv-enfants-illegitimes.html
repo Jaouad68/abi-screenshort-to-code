@@ -43,6 +43,7 @@
   --line-strong:rgba(36,28,21,.22);
   --gold:#8C6A26;
   --gold-tint:#A9812F;
+  --eyebrow:#6B4E1B;
   --wine:#7C1421;
   --royal:#2A4A8C;
   --success:#1F7A42;
@@ -77,6 +78,7 @@
     --line-strong:rgba(244,238,225,.22);
     --gold:#DCB868;
     --gold-tint:#E8C87E;
+    --eyebrow:#DCB868;
     --wine:#E2778A;
     --royal:#8FADEA;
     --success:#5CC98A;
@@ -96,6 +98,7 @@
   --line-strong:rgba(244,238,225,.22);
   --gold:#DCB868;
   --gold-tint:#E8C87E;
+  --eyebrow:#DCB868;
   --wine:#E2778A;
   --royal:#8FADEA;
   --success:#5CC98A;
@@ -171,34 +174,37 @@ svg.icon{width:1em; height:1em; display:inline-block; vertical-align:-.15em; str
    marges tout en gardant les titres et les cartes bien lisibles. */
 #arbre, #maitresses{
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--paper) 82%, transparent) 0%, color-mix(in srgb, var(--paper) 55%, transparent) 45%, color-mix(in srgb, var(--paper) 88%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 93%, transparent) 0%, color-mix(in srgb, var(--paper) 86%, transparent) 45%, color-mix(in srgb, var(--paper) 95%, transparent) 100%),
     var(--arbre-photo) center/cover no-repeat;
   background-attachment:scroll;
 }
 #maitresses{ background-image:
-    linear-gradient(180deg, color-mix(in srgb, var(--paper) 82%, transparent) 0%, color-mix(in srgb, var(--paper) 55%, transparent) 45%, color-mix(in srgb, var(--paper) 88%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 93%, transparent) 0%, color-mix(in srgb, var(--paper) 86%, transparent) 45%, color-mix(in srgb, var(--paper) 95%, transparent) 100%),
     var(--maitresses-photo);
 }
 #fiches, #timeline{
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 84%, transparent) 0%, color-mix(in srgb, var(--surface-2) 58%, transparent) 45%, color-mix(in srgb, var(--surface-2) 88%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 93%, transparent) 0%, color-mix(in srgb, var(--surface-2) 87%, transparent) 45%, color-mix(in srgb, var(--surface-2) 95%, transparent) 100%),
     var(--fiches-photo) center/cover no-repeat;
 }
 #timeline{ background-image:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 84%, transparent) 0%, color-mix(in srgb, var(--surface-2) 58%, transparent) 45%, color-mix(in srgb, var(--surface-2) 88%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 93%, transparent) 0%, color-mix(in srgb, var(--surface-2) 87%, transparent) 45%, color-mix(in srgb, var(--surface-2) 95%, transparent) 100%),
     var(--timeline-photo);
 }
 #stats{
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--paper) 82%, transparent) 0%, color-mix(in srgb, var(--paper) 55%, transparent) 45%, color-mix(in srgb, var(--paper) 88%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 93%, transparent) 0%, color-mix(in srgb, var(--paper) 86%, transparent) 45%, color-mix(in srgb, var(--paper) 95%, transparent) 100%),
     var(--stats-photo) center/cover no-repeat;
 }
 .eyebrow{
   display:inline-flex; align-items:center; gap:8px;
   font-family:var(--font-ui); font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--gold); margin-bottom:14px;
+  /* Plus foncé que --gold : ce petit label est trop fin/petit pour compter
+     comme « texte large » aux normes WCAG, il lui faut donc le contraste
+     4.5:1 plein, y compris posé sur les fonds photographiques des sections. */
+  color:var(--eyebrow); margin-bottom:14px;
 }
-.eyebrow::before{content:''; width:18px; height:1.5px; background:var(--gold);}
+.eyebrow::before{content:''; width:18px; height:1.5px; background:var(--eyebrow);}
 .section-head{max-width:640px; margin:0 auto 3rem; text-align:center;}
 .section-title{font-size:clamp(1.7rem,3.6vw,2.6rem); margin-bottom:.4em;}
 .section-sub{color:var(--ink-muted); font-size:1.05rem;}
@@ -366,7 +372,7 @@ svg.icon{width:1em; height:1em; display:inline-block; vertical-align:-.15em; str
      volontairement fixe (indépendante du bascule clair/sombre), comme une
      vitrine de musée plutôt qu'une surface qui suit le thème. */
   background:
-    linear-gradient(180deg, rgba(18,13,9,.6), rgba(18,13,9,.86) 55%, rgba(18,13,9,.95)),
+    linear-gradient(180deg, rgba(15,11,8,.8), rgba(15,11,8,.92) 55%, rgba(15,11,8,.97)),
     var(--hero-photo) center 22%/cover no-repeat;
 }
 #particles-canvas{position:absolute; inset:0; width:100%; height:100%; opacity:.55;}
