@@ -42,16 +42,23 @@ export default async function ImprimerFacturePage({
         >
           ← Retour à la facture
         </Link>
-        <PrintButton className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]" />
+        <PrintButton className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-brand hover:brightness-95 min-h-[44px]" />
       </div>
 
       <article className="mx-auto max-w-[210mm] bg-white text-ink rounded-card border border-line print:border-0 print:rounded-none p-6 sm:p-10 print:p-0 text-[13px] leading-relaxed">
         <header className="flex flex-wrap justify-between gap-6 border-b-2 border-ink pb-5">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Logo logoDataUrl={company.logoDataUrl} nom={company.nom} size={40} />
-              <span className="text-lg font-bold">{company.nom}</span>
-            </div>
+            {company.logoDataUrl ? (
+              <div className="flex items-center gap-2 mb-2">
+                <Logo logoDataUrl={company.logoDataUrl} nom={company.nom} size={40} />
+                <span className="text-lg font-bold">{company.nom}</span>
+              </div>
+            ) : (
+              // Le logo livré contient déjà le nom, l'activité et la ville.
+              <div className="mb-3">
+                <Logo logoDataUrl="" nom={company.nom} variante="complet" size={60} />
+              </div>
+            )}
             <div className="text-muted">
               {company.adresse && <div>{company.adresse}</div>}
               {(company.codePostal || company.ville) && (
