@@ -2,6 +2,7 @@ import type { Company, Client, Devis, DevisLigne } from "@/generated/prisma/clie
 import { calculerTotaux, montantLigneHtCents, calculerAcompte } from "@/lib/calcul";
 import { formatCents, formatQuantite } from "@/lib/money";
 import { formatDate, ajouterJours } from "@/lib/date";
+import { MENTION_FRANCHISE_TVA } from "@/lib/tva";
 
 function esc(s: string): string {
   return s
@@ -18,6 +19,7 @@ export function devisEnHtml(
   devis: Devis & { lignes: DevisLigne[] },
 ): string {
   const totaux = calculerTotaux(devis.lignes);
+  const sansTva = company.franchiseTva && totaux.totalTvaCents === 0;
   const echeance = ajouterJours(devis.dateDevis, devis.dureeValidite);
   const acompte =
     devis.acomptePct > 0 ? calculerAcompte(totaux.totalTtcCents, devis.acomptePct) : null;
@@ -33,13 +35,15 @@ export function devisEnHtml(
         </td>
         <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${formatQuantite(l.quantiteMilli)} ${esc(l.unite)}</td>
         <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${formatCents(l.prixUnitaireCents)}</td>
-        <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${l.tauxTva} %</td>
+        ${sansTva ? "" : `<td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right">${l.tauxTva} %</td>`}
         <td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right"><strong>${formatCents(montantLigneHtCents(l))}</strong></td>
       </tr>`,
     )
     .join("");
 
-  const tvaHtml = totaux.ventilationTva
+  const tvaHtml = sansTva
+    ? `<tr><td colspan="2" style="color:#64748b">${MENTION_FRANCHISE_TVA}</td></tr>`
+    : totaux.ventilationTva
     .map(
       (v) =>
         `<tr><td style="color:#64748b">TVA ${v.taux} %</td><td style="text-align:right">${formatCents(v.montantTvaCents)}</td></tr>`,
@@ -75,7 +79,7 @@ export function devisEnHtml(
           <th style="padding:8px;text-align:left">Désignation</th>
           <th style="padding:8px;text-align:right">Qté</th>
           <th style="padding:8px;text-align:right">P.U. HT</th>
-          <th style="padding:8px;text-align:right">TVA</th>
+          ${sansTva ? "" : `<th style="padding:8px;text-align:right">TVA</th>`}
           <th style="padding:8px;text-align:right">Total HT</th>
         </tr>
       </thead>
@@ -85,7 +89,7 @@ export function devisEnHtml(
     <table style="width:100%;max-width:300px;margin-left:auto;font-size:13px">
       <tr><td style="color:#64748b">Total HT</td><td style="text-align:right">${formatCents(totaux.totalHtCents)}</td></tr>
       ${tvaHtml}
-      <tr><td style="font-weight:bold;border-top:2px solid #0f172a;padding-top:6px">Total TTC</td><td style="text-align:right;font-weight:bold;border-top:2px solid #0f172a;padding-top:6px">${formatCents(totaux.totalTtcCents)}</td></tr>
+      <tr><td style="font-weight:bold;border-top:2px solid #0f172a;padding-top:6px">${sansTva ? "Total net" : "Total TTC"}</td><td style="text-align:right;font-weight:bold;border-top:2px solid #0f172a;padding-top:6px">${formatCents(totaux.totalTtcCents)}</td></tr>
       ${acompteHtml}
     </table>
 

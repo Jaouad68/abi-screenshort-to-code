@@ -5,10 +5,12 @@
 
 export const COMPANY_DEFAULT = {
   nom: "MELLADO Électricité",
+  dirigeant: "Francisco MELLADO",
+  activite: "Entreprise d'électricité générale",
   adresse: "20 rue Comblais",
   codePostal: "28200",
   ville: "Châteaudun",
-  telephone: "02 37 45 12 89",
+  telephone: "02 37 45 08 03",
   email: "contact@mellado-electricite.fr",
   siret: "412 398 754 00023",
   tvaIntra: "FR76412398754",

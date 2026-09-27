@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculerTotaux, montantLigneHtCents, calculerAcompte } from "@/lib/calcul";
 import { formatCents, formatQuantite } from "@/lib/money";
+import { MENTION_FRANCHISE_TVA } from "@/lib/tva";
 import { formatDate, ajouterJours } from "@/lib/date";
 import { Logo } from "@/components/Logo";
 import { PrintButton } from "@/components/PrintButton";
@@ -26,6 +27,8 @@ export default async function ImprimerDevisPage({
   if (!devis) notFound();
 
   const totaux = calculerTotaux(devis.lignes);
+  // Franchise en base : pas de colonne ni de lignes de TVA, mention légale à la place.
+  const sansTva = company.franchiseTva && totaux.totalTvaCents === 0;
   const echeance = ajouterJours(devis.dateDevis, devis.dureeValidite);
   const acompte =
     devis.acomptePct > 0 ? calculerAcompte(totaux.totalTtcCents, devis.acomptePct) : null;
@@ -40,7 +43,7 @@ export default async function ImprimerDevisPage({
         >
           ← Retour au devis
         </Link>
-        <PrintButton className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]" />
+        <PrintButton className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-brand hover:brightness-95 min-h-[44px]" />
       </div>
 
       {/* Document */}
@@ -48,10 +51,17 @@ export default async function ImprimerDevisPage({
         {/* En-tête */}
         <header className="flex flex-wrap justify-between gap-6 border-b-2 border-ink pb-5">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Logo logoDataUrl={company.logoDataUrl} nom={company.nom} size={40} />
-              <span className="text-lg font-bold">{company.nom}</span>
-            </div>
+            {company.logoDataUrl ? (
+              <div className="flex items-center gap-2 mb-2">
+                <Logo logoDataUrl={company.logoDataUrl} nom={company.nom} size={40} />
+                <span className="text-lg font-bold">{company.nom}</span>
+              </div>
+            ) : (
+              // Le logo livré contient déjà le nom, l'activité et la ville.
+              <div className="mb-3">
+                <Logo logoDataUrl="" nom={company.nom} variante="complet" size={60} />
+              </div>
+            )}
             <div className="text-muted">
               {company.adresse && <div>{company.adresse}</div>}
               {(company.codePostal || company.ville) && (
@@ -118,14 +128,14 @@ export default async function ImprimerDevisPage({
                 <th className="text-right font-semibold px-2 py-2 w-14">Qté</th>
                 <th className="text-left font-semibold px-2 py-2 w-14">Unité</th>
                 <th className="text-right font-semibold px-2 py-2 w-24">P.U. HT</th>
-                <th className="text-right font-semibold px-2 py-2 w-14">TVA</th>
+                {!sansTva && <th className="text-right font-semibold px-2 py-2 w-14">TVA</th>}
                 <th className="text-right font-semibold px-2 py-2 w-28">Total HT</th>
               </tr>
             </thead>
             <tbody>
               {devis.lignes.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-2 py-4 text-center text-muted italic">
+                  <td colSpan={sansTva ? 5 : 6} className="px-2 py-4 text-center text-muted italic">
                     Aucune prestation.
                   </td>
                 </tr>
@@ -145,7 +155,7 @@ export default async function ImprimerDevisPage({
                   <td className="px-2 py-2 text-right tabular-nums">
                     {formatCents(l.prixUnitaireCents)}
                   </td>
-                  <td className="px-2 py-2 text-right tabular-nums">{l.tauxTva} %</td>
+                  {!sansTva && <td className="px-2 py-2 text-right tabular-nums">{l.tauxTva} %</td>}
                   <td className="px-2 py-2 text-right tabular-nums font-medium">
                     {formatCents(montantLigneHtCents(l))}
                   </td>
@@ -162,16 +172,17 @@ export default async function ImprimerDevisPage({
               <dt className="text-muted">Total HT</dt>
               <dd className="tabular-nums font-medium">{formatCents(totaux.totalHtCents)}</dd>
             </div>
-            {totaux.ventilationTva.map((v) => (
+            {!sansTva && totaux.ventilationTva.map((v) => (
               <div key={v.taux} className="flex justify-between py-1 text-muted">
                 <dt>TVA {v.taux} %</dt>
                 <dd className="tabular-nums">{formatCents(v.montantTvaCents)}</dd>
               </div>
             ))}
             <div className="flex justify-between py-2 mt-1 border-t-2 border-ink text-[15px] font-bold">
-              <dt>Total TTC</dt>
+              <dt>{sansTva ? "Total net" : "Total TTC"}</dt>
               <dd className="tabular-nums">{formatCents(totaux.totalTtcCents)}</dd>
             </div>
+            {sansTva && <div className="py-1 text-muted">{MENTION_FRANCHISE_TVA}</div>}
             {acompte && (
               <>
                 <div className="flex justify-between py-1 mt-1 border-t border-line">

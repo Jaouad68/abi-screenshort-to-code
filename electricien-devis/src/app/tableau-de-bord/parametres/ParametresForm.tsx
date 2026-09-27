@@ -19,6 +19,10 @@ export function ParametresForm({ company }: { company: Company }) {
         <h2 className="font-bold text-lg mb-4">Identité de l’entreprise</h2>
         <div className="grid gap-4">
           <Field name="nom" libelle="Nom de l'entreprise" defaultValue={company.nom} required />
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field name="dirigeant" libelle="Dirigeant" defaultValue={company.dirigeant} />
+            <Field name="activite" libelle="Activité" defaultValue={company.activite} />
+          </div>
           <Field name="adresse" libelle="Adresse" defaultValue={company.adresse} />
           <div className="grid grid-cols-3 gap-3">
             <Field name="codePostal" libelle="Code postal" defaultValue={company.codePostal} />
@@ -100,6 +104,23 @@ export function ParametresForm({ company }: { company: Company }) {
               />
             </div>
           </div>
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name="franchiseTva"
+              defaultChecked={company.franchiseTva}
+              className="mt-0.5 h-5 w-5 shrink-0"
+            />
+            <span>
+              <span className="font-semibold">Franchise en base de TVA (micro-entreprise)</span>
+              <br />
+              <span className="text-muted">
+                Aucune TVA facturée : les devis et factures portent la mention « TVA non
+                applicable, article 293 B du CGI ». Les devis existants passent à 0 % à leur
+                prochain enregistrement.
+              </span>
+            </span>
+          </label>
           <div>
             <label className={label} htmlFor="mentionsLegales">
               Mentions légales imprimées en bas de devis

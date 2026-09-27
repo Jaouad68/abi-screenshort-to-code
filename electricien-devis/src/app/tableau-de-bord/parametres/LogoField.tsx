@@ -35,8 +35,8 @@ export function LogoField({ nom, logoDataUrl }: { nom: string; logoDataUrl: stri
     <section className={carte}>
       <h2 className="font-bold text-lg mb-4">Logo</h2>
       <div className="flex items-center gap-4">
-        <div className="grid h-16 w-16 place-items-center rounded-control border border-line bg-bg shrink-0">
-          <Logo logoDataUrl={logoDataUrl} nom={nom} size={48} />
+        <div className="grid h-16 min-w-16 place-items-center rounded-control border border-line bg-white px-2 shrink-0">
+          <Logo logoDataUrl={logoDataUrl} nom={nom} size={44} />
         </div>
         <div className="flex flex-wrap gap-2">
           <input
@@ -56,7 +56,7 @@ export function LogoField({ nom, logoDataUrl }: { nom: string; logoDataUrl: stri
             disabled={pending}
             onClick={() => inputRef.current?.click()}
           >
-            {pending ? "Chargement…" : logoDataUrl ? "Changer le logo" : "Ajouter un logo"}
+            {pending ? "Chargement…" : "Remplacer le logo"}
           </button>
           {logoDataUrl && (
             <button
@@ -71,7 +71,8 @@ export function LogoField({ nom, logoDataUrl }: { nom: string; logoDataUrl: stri
         </div>
       </div>
       <p className="text-xs text-muted mt-3">
-        Le logo apparaît dans l’en-tête de vos devis et factures. PNG ou JPG, ~1 Mo max.
+        Le logo apparaît dans l’en-tête de vos devis et factures. Sans logo téléversé, le logo
+        Francisco MELLADO est utilisé. PNG ou JPG, ~1 Mo max.
       </p>
       {erreur && <p className="text-danger text-sm mt-2">{erreur}</p>}
     </section>

@@ -6,14 +6,12 @@ import {
   marquerPayee,
   marquerEmise,
   annulerFacture,
-  supprimerFacture,
 } from "../actions";
-import { ConfirmButton } from "@/components/ConfirmButton";
 import { formatCents } from "@/lib/money";
 import { formatDate } from "@/lib/date";
 import { calculerAcompte } from "@/lib/calcul";
 import { FACTURE_STATUT_LABEL, FACTURE_STATUT_CLASSES } from "@/lib/statut";
-import { btnPrimaire, btnSecondaire, btnDanger } from "@/lib/ui";
+import { btnPrimaire, btnSecondaire } from "@/lib/ui";
 
 export default async function FactureDetailPage({
   params,
@@ -63,7 +61,7 @@ export default async function FactureDetailPage({
         <Link
           href={`/tableau-de-bord/factures/${facture.id}/imprimer`}
           target="_blank"
-          className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]"
+          className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-brand hover:brightness-95 min-h-[44px]"
         >
           Aperçu / PDF
         </Link>
@@ -127,15 +125,10 @@ export default async function FactureDetailPage({
         )}
       </div>
 
-      <section className="border-t border-line pt-6">
-        <ConfirmButton
-          action={supprimerFacture.bind(null, facture.id)}
-          message={`Supprimer définitivement la facture ${facture.numero} ?`}
-          className={btnDanger}
-        >
-          Supprimer cette facture
-        </ConfirmButton>
-      </section>
+      <p className="border-t border-line pt-6 text-sm text-muted">
+        Une facture émise ne peut pas être supprimée : la numérotation des factures doit
+        rester continue. En cas d&apos;erreur, annulez-la puis établissez une nouvelle facture.
+      </p>
     </div>
   );
 }

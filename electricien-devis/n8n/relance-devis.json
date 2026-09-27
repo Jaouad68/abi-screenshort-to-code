@@ -1,0 +1,460 @@
+{
+  "name": "Relance automatique des devis (électricien)",
+  "nodes": [
+    {
+      "id": "a1",
+      "name": "Chaque jour à 9h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-6"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a2",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "appUrl",
+              "type": "string",
+              "value": "https://VOTRE-APP.vercel.app"
+            },
+            {
+              "id": "c2",
+              "name": "expediteur",
+              "type": "string",
+              "value": "MELLADO Électricité <devis@mellado-electricite.fr>"
+            },
+            {
+              "id": "c3",
+              "name": "smsExpediteur",
+              "type": "string",
+              "value": "MELLADO"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a3",
+      "name": "Devis à relancer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "url": "={{ $json.appUrl }}/api/n8n/relances",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      }
+    },
+    {
+      "id": "a4",
+      "name": "Un item par devis",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "fieldToSplitOut": "devis",
+        "options": {}
+      }
+    },
+    {
+      "id": "a5",
+      "name": "Préparer les messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Rédige les messages de relance selon l'étape (1 = J+3, 2 = J+7, 3 = J+15).\n// Modifiez librement les textes ci-dessous : ils partent tels quels aux clients.\nconst d = $input.item.json;\nconst cfg = $('Configuration').first().json;\n\nconst esc = (s) => String(s ?? '')\n  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\n\nconst objet = d.objet ? ` (${d.objet})` : '';\nconst signature = `${esc(d.entreprise.nom)}${d.entreprise.telephone ? '<br>' + esc(d.entreprise.telephone) : ''}`;\n\nconst textes = {\n  1: {\n    sujet: `Votre devis ${d.numero} — ${d.entreprise.nom}`,\n    corps: `<p>Nous vous avons adressé le ${esc(d.envoyeLe)} notre devis <strong>${esc(d.numero)}</strong>${esc(objet)} d'un montant de <strong>${esc(d.montantTtc)} TTC</strong>.</p>\n<p>L'avez-vous bien reçu ? Nous restons à votre disposition pour toute question.</p>`,\n    sms: null,\n  },\n  2: {\n    sujet: `Des questions sur le devis ${d.numero} ?`,\n    corps: `<p>Nous revenons vers vous au sujet de notre devis <strong>${esc(d.numero)}</strong>${esc(objet)} (${esc(d.montantTtc)} TTC).</p>\n<p>Si certains points sont à ajuster (prestations, délais, budget), il suffit de répondre à cet email ou de nous appeler : nous adapterons volontiers la proposition.</p>`,\n    sms: `Bonjour, ${d.entreprise.nom} : avez-vous pu consulter notre devis ${d.numero} (${d.montantTtc}) ? Une question ou un ajustement ? Appelez-nous au ${d.entreprise.telephone}.`,\n  },\n  3: {\n    sujet: `Dernier rappel — devis ${d.numero}`,\n    corps: `<p>Notre devis <strong>${esc(d.numero)}</strong>${esc(objet)} de <strong>${esc(d.montantTtc)} TTC</strong> est valable jusqu'au <strong>${esc(d.valableJusquau)}</strong>.</p>\n<p>Pour bloquer une date d'intervention, il suffit de nous le renvoyer signé avec la mention « Bon pour accord ». Sans nouvelles de votre part, nous considérerons que le projet est reporté.</p>`,\n    sms: `Bonjour, ${d.entreprise.nom} : dernier rappel pour le devis ${d.numero} (${d.montantTtc}), valable jusqu'au ${d.valableJusquau}. Pour planifier l'intervention : ${d.entreprise.telephone}.`,\n  },\n}[d.etape];\n\nreturn {\n  json: {\n    ...d,\n    expediteur: cfg.expediteur,\n    emailSujet: textes.sujet,\n    emailHtml: `<div style=\"font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#0f172a\">\n<p>Bonjour ${esc(d.client.nom)},</p>\n${textes.corps}\n<p>Cordialement,<br>${signature}</p>\n</div>`,\n    sms: textes.sms,\n    alerteSujet: `À rappeler : devis ${d.numero} sans réponse depuis ${d.joursDepuisEnvoi} jours`,\n    alerteHtml: `<p>Le devis <strong>${esc(d.numero)}</strong>${esc(objet)} de <strong>${esc(d.montantTtc)} TTC</strong> pour <strong>${esc(d.client.nom)}</strong> est toujours sans réponse, malgré 3 relances automatiques.</p>\n<p>Un appel de votre part fait souvent la différence : ${d.client.telephone ? '+' + esc(d.client.telephone) : 'pas de téléphone renseigné'}${d.client.email ? ' · ' + esc(d.client.email) : ''}.</p>`,\n  },\n};"
+      }
+    },
+    {
+      "id": "a6",
+      "name": "Client a un email ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "i1",
+              "leftValue": "={{ $json.client.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a7",
+      "name": "Relance email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1320,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "fromEmail": "={{ $json.expediteur }}",
+        "toEmail": "={{ $json.client.email }}",
+        "subject": "={{ $json.emailSujet }}",
+        "emailFormat": "html",
+        "html": "={{ $json.emailHtml }}",
+        "options": {
+          "replyTo": "={{ $json.entreprise.email }}",
+          "appendAttribution": false
+        }
+      }
+    },
+    {
+      "id": "a8",
+      "name": "SMS à envoyer ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "i2",
+              "leftValue": "={{ $('Préparer les messages').item.json.sms }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "i3",
+              "leftValue": "={{ $('Préparer les messages').item.json.client.telephone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "looseTypeValidation": true
+        }
+      }
+    },
+    {
+      "id": "a9",
+      "name": "Relance SMS (Brevo)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/transactionalSMS/sms",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sender: $('Configuration').first().json.smsExpediteur, recipient: $('Préparer les messages').item.json.client.telephone, content: $('Préparer les messages').item.json.sms, type: 'transactional' }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "a10",
+      "name": "Dernière relance ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1980,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "i4",
+              "leftValue": "={{ $('Préparer les messages').item.json.derniereEtape }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "i5",
+              "leftValue": "={{ $('Préparer les messages').item.json.entreprise.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "looseTypeValidation": true
+        }
+      }
+    },
+    {
+      "id": "a11",
+      "name": "Alerter l'artisan",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2200,
+        200
+      ],
+      "onError": "continueRegularOutput",
+      "parameters": {
+        "fromEmail": "={{ $('Préparer les messages').item.json.expediteur }}",
+        "toEmail": "={{ $('Préparer les messages').item.json.entreprise.email }}",
+        "subject": "={{ $('Préparer les messages').item.json.alerteSujet }}",
+        "emailFormat": "html",
+        "html": "={{ $('Préparer les messages').item.json.alerteHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      }
+    },
+    {
+      "id": "a12",
+      "name": "Marquer comme relancé",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuration').first().json.appUrl }}/api/n8n/relances/{{ $('Préparer les messages').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour à 9h": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "Devis à relancer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Devis à relancer": {
+      "main": [
+        [
+          {
+            "node": "Un item par devis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Un item par devis": {
+      "main": [
+        [
+          {
+            "node": "Préparer les messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer les messages": {
+      "main": [
+        [
+          {
+            "node": "Client a un email ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client a un email ?": {
+      "main": [
+        [
+          {
+            "node": "Relance email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SMS à envoyer ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance email": {
+      "main": [
+        [
+          {
+            "node": "SMS à envoyer ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS à envoyer ?": {
+      "main": [
+        [
+          {
+            "node": "Relance SMS (Brevo)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dernière relance ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relance SMS (Brevo)": {
+      "main": [
+        [
+          {
+            "node": "Dernière relance ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dernière relance ?": {
+      "main": [
+        [
+          {
+            "node": "Alerter l'artisan",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marquer comme relancé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alerter l'artisan": {
+      "main": [
+        [
+          {
+            "node": "Marquer comme relancé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris"
+  }
+}

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import type { DevisStatut } from "@/generated/prisma/client";
 import { requireUser } from "@/lib/auth";
@@ -49,6 +50,16 @@ export default async function TableauDeBordPage() {
   const tauxAcceptation =
     nbRepondus > 0 ? Math.round((nbAcceptes / nbRepondus) * 100) : null;
 
+  // Identité affichée en tête d'accueil : ce sont les coordonnées imprimées
+  // sur les devis, l'artisan repère ainsi tout de suite une erreur.
+  const prenom = company.dirigeant.trim().split(/\s+/)[0] ?? "";
+  // Segments insécables : « 28200 Châteaudun » ou un numéro ne se coupent jamais.
+  const coordonnees = [
+    company.adresse,
+    `${company.codePostal} ${company.ville}`.trim(),
+    company.telephone,
+  ].filter(Boolean);
+
   const totalDevis =
     nombre("BROUILLON") +
     nombre("ENVOYE") +
@@ -58,15 +69,40 @@ export default async function TableauDeBordPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Bonjour 👋</h1>
-          <p className="text-muted">{company.nom}</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h1 className="text-2xl font-bold">Bonjour{prenom && ` ${prenom}`} 👋</h1>
         <Link href="/tableau-de-bord/devis/nouveau" className={btnPrimaire}>
           + Nouveau devis
         </Link>
       </div>
+
+      {/* Identité de l'entreprise */}
+      <section
+        aria-label="Votre entreprise"
+        className="mb-6 rounded-card border border-line bg-card p-4 flex items-start justify-between gap-3"
+      >
+        <div className="min-w-0">
+          <p className="font-bold leading-tight">{company.dirigeant || company.nom}</p>
+          {company.activite && <p className="text-sm text-ink-2">{company.activite}</p>}
+          {coordonnees.length > 0 && (
+            <p className="mt-1 text-sm text-muted">
+              {coordonnees.map((c, i) => (
+                <Fragment key={i}>
+                  {i > 0 && " · "}
+                  <span className="whitespace-nowrap">{c}</span>
+                </Fragment>
+              ))}
+            </p>
+          )}
+          <p className="mt-1.5 text-xs text-muted">Coordonnées imprimées sur vos devis et factures.</p>
+        </div>
+        <Link
+          href="/tableau-de-bord/parametres"
+          className="shrink-0 text-sm font-semibold text-brand hover:underline"
+        >
+          Modifier
+        </Link>
+      </section>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 mb-4">

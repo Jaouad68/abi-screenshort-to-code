@@ -78,7 +78,7 @@ export async function enregistrerDevis(
   id: string,
   payload: DevisPayload,
 ): Promise<EnregistrerResult> {
-  const { user } = await requireUser();
+  const { user, company } = await requireUser();
 
   const devis = await prisma.devis.findFirst({ where: { id, userId: user.id } });
   if (!devis) return { error: "Devis introuvable." };
@@ -86,8 +86,12 @@ export async function enregistrerDevis(
   const parsed = payloadSchema.safeParse(payload);
   if (!parsed.success) return { error: "Données du devis invalides." };
   const data = parsed.data;
+  // Franchise en base de TVA : aucune TVA ne peut être facturée.
+  const lignes = company.franchiseTva
+    ? data.lignes.map((l) => ({ ...l, tauxTva: 0 }))
+    : data.lignes;
 
-  const totaux = calculerTotaux(data.lignes);
+  const totaux = calculerTotaux(lignes);
   const dateDevis = new Date(data.dateDevis);
 
   await prisma.$transaction([
@@ -106,7 +110,7 @@ export async function enregistrerDevis(
         totalTvaCents: totaux.totalTvaCents,
         totalTtcCents: totaux.totalTtcCents,
         lignes: {
-          create: data.lignes.map((l, i) => ({
+          create: lignes.map((l, i) => ({
             libelle: l.libelle,
             description: l.description,
             quantiteMilli: l.quantiteMilli,

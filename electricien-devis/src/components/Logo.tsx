@@ -1,15 +1,26 @@
 /**
- * Logo de l'entreprise : image téléversée (data URL) si présente, sinon une
- * pastille avec l'initiale du nom. Utilisé dans l'interface et les PDF.
+ * Logo de l'entreprise : image téléversée dans les Réglages (data URL) si
+ * présente, sinon le logo Francisco MELLADO livré avec l'application
+ * (public/marque). Utilisé dans l'interface et les PDF.
+ *
+ * - « marque » : monogramme FM seul, pour les petits formats (barre du haut).
+ * - « complet » : logo avec nom, activité et ville (écran de connexion, PDF).
  */
+const LOGOS_PAR_DEFAUT = {
+  marque: { src: "/marque/logo-fm.png", ratio: 671 / 421 },
+  complet: { src: "/marque/logo-mellado.png", ratio: 1736 / 421 },
+} as const;
+
 export function Logo({
   logoDataUrl,
   nom,
   size = 36,
+  variante = "marque",
 }: {
   logoDataUrl: string;
   nom: string;
   size?: number;
+  variante?: keyof typeof LOGOS_PAR_DEFAUT;
 }) {
   if (logoDataUrl) {
     return (
@@ -23,13 +34,16 @@ export function Logo({
     );
   }
 
-  const initiale = nom.trim().charAt(0).toUpperCase() || "•";
+  const { src, ratio } = LOGOS_PAR_DEFAUT[variante];
   return (
-    <span
-      className="grid place-items-center rounded bg-brand text-white font-bold"
-      style={{ height: size, width: size, fontSize: size * 0.5 }}
-    >
-      {initiale}
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={nom}
+      width={Math.round(size * ratio)}
+      height={size}
+      className="block max-w-full object-contain"
+      style={{ height: size, width: "auto" }}
+    />
   );
 }

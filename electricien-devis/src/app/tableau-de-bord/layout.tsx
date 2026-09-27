@@ -28,7 +28,7 @@ export default async function DashboardLayout({
             <span className="shrink-0">
               <Logo logoDataUrl={company.logoDataUrl} nom={company.nom} size={32} />
             </span>
-            <span className="font-bold text-ink truncate">{company.nom}</span>
+            <span className="font-bold text-ink truncate sm:sr-only">{company.nom}</span>
           </Link>
 
           <nav className="hidden sm:flex items-center gap-5 text-sm font-semibold">
