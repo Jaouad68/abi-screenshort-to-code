@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-preview/
+dist-test/
+rapport-build*.json
+export/
+test-results/
+dist-test-preview/

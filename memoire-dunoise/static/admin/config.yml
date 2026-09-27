@@ -1,0 +1,261 @@
+# Configuration de l'espace d'administration (Decap CMS).
+# Chaque enregistrement crée un commit dans le dépôt GitHub : historique complet, retour arrière possible.
+backend:
+  name: github
+  repo: jaouad68/abi-screenshort-to-code
+  # Branche publiée. À remplacer par la branche de production après validation du site.
+  branch: claude/memoire-dunoise-redesign-tnhkd5
+  # Service d'authentification OAuth GitHub (voir ADMINISTRATION.md, § « Mise en service »).
+  # base_url: https://auth.exemple.org
+  commit_messages:
+    create: "Contenu : ajout de « {{slug}} » ({{collection}})"
+    update: "Contenu : modification de « {{slug}} » ({{collection}})"
+    delete: "Contenu : suppression de « {{slug}} » ({{collection}})"
+    uploadMedia: "Média : ajout de {{path}}"
+    deleteMedia: "Média : suppression de {{path}}"
+
+# Brouillon → En relecture → Prêt : rien n'est publié sans validation explicite.
+publish_mode: editorial_workflow
+locale: fr
+
+media_folder: memoire-dunoise/content/media
+public_folder: media
+
+collections:
+  - name: articles
+    label: Articles d’histoire locale
+    label_singular: Article
+    folder: memoire-dunoise/content/articles
+    create: true
+    slug: "{{slug}}"
+    summary: "{{titre}} — {{statut}}"
+    fields:
+      - { name: titre, label: Titre, widget: string }
+      - { name: resume, label: "Résumé (2 phrases, affiché dans les listes et les moteurs de recherche)", widget: text }
+      - { name: statut, label: Statut, widget: select, default: brouillon, options: [{ label: Brouillon, value: brouillon }, { label: Publié, value: publie }] }
+      - { name: date_publication, label: Date de publication, widget: datetime, format: YYYY-MM-DD, date_format: DD/MM/YYYY, time_format: false }
+      - { name: mise_a_jour, label: Date de mise à jour, widget: datetime, format: YYYY-MM-DD, date_format: DD/MM/YYYY, time_format: false, required: false }
+      - { name: portee, label: Portée, widget: select, options: [{ label: "Fait local (source établissant le lien avec Châteaudun)", value: local }, { label: Contexte national, value: national }] }
+      - { name: theme, label: Thème, widget: string, required: false }
+      - name: sources
+        label: "Sources (obligatoires : l’article n’est pas publié sans source)"
+        label_singular: Source
+        widget: list
+        fields:
+          - { name: titre, label: Titre du document, widget: string }
+          - { name: auteur, label: Auteur, widget: string, required: false }
+          - { name: editeur, label: "Éditeur ou lieu de conservation", widget: string, required: false }
+          - { name: url, label: Lien, widget: string, required: false }
+          - { name: nature, label: "Nature (archive, source imprimée, étude…)", widget: string, required: false }
+          - { name: consulte, label: Consulté le, widget: datetime, format: YYYY-MM-DD, date_format: DD/MM/YYYY, time_format: false, required: false }
+      - { name: corrections, label: Corrections apportées, widget: list, required: false, field: { name: correction, label: Correction, widget: string } }
+      - { name: body, label: "Texte (appel de source : [[1]], [[2]]…)", widget: markdown }
+
+  - name: evenements
+    label: Événements et commémorations
+    label_singular: Événement
+    folder: memoire-dunoise/content/evenements
+    create: true
+    slug: "{{date}}-{{slug}}"
+    identifier_field: titre
+    summary: "{{date}} · {{titre}} — {{statut}}"
+    fields:
+      - { name: titre, label: Titre, widget: string }
+      - { name: statut, label: Statut, widget: select, default: brouillon, options: [{ label: "Brouillon (non visible)", value: brouillon }, { label: "Validé et publié", value: publie }] }
+      - { name: date, label: Date, widget: datetime, format: YYYY-MM-DD, date_format: DD/MM/YYYY, time_format: false }
+      - { name: heure_debut, label: "Heure de début (ex. 10:30)", widget: string, pattern: ['^\d{2}:\d{2}$', "Format attendu : 10:30"] }
+      - { name: heure_fin, label: Heure de fin, widget: string, required: false }
+      - { name: lieu, label: Lieu, widget: string }
+      - { name: adresse, label: Adresse, widget: string, required: false }
+      - { name: infos_pratiques, label: "Informations pratiques (accès, stationnement, inscription…)", widget: text, required: false }
+      - { name: body, label: Présentation, widget: markdown, required: false }
+
+  - name: actualites
+    label: Publications
+    label_singular: Publication
+    folder: memoire-dunoise/content/actualites
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    identifier_field: titre
+    fields:
+      - { name: titre, label: Titre, widget: string }
+      - { name: statut, label: Statut, widget: select, default: brouillon, options: [{ label: Brouillon, value: brouillon }, { label: Publié, value: publie }] }
+      - { name: date, label: Date, widget: datetime, format: YYYY-MM-DD, date_format: DD/MM/YYYY, time_format: false }
+      - { name: body, label: Texte, widget: markdown }
+
+  - name: combattants
+    label: Fiches de combattants
+    label_singular: Fiche
+    folder: memoire-dunoise/content/combattants
+    create: true
+    slug: "{{nom}}-{{prenoms}}"
+    identifier_field: nom
+    summary: "{{nom}} {{prenoms}} — {{statut}}"
+    fields:
+      - { name: nom, label: Nom, widget: string }
+      - { name: prenoms, label: Prénoms, widget: string }
+      - { name: statut, label: Statut, widget: select, default: brouillon, options: [{ label: Brouillon, value: brouillon }, { label: "Vérifiée et publiée", value: publie }] }
+      - { name: lien_chateaudun, label: "Lien établi avec Châteaudun (et document qui l’établit)", widget: text }
+      - { name: naissance_date, label: Date de naissance, widget: string, required: false }
+      - { name: naissance_lieu, label: Lieu de naissance, widget: string, required: false }
+      - { name: deces_date, label: Date de décès, widget: string, required: false }
+      - { name: deces_lieu, label: Lieu de décès, widget: string, required: false }
+      - { name: mort_pour_la_france, label: "Mention « Mort pour la France » attestée", widget: boolean, required: false }
+      - { name: grade, label: Grade, widget: string, required: false }
+      - { name: unite, label: Unité(s), widget: string, required: false }
+      - { name: matricule, label: Classe et numéro matricule, widget: string, required: false }
+      - name: references
+        label: "Références consultées (obligatoires)"
+        label_singular: Référence
+        widget: list
+        fields:
+          - { name: titre, label: Document, widget: string }
+          - { name: editeur, label: Lieu de conservation, widget: string, required: false }
+          - { name: url, label: Lien, widget: string, required: false }
+          - { name: nature, label: Nature, widget: string, required: false }
+      - { name: body, label: "Parcours connu (uniquement des faits documentés)", widget: markdown, required: false }
+
+  - name: documents
+    label: Archives et photographies
+    label_singular: Document
+    folder: memoire-dunoise/content/documents
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { name: titre, label: Titre, widget: string }
+      - { name: titre_original, label: Titre d’origine, widget: string, required: false }
+      - { name: statut, label: Statut, widget: select, default: brouillon, options: [{ label: Brouillon, value: brouillon }, { label: Publié, value: publie }] }
+      - { name: image, label: Image (JPEG ou PNG), widget: image }
+      - { name: alt, label: "Description de l’image pour les personnes aveugles", widget: text }
+      - { name: date, label: "Date (ex. « 1916 » ou « Vers 1914-1915 »)", widget: string }
+      - { name: datation, label: Datation, widget: select, options: [{ label: Date connue, value: connue }, { label: Date estimée, value: estimee }] }
+      - { name: lieu, label: "Lieu (laisser « Non précisé » si la source ne l’indique pas)", widget: string, default: "Non précisé par la source" }
+      - { name: auteur, label: Auteur, widget: string, required: false }
+      - { name: support, label: Support, widget: string, required: false }
+      - { name: provenance, label: "Provenance (détenteur, fonds)", widget: string }
+      - { name: cote, label: Cote, widget: string, required: false }
+      - { name: droits, label: Conditions de réutilisation, widget: string }
+      - { name: credit, label: Crédit à mentionner, widget: string, required: false }
+      - { name: url_source, label: Lien vers la notice d’origine, widget: string }
+      - { name: ordre, label: Ordre d’affichage, widget: number, required: false }
+      - { name: recadrage, label: "Recadrage pour l’accueil : x, y, largeur, hauteur (pixels)", widget: list, required: false }
+      - { name: body, label: Commentaire, widget: markdown, required: false }
+
+  - name: pages
+    label: Textes des pages
+    editor: { preview: false }
+    files:
+      - name: accueil
+        label: Accueil
+        file: memoire-dunoise/content/pages/accueil.md
+        fields:
+          - { name: titre, label: Titre interne, widget: hidden }
+          - { name: description_seo, label: Description pour les moteurs de recherche, widget: text }
+          - { name: accroche, label: Surtitre, widget: string }
+          - { name: titre_principal, label: Titre principal, widget: string }
+          - { name: introduction, label: Introduction, widget: text }
+          - { name: image_hero, label: "Document affiché (identifiant du document)", widget: string }
+      - name: projet
+        label: Le projet / L’association
+        file: memoire-dunoise/content/pages/projet.md
+        fields:
+          - { name: titre, label: Titre, widget: string }
+          - { name: description_seo, label: Description pour les moteurs de recherche, widget: text }
+          - { name: chapeau, label: Chapeau, widget: text }
+          - { name: body, label: Texte, widget: markdown }
+      - name: histoire
+        label: Histoire locale (introduction et repères nationaux)
+        file: memoire-dunoise/content/pages/histoire.md
+        fields:
+          - { name: titre, label: Titre, widget: string }
+          - { name: description_seo, label: Description pour les moteurs de recherche, widget: text }
+          - { name: chapeau, label: Chapeau, widget: text }
+          - { name: reperes_titre, label: Titre des repères, widget: string }
+          - { name: reperes_intro, label: Introduction des repères, widget: text }
+          - { name: reperes, label: Repères, widget: list, fields: [{ name: annee, label: Année, widget: string }, { name: titre, label: Titre, widget: string }, { name: texte, label: Texte, widget: text }] }
+          - { name: reperes_source_titre, label: Source des repères, widget: string }
+          - { name: reperes_source_url, label: Lien de la source, widget: string }
+      - name: retrouver
+        label: Guide « Retrouver un combattant »
+        file: memoire-dunoise/content/pages/retrouver-un-combattant.md
+        fields:
+          - { name: titre, label: Titre, widget: string }
+          - { name: description_seo, label: Description pour les moteurs de recherche, widget: text }
+          - { name: chapeau, label: Chapeau, widget: text }
+          - { name: etapes, label: Étapes, widget: list, fields: [{ name: titre, label: Titre, widget: string }, { name: texte, label: Texte, widget: text }, { name: lien_titre, label: Libellé du lien, widget: string, required: false }, { name: lien_url, label: Lien, widget: string, required: false }] }
+          - { name: body, label: Texte complémentaire, widget: markdown }
+      - name: mentions
+        label: Mentions légales
+        file: memoire-dunoise/content/pages/mentions-legales.md
+        fields:
+          - { name: titre, label: Titre, widget: string }
+          - { name: description_seo, label: Description, widget: text }
+          - { name: chapeau, label: Chapeau, widget: text }
+          - { name: body, label: "Texte (les champs {{editeur}}, {{hebergeur}}… sont remplis depuis les Réglages)", widget: markdown }
+      - name: confidentialite
+        label: Confidentialité
+        file: memoire-dunoise/content/pages/confidentialite.md
+        fields:
+          - { name: titre, label: Titre, widget: string }
+          - { name: description_seo, label: Description, widget: text }
+          - { name: chapeau, label: Chapeau, widget: text }
+          - { name: body, label: Texte, widget: markdown }
+
+  - name: reglages
+    label: Réglages et identité
+    editor: { preview: false }
+    files:
+      - name: site
+        label: Identité, coordonnées, formulaire
+        file: memoire-dunoise/content/site.json
+        fields:
+          - { name: nom, label: Nom affiché du site, widget: string }
+          - { name: sousTitre, label: Sous-titre, widget: string }
+          - { name: description, label: Description générale, widget: text }
+          - { name: urlPublique, label: Adresse publique du site, widget: string }
+          - { name: langue, label: Langue, widget: hidden, default: fr }
+          - { name: previsualisation, label: "Afficher le bandeau « version de prévisualisation »", widget: boolean }
+          - name: association
+            label: Association (ne cocher « identité confirmée » qu’après vérification des statuts)
+            widget: object
+            fields:
+              - { name: identiteConfirmee, label: Identité confirmée, widget: boolean }
+              - { name: denomination, label: Dénomination officielle, widget: string, required: false }
+              - { name: formeJuridique, label: Forme juridique, widget: string, required: false }
+              - { name: numeroRNA, label: Numéro RNA, widget: string, required: false }
+              - { name: siegeSocial, label: Siège social, widget: string, required: false }
+              - { name: dateCreation, label: Date de création, widget: string, required: false }
+              - { name: objet, label: Objet statutaire, widget: text, required: false }
+              - { name: responsables, label: "Responsables (avec leur accord)", widget: list, required: false, fields: [{ name: nom, label: Nom, widget: string }, { name: fonction, label: Fonction, widget: string }] }
+              - { name: partenaires, label: Partenaires confirmés, widget: list, required: false, fields: [{ name: nom, label: Nom, widget: string }, { name: url, label: Site, widget: string, required: false }] }
+              - { name: documentsOfficiels, label: Documents officiels (PDF déposés dans les médias), widget: list, required: false, fields: [{ name: titre, label: Titre, widget: string }, { name: fichier, label: Nom du fichier, widget: string }] }
+          - name: contact
+            label: Contact
+            widget: object
+            fields:
+              - { name: email, label: Courriel public, widget: string, required: false }
+              - { name: telephone, label: Téléphone public, widget: string, required: false }
+              - { name: adressePostale, label: Adresse postale, widget: string, required: false }
+              - name: formulaire
+                label: Formulaire de contact
+                widget: object
+                fields:
+                  - { name: actif, label: Activer le formulaire, widget: boolean }
+                  - { name: endpoint, label: "Adresse de réception (fournie par le service d’envoi)", widget: string, required: false }
+                  - { name: fournisseur, label: Nom du service d’envoi, widget: string, required: false }
+          - name: participer
+            label: Participer
+            widget: object
+            fields:
+              - { name: actif, label: Afficher la rubrique Participer, widget: boolean }
+              - { name: adhesion, label: Modalités d’adhésion confirmées, widget: markdown, required: false }
+              - { name: benevolat, label: Bénévolat, widget: markdown, required: false }
+              - { name: transmissionDocuments, label: Transmission de documents, widget: markdown, required: false }
+          - name: hebergeur
+            label: Hébergeur (mentions légales)
+            widget: object
+            fields:
+              - { name: nom, label: Nom, widget: string, required: false }
+              - { name: adresse, label: Adresse, widget: string, required: false }
+              - { name: contact, label: Téléphone ou contact, widget: string, required: false }
+          - { name: directeurPublication, label: Directeur ou directrice de la publication, widget: string, required: false }

@@ -1,0 +1,40 @@
+name: Mémoire dunoise — build et tests
+
+on:
+  push:
+    paths: ['memoire-dunoise/**', '.github/workflows/memoire-dunoise.yml']
+  pull_request:
+    paths: ['memoire-dunoise/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: memoire-dunoise
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: memoire-dunoise/package-lock.json
+      - run: npm ci
+      - name: Tests du générateur et du formulaire
+        run: npm test
+      - name: Installer Chromium pour les parcours navigateur
+        run: npx playwright-core install --with-deps chromium
+      - name: Parcours navigateur (petit écran, clavier, formulaire)
+        run: CHROMIUM_PATH="$(node -e "console.log(require('playwright-core').chromium.executablePath())")" npm run test:e2e
+      - name: Construire le site
+        run: npm run build
+      - name: Conserver le site généré (téléchargeable depuis l'onglet Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: memoire-dunoise-site
+          path: memoire-dunoise/dist
+          retention-days: 30

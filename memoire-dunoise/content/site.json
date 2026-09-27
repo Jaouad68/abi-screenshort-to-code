@@ -1,0 +1,42 @@
+{
+  "nom": "Mémoire dunoise",
+  "sousTitre": "Châteaudun · 1914–1918",
+  "description": "Mémoire et transmission de l’histoire des combattants de la Première Guerre mondiale liés à Châteaudun : articles sourcés, documents d’archives et méthode pour retrouver un parcours.",
+  "urlPublique": "https://memoire-dunoise-1914-1918.zsz4krtbkv.chatgpt.site",
+  "langue": "fr",
+  "previsualisation": true,
+  "association": {
+    "identiteConfirmee": false,
+    "denomination": "",
+    "formeJuridique": "",
+    "numeroRNA": "",
+    "siegeSocial": "",
+    "dateCreation": "",
+    "objet": "",
+    "responsables": [],
+    "partenaires": [],
+    "documentsOfficiels": []
+  },
+  "contact": {
+    "email": "",
+    "telephone": "",
+    "adressePostale": "",
+    "formulaire": {
+      "actif": false,
+      "endpoint": "",
+      "fournisseur": ""
+    }
+  },
+  "participer": {
+    "actif": false,
+    "adhesion": "",
+    "benevolat": "",
+    "transmissionDocuments": ""
+  },
+  "hebergeur": {
+    "nom": "",
+    "adresse": "",
+    "contact": ""
+  },
+  "directeurPublication": ""
+}
