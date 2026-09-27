@@ -15,6 +15,7 @@ import { StatutBadge } from "@/components/StatutBadge";
 import { STATUT_LABEL, TRANSITIONS } from "@/lib/statut";
 import { toInputDate } from "@/lib/date";
 import { btnPrimaire, btnSecondaire, btnDanger } from "@/lib/ui";
+import { MESSAGES_ECHEC, estRaisonEchec } from "@/lib/email-erreur";
 
 const centsToEuros = (c: number) => (c / 100).toString().replace(".", ",");
 const milliToQuantite = (m: number) =>
@@ -25,11 +26,11 @@ export default async function DevisEditPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ email?: string; facture?: string }>;
+  searchParams: Promise<{ email?: string; raison?: string; facture?: string }>;
 }) {
   const { user, company } = await requireUser();
   const { id } = await params;
-  const { email: emailStatut, facture: factureStatut } = await searchParams;
+  const { email: emailStatut, raison, facture: factureStatut } = await searchParams;
 
   const devis = await prisma.devis.findFirst({
     where: { id, userId: user.id },
@@ -125,7 +126,7 @@ export default async function DevisEditPage({
             "Envoi simulé : configurez RESEND_API_KEY et EMAIL_FROM pour un envoi réel. Le devis est passé en « Envoyé »."}
           {emailStatut === "sans-adresse" &&
             "Ce client n'a pas d'adresse email. Ajoutez-la dans sa fiche."}
-          {emailStatut === "erreur" && "L'envoi de l'email a échoué. Réessayez."}
+          {emailStatut === "erreur" && MESSAGES_ECHEC[estRaisonEchec(raison) ? raison : "autre"]}
         </div>
       )}
       {factureStatut === "statut" && (
