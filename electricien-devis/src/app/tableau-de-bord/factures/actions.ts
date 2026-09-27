@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 
@@ -26,12 +25,4 @@ export async function marquerEmise(id: string) {
 
 export async function annulerFacture(id: string) {
   await majStatut(id, { statut: "ANNULEE", datePaiement: null });
-}
-
-export async function supprimerFacture(id: string) {
-  const { user } = await requireUser();
-  await prisma.facture.deleteMany({ where: { id, userId: user.id } });
-  revalidatePath("/tableau-de-bord/factures");
-  revalidatePath("/tableau-de-bord");
-  redirect("/tableau-de-bord/factures");
 }

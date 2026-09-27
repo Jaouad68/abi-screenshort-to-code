@@ -141,6 +141,15 @@ sa clé API dans la variable d'environnement `TWENTY_FIRST_API_KEY` (à définir
 dans votre shell — clé obtenue sur la console 21st.dev), jamais commitée dans
 le repo.
 
+Le serveur MCP [n8n-mcp](https://github.com/czlonkowski/n8n-mcp)
+(`npx n8n-mcp`) donne à Claude Code la documentation des nœuds n8n, des
+modèles de workflows et un validateur de workflows, pour concevoir les
+automatisations n8n (rappels, relances...). Sans configuration, seuls ces
+outils de documentation/validation sont disponibles. Pour qu'il puisse aussi
+créer et gérer les workflows d'une instance n8n, définissez dans votre shell
+`N8N_API_URL` (ex. `https://votre-n8n.exemple.com`) et `N8N_API_KEY` (clé
+générée dans n8n → Settings → n8n API), jamais commitées dans le repo.
+
 ## Structure
 
 - `src/app/page.tsx` — page d'accueil

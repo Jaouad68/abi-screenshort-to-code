@@ -27,7 +27,10 @@ pensée pour un usage quotidien sur chantier (mobile-first) par un artisan non-t
   TVA, préfixe des devis, TVA par défaut, durée de validité, mentions légales).
 - **Factures** : conversion d'un devis accepté en facture (numérotation `FAC-2026-001`,
   copie figée des lignes, PDF facture avec mentions légales de facturation), suivi
-  du statut **Émise → Payée**, tableau « encaissé / en attente ».
+  du statut **Émise → Payée**, tableau « encaissé / en attente ». Une facture émise ne
+  peut pas être supprimée (numérotation continue obligatoire) : elle s'annule.
+- **Franchise en base de TVA** (micro-entreprise) : option des Réglages qui force la
+  TVA à 0 et imprime « TVA non applicable, article 293 B du CGI » sur devis et factures.
 - **Acompte** : pourcentage d'acompte par devis, avec calcul automatique du montant
   à la commande et du solde, repris dans le PDF et la facture.
 - **Logo** : téléversement d'un logo (Réglages) affiché dans l'interface et les PDF.
@@ -38,6 +41,9 @@ pensée pour un usage quotidien sur chantier (mobile-first) par un artisan non-t
   (paramétrable) remontent dans une alerte « À relancer » du tableau de bord, et
   une route cron quotidienne (`/api/cron/relances`, voir `vercel.json`) envoie une
   relance par email au client.
+- **Relances via n8n (optionnel)** : séquence email + SMS à J+3, J+7 et J+15 avec
+  alerte à l'artisan, pilotée par un workflow n8n prêt à importer. Voir
+  [`n8n/README.md`](n8n/README.md).
 - **Export comptable CSV** : journal des devis et des factures exportable en CSV
   (séparateur `;`, décimales FR, BOM UTF-8) par année, pour le comptable.
 - **Bon de commande client** : n° de commande et date d'acceptation sur le devis,

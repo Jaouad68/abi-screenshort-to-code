@@ -5,6 +5,7 @@ import { enregistrerDevis, type DevisPayload } from "../actions";
 import { calculerTotaux, calculerAcompte, TAUX_TVA, UNITES } from "@/lib/calcul";
 import { formatCents, eurosToCents, quantiteToMilli } from "@/lib/money";
 import { champ, label, btnPrimaire, btnSecondaire } from "@/lib/ui";
+import { MENTION_FRANCHISE_TVA } from "@/lib/tva";
 
 type LigneUI = {
   key: string;
@@ -42,11 +43,16 @@ export function DevisEditor({
   devisId,
   initial,
   prestations,
+  franchiseTva,
 }: {
   devisId: string;
   initial: DevisInitial;
   prestations: PrestationCatalogue[];
+  /** Franchise en base de TVA : TVA forcée à 0 (aussi imposé côté serveur). */
+  franchiseTva: boolean;
 }) {
+  const tauxEffectif = (l: LigneUI) => (franchiseTva ? 0 : l.tauxTva);
+
   const compteur = useRef(0);
   const nouvelleCle = () => `l${compteur.current++}`;
 
@@ -113,10 +119,10 @@ export function DevisEditor({
         lignes.map((l) => ({
           prixUnitaireCents: eurosToCents(l.prix),
           quantiteMilli: quantiteToMilli(l.quantite),
-          tauxTva: l.tauxTva,
+          tauxTva: franchiseTva ? 0 : l.tauxTva,
         })),
       ),
-    [lignes],
+    [lignes, franchiseTva],
   );
 
   const montantLigne = (l: LigneUI) =>
@@ -139,7 +145,7 @@ export function DevisEditor({
           quantiteMilli: quantiteToMilli(l.quantite),
           unite: l.unite,
           prixUnitaireCents: eurosToCents(l.prix),
-          tauxTva: l.tauxTva,
+          tauxTva: tauxEffectif(l),
         })),
     };
 
@@ -302,6 +308,7 @@ export function DevisEditor({
                     inputMode="decimal"
                   />
                 </LabelledMini>
+                {!franchiseTva && (
                 <LabelledMini libelle="TVA">
                   <select
                     value={l.tauxTva}
@@ -315,6 +322,7 @@ export function DevisEditor({
                     ))}
                   </select>
                 </LabelledMini>
+                )}
               </div>
               <div className="text-right text-sm">
                 <span className="text-muted">Total HT ligne : </span>
@@ -357,7 +365,10 @@ export function DevisEditor({
             <dt className="text-muted">Total HT</dt>
             <dd className="font-semibold tabular-nums">{formatCents(totaux.totalHtCents)}</dd>
           </div>
-          {totaux.ventilationTva.map((v) => (
+          {franchiseTva && (
+            <div className="text-muted">{MENTION_FRANCHISE_TVA}</div>
+          )}
+          {!franchiseTva && totaux.ventilationTva.map((v) => (
             <div key={v.taux} className="flex justify-between text-muted">
               <dt>
                 TVA {v.taux} % (sur {formatCents(v.baseHtCents)})
@@ -366,7 +377,7 @@ export function DevisEditor({
             </div>
           ))}
           <div className="flex justify-between border-t border-line pt-2 mt-1 text-base">
-            <dt className="font-bold">Total TTC</dt>
+            <dt className="font-bold">{franchiseTva ? "Total net" : "Total TTC"}</dt>
             <dd className="font-bold tabular-nums text-brand">
               {formatCents(totaux.totalTtcCents)}
             </dd>

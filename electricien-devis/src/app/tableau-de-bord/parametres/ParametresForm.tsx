@@ -100,6 +100,23 @@ export function ParametresForm({ company }: { company: Company }) {
               />
             </div>
           </div>
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              name="franchiseTva"
+              defaultChecked={company.franchiseTva}
+              className="mt-0.5 h-5 w-5 shrink-0"
+            />
+            <span>
+              <span className="font-semibold">Franchise en base de TVA (micro-entreprise)</span>
+              <br />
+              <span className="text-muted">
+                Aucune TVA facturée : les devis et factures portent la mention « TVA non
+                applicable, article 293 B du CGI ». Les devis existants passent à 0 % à leur
+                prochain enregistrement.
+              </span>
+            </span>
+          </label>
           <div>
             <label className={label} htmlFor="mentionsLegales">
               Mentions légales imprimées en bas de devis

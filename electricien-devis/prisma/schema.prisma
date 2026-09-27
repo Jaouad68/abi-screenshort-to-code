@@ -47,6 +47,9 @@ model Company {
   tauxTvaDefaut   Int      @default(20)
   dureeValidite   Int      @default(30)
   relanceJours    Int      @default(7)
+  /// Micro-entreprise en franchise en base de TVA : TVA forcée à 0 et mention
+  /// « TVA non applicable, article 293 B du CGI » sur les devis et factures.
+  franchiseTva    Boolean  @default(false)
   mentionsLegales String   @default("")
   updatedAt       DateTime @updatedAt
 }
