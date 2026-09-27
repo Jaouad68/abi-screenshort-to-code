@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { enregistrerDevis, type DevisPayload } from "../actions";
 import { calculerTotaux, calculerAcompte, TAUX_TVA, UNITES } from "@/lib/calcul";
 import { formatCents, eurosToCents, quantiteToMilli } from "@/lib/money";
@@ -70,6 +70,15 @@ export function DevisEditor({
   const [dirty, setDirty] = useState(false);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ ok?: boolean; error?: string }>({});
+
+  // Prévient avant de quitter la page (rechargement, fermeture, retour) si des
+  // modifications n'ont pas été enregistrées.
+  useEffect(() => {
+    if (!dirty) return;
+    const avertir = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", avertir);
+    return () => window.removeEventListener("beforeunload", avertir);
+  }, [dirty]);
 
   const marquerModifie = () => {
     setDirty(true);

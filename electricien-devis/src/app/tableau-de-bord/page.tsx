@@ -7,6 +7,7 @@ import { formatCents } from "@/lib/money";
 import { DevisRow } from "@/components/DevisRow";
 import { STATUT_LABEL } from "@/lib/statut";
 import { btnPrimaire } from "@/lib/ui";
+import { ASSURANCE_EXEMPLE } from "@/lib/defaults";
 
 export default async function TableauDeBordPage() {
   const { user, company } = await requireUser();
@@ -75,6 +76,18 @@ export default async function TableauDeBordPage() {
           + Nouveau devis
         </Link>
       </div>
+
+      {/* Donnée légale encore à l'exemple : l'assurance décennale doit figurer sur les devis. */}
+      {company.assurance === ASSURANCE_EXEMPLE && (
+        <Link
+          href="/tableau-de-bord/parametres"
+          className="mb-4 block rounded-card border border-accent bg-accent-l p-4 text-sm text-ink"
+        >
+          <span className="font-bold">⚠️ Assurance décennale à compléter.</span> Celle affichée
+          sur vos devis est un exemple : remplacez-la par votre assureur et votre n° de police
+          (Réglages). <span className="font-semibold underline">Compléter</span>
+        </Link>
+      )}
 
       {/* Identité de l'entreprise */}
       <section
@@ -150,7 +163,7 @@ export default async function TableauDeBordPage() {
           <p className="text-sm text-accent-d/80 mb-3">
             Devis envoyés il y a plus de {company.relanceJours} jours, sans réponse.
           </p>
-          <ul className="grid gap-2">
+          <ul className="grid grid-cols-1 gap-2">
             {aRelancer.map((d) => (
               <li key={d.id}>
                 <Link
@@ -186,7 +199,7 @@ export default async function TableauDeBordPage() {
           </Link>
         </div>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {derniers.map((d) => (
             <li key={d.id}>
               <DevisRow devis={d} montrerClient />

@@ -29,7 +29,7 @@ export default async function ClientsPage() {
       {clients.length === 0 ? (
         <p className="text-muted italic">Aucun client pour le moment.</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {clients.map((client) => (
             <li key={client.id}>
               <Link

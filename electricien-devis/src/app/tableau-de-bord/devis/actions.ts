@@ -270,47 +270,70 @@ export async function convertirEnFacture(id: string) {
   });
   if (!devis) redirect("/tableau-de-bord/devis");
 
-  // La facturation part d'un devis accepté.
-  if (devis.statut !== "ACCEPTE") {
-    redirect(`/tableau-de-bord/devis/${id}?facture=statut`);
-  }
+  // La facturation part d'un devis accepté. Déjà facturé (double appui, requête
+  // rejouée) : on ouvre la facture existante plutôt qu'un message d'erreur.
+  if (devis.statut !== "ACCEPTE") await allerALaFactureOuErreur(id, user.id);
 
-  const annee = new Date().getFullYear();
-  const numero = await genererNumeroFacture(user.id, company.prefixeFacture, annee);
+  // Passage en « Facturé » et création de la facture dans une même transaction :
+  // le passage conditionnel (statut ACCEPTE) garantit une seule facture même en cas
+  // de double envoi (double appui, requête rejouée), et le numéro n'est consommé que
+  // si la facture est bien créée.
+  const facture = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.devis.updateMany({
+      where: { id, userId: user.id, statut: "ACCEPTE" },
+      data: { statut: "FACTURE" },
+    });
+    if (count === 0) return null;
 
-  const facture = await prisma.facture.create({
-    data: {
-      userId: user.id,
-      clientId: devis.clientId,
-      devisId: devis.id,
-      numero,
-      objet: devis.objet,
-      notes: devis.notes,
-      conditions: devis.conditions,
-      acomptePct: devis.acomptePct,
-      numeroCommande: devis.numeroCommande,
-      totalHtCents: devis.totalHtCents,
-      totalTvaCents: devis.totalTvaCents,
-      totalTtcCents: devis.totalTtcCents,
-      lignes: {
-        create: devis.lignes.map((l) => ({
-          libelle: l.libelle,
-          description: l.description,
-          quantiteMilli: l.quantiteMilli,
-          unite: l.unite,
-          prixUnitaireCents: l.prixUnitaireCents,
-          tauxTva: l.tauxTva,
-          ordre: l.ordre,
-        })),
+    const annee = new Date().getFullYear();
+    const numero = await genererNumeroFacture(user.id, company.prefixeFacture, annee, tx);
+
+    return tx.facture.create({
+      data: {
+        userId: user.id,
+        clientId: devis.clientId,
+        devisId: devis.id,
+        numero,
+        objet: devis.objet,
+        notes: devis.notes,
+        conditions: devis.conditions,
+        acomptePct: devis.acomptePct,
+        numeroCommande: devis.numeroCommande,
+        totalHtCents: devis.totalHtCents,
+        totalTvaCents: devis.totalTvaCents,
+        totalTtcCents: devis.totalTtcCents,
+        lignes: {
+          create: devis.lignes.map((l) => ({
+            libelle: l.libelle,
+            description: l.description,
+            quantiteMilli: l.quantiteMilli,
+            unite: l.unite,
+            prixUnitaireCents: l.prixUnitaireCents,
+            tauxTva: l.tauxTva,
+            ordre: l.ordre,
+          })),
+        },
       },
-    },
+    });
   });
 
-  // Le devis passe au statut « Facturé ».
-  await prisma.devis.update({ where: { id }, data: { statut: "FACTURE" } });
+  if (!facture) return allerALaFactureOuErreur(id, user.id);
 
   revalidatePath("/tableau-de-bord/factures");
   revalidatePath(`/tableau-de-bord/devis/${id}`);
   revalidatePath("/tableau-de-bord");
   redirect(`/tableau-de-bord/factures/${facture.id}`);
+}
+
+/** Redirige vers la facture issue du devis si elle existe, sinon vers le devis avec l'erreur de statut. */
+async function allerALaFactureOuErreur(devisId: string, userId: string): Promise<never> {
+  const existante = await prisma.facture.findFirst({
+    where: { devisId, userId },
+    orderBy: { createdAt: "desc" },
+  });
+  redirect(
+    existante
+      ? `/tableau-de-bord/factures/${existante.id}`
+      : `/tableau-de-bord/devis/${devisId}?facture=statut`,
+  );
 }

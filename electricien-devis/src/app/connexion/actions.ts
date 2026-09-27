@@ -13,6 +13,8 @@ const schema = z.object({
 
 export type ConnexionState = {
   error?: string;
+  /** E-mail saisi, réaffiché après une erreur (le formulaire est réinitialisé). */
+  email?: string;
 };
 
 export async function connecter(
@@ -24,17 +26,18 @@ export async function connecter(
     password: formData.get("password"),
   });
 
+  const email = String(formData.get("email") ?? "");
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+    return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide.", email };
   }
 
-  const { email, password } = parsed.data;
+  const { password } = parsed.data;
 
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+    where: { email: parsed.data.email.toLowerCase() },
   });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    return { error: "E-mail ou mot de passe incorrect." };
+    return { error: "E-mail ou mot de passe incorrect.", email };
   }
 
   await createSessionCookie(user.id);

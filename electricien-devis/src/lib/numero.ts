@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 
 /**
  * Génère le prochain numéro de devis de façon atomique : DEV-2026-001, -002…
@@ -25,8 +26,9 @@ export async function genererNumeroFacture(
   userId: string,
   prefixe: string,
   annee: number,
+  db: Prisma.TransactionClient = prisma,
 ): Promise<string> {
-  const compteur = await prisma.compteurFacture.upsert({
+  const compteur = await db.compteurFacture.upsert({
     where: { userId_annee: { userId, annee } },
     create: { userId, annee, dernierNumero: 1 },
     update: { dernierNumero: { increment: 1 } },

@@ -27,7 +27,7 @@ export default async function PrestationsPage() {
       {prestations.length === 0 ? (
         <p className="text-muted italic">Aucune prestation.</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {prestations.map((p) => (
             <li key={p.id}>
               <Link

@@ -44,6 +44,11 @@ export function ParametresForm({ company }: { company: Company }) {
             <Field name="siret" libelle="N° SIRET" defaultValue={company.siret} />
             <Field name="tvaIntra" libelle="N° TVA intracommunautaire" defaultValue={company.tvaIntra} />
           </div>
+          <Field
+            name="formeJuridique"
+            libelle="Forme juridique (ex. Entrepreneur individuel (EI))"
+            defaultValue={company.formeJuridique}
+          />
           <Field name="assurance" libelle="Assurance décennale" defaultValue={company.assurance} />
           <Field name="iban" libelle="IBAN (optionnel, pour le règlement)" defaultValue={company.iban} />
         </div>

@@ -59,7 +59,7 @@ export default async function DevisListPage({
       {devis.length === 0 ? (
         <p className="text-muted italic">Aucun devis {filtre ? "dans ce statut" : ""}.</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {devis.map((d) => (
             <li key={d.id}>
               <DevisRow devis={d} montrerClient />

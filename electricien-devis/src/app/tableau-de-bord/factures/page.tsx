@@ -50,7 +50,7 @@ export default async function FacturesPage() {
       {factures.length === 0 ? (
         <p className="text-muted italic">Aucune facture pour le moment.</p>
       ) : (
-        <ul className="grid gap-2">
+        <ul className="grid grid-cols-1 gap-2">
           {factures.map((f) => (
             <li key={f.id}>
               <Link

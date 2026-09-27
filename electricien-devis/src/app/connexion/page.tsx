@@ -28,6 +28,7 @@ export default function ConnexionPage() {
               <input
                 id="email"
                 type="email"
+                defaultValue={state.email}
                 name="email"
                 required
                 autoComplete="email"

@@ -3,18 +3,22 @@
  * compte : coordonnées de l'entreprise (en-tête PDF) + bibliothèque de prestations.
  */
 
+/** Assurance décennale d'exemple : à remplacer par la vraie (alerte sur l'accueil). */
+export const ASSURANCE_EXEMPLE = "MAAF Pro — Police n° 78-432-991";
+
 export const COMPANY_DEFAULT = {
   nom: "MELLADO Électricité",
   dirigeant: "Francisco MELLADO",
   activite: "Entreprise d'électricité générale",
-  adresse: "20 rue Comblais",
+  formeJuridique: "Entrepreneur individuel (EI)",
+  adresse: "20 rue des Comblais",
   codePostal: "28200",
   ville: "Châteaudun",
   telephone: "02 37 45 08 03",
   email: "contact@mellado-electricite.fr",
-  siret: "412 398 754 00023",
-  tvaIntra: "FR76412398754",
-  assurance: "MAAF Pro — Police n° 78-432-991",
+  siret: "511 030 710 00012",
+  tvaIntra: "FR61511030710",
+  assurance: ASSURANCE_EXEMPLE,
   iban: "",
   prefixeDevis: "DEV",
   tauxTvaDefaut: 20,

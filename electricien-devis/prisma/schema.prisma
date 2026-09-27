@@ -35,6 +35,9 @@ model Company {
   /// Nom du dirigeant et activité, affichés sur l'accueil et l'écran de connexion.
   dirigeant       String   @default("")
   activite        String   @default("")
+  /// Forme juridique imprimée à côté du nom (ex. « Entrepreneur individuel (EI) »,
+  /// mention obligatoire pour les EI depuis 2022).
+  formeJuridique  String   @default("")
   adresse         String   @default("")
   codePostal      String   @default("")
   ville           String   @default("")

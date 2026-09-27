@@ -20,6 +20,8 @@ const schema = z
 
 export type InscriptionState = {
   error?: string;
+  /** E-mail saisi, réaffiché après une erreur (le formulaire est réinitialisé). */
+  email?: string;
 };
 
 export async function inscrire(
@@ -27,8 +29,9 @@ export async function inscrire(
   formData: FormData,
 ): Promise<InscriptionState> {
   // Application mono-utilisateur : un seul compte, créé au premier lancement.
+  const saisi = String(formData.get("email") ?? "");
   if (await compteExiste()) {
-    return { error: "Un compte existe déjà. Utilisez la page de connexion." };
+    return { error: "Un compte existe déjà. Utilisez la page de connexion.", email: saisi };
   }
 
   const parsed = schema.safeParse({
@@ -38,7 +41,7 @@ export async function inscrire(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+    return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide.", email: saisi };
   }
 
   const { email, password } = parsed.data;

@@ -65,7 +65,7 @@ export default async function ClientDetailPage({
         {client.devis.length === 0 ? (
           <p className="text-muted italic">Aucun devis pour ce client.</p>
         ) : (
-          <ul className="grid gap-2">
+          <ul className="grid grid-cols-1 gap-2">
             {client.devis.map((d) => (
               <li key={d.id}>
                 <DevisRow devis={d} />

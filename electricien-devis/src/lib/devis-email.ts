@@ -60,6 +60,7 @@ export function devisEnHtml(
     <div style="border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:16px">
       <div style="font-size:18px;font-weight:bold">${esc(company.nom)}</div>
       <div style="color:#64748b;font-size:13px">
+        ${company.formeJuridique ? `<strong style="color:#0f172a">${esc([company.dirigeant, company.formeJuridique].filter(Boolean).join(" — "))}</strong><br>` : ""}
         ${esc(company.adresse)} ${esc(company.codePostal)} ${esc(company.ville)}<br>
         ${company.telephone ? "Tél. " + esc(company.telephone) + " · " : ""}${esc(company.email)}
       </div>

@@ -60,6 +60,11 @@ export default async function ImprimerFacturePage({
               </div>
             )}
             <div className="text-muted">
+              {company.formeJuridique && (
+                <div className="font-semibold text-ink">
+                  {[company.dirigeant, company.formeJuridique].filter(Boolean).join(" — ")}
+                </div>
+              )}
               {company.adresse && <div>{company.adresse}</div>}
               {(company.codePostal || company.ville) && (
                 <div>
