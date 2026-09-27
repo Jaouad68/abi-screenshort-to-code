@@ -336,6 +336,111 @@ button:disabled { opacity: 0.6; cursor: default; }
 .seulement-mobile { display: none; }
 .voile { display: none; }
 
+/* ===== Messages privés, édition, modération ===== */
+.aide-vide { color: var(--texte-2); font-size: 12px; margin: 2px 10px; }
+.liste-salons .avatar.petit { width: 22px; height: 22px; border-radius: 7px; font-size: 10px; }
+
+.bouton-moderation {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--bordure);
+  background: var(--panneau-2);
+  color: var(--texte);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-weight: 500;
+}
+.bouton-moderation:hover { border-color: var(--accent); }
+
+.membre-cliquable {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  padding: 4px;
+  margin: -4px;
+  border-radius: 10px;
+}
+.membre-cliquable:hover { background: var(--panneau-2); }
+.icone-dm { opacity: 0; transition: opacity 0.15s; }
+.membre-cliquable:hover .icone-dm, .membre-cliquable:focus-visible .icone-dm { opacity: 1; }
+
+.separateur-actions { width: 1px; align-self: stretch; margin: 2px 4px; background: var(--bordure); }
+.modifie { font-size: 11px; color: var(--texte-2); font-style: italic; }
+
+.editeur textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  color: var(--texte);
+  background: var(--panneau);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.editeur .aide { margin: 4px 0 0; }
+
+.code-moderation summary { cursor: pointer; color: var(--texte-2); font-size: 13px; }
+.code-moderation label { margin-top: 10px; }
+
+.dialogue {
+  width: min(460px, calc(100% - 32px));
+  border: 1px solid var(--bordure);
+  border-radius: 16px;
+  background: var(--panneau);
+  color: var(--texte);
+  padding: 22px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
+}
+.dialogue-large { width: min(640px, calc(100% - 32px)); max-height: 80vh; }
+.dialogue::backdrop { background: rgb(0 0 0 / 0.5); }
+.dialogue h3 { margin: 0 0 12px; font: 700 18px var(--titre); }
+.dialogue form { display: grid; gap: 14px; }
+.dialogue label { display: grid; gap: 6px; font-weight: 500; font-size: 14px; }
+.dialogue select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--bordure);
+  background: var(--panneau-2);
+  color: var(--texte);
+  font: inherit;
+}
+.entete-dialogue { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.extrait {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--bordure);
+  background: var(--panneau-2);
+  border-radius: 0 10px 10px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.actions-dialogue { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.carte-signalement {
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--bordure);
+}
+.meta-signalement { margin: 0; font-size: 12px; color: var(--texte-2); }
+.bouton-danger {
+  border: 0;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 600;
+  color: #fff;
+  background: #d64545;
+}
+.bouton-danger:hover { filter: brightness(1.1); }
+
 /* ===== Responsive ===== */
 @media (max-width: 1100px) {
   .app { grid-template-columns: 240px minmax(0, 1fr); }

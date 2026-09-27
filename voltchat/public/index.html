@@ -30,6 +30,12 @@
         <label>Entreprise <span class="facultatif">(facultatif)</span>
           <input name="entreprise" maxlength="60" autocomplete="organization" placeholder="Ex. Constructeur, startup, collectivité…" />
         </label>
+        <details class="code-moderation" id="bloc-moderation" hidden>
+          <summary>Je suis modérateur·rice</summary>
+          <label>Code modérateur
+            <input name="codeModeration" type="password" autocomplete="off" />
+          </label>
+        </details>
         <p class="erreur" id="erreur-inscription" role="alert"></p>
         <button type="submit" class="bouton-principal">Rejoindre la discussion</button>
       </form>
@@ -41,7 +47,10 @@
     <aside class="barre-salons" id="barre-salons">
       <div class="logo"><span class="logo-eclair">⚡</span> VoltChat</div>
       <div class="titre-section">Salons</div>
-      <nav id="liste-salons" class="liste-salons"></nav>
+      <nav id="liste-salons" class="liste-salons" aria-label="Salons"></nav>
+      <div class="titre-section">Messages privés</div>
+      <nav id="liste-conversations" class="liste-salons" aria-label="Messages privés"></nav>
+      <button class="bouton-moderation" id="ouvrir-moderation" hidden>🚩 Signalements <span class="badge" id="compteur-signalements" hidden></span></button>
       <div class="profil" id="profil"></div>
     </aside>
 
@@ -79,6 +88,28 @@
   </div>
 
   <div class="notification" id="notification" role="status" hidden></div>
+
+  <dialog id="dialogue-signalement" class="dialogue">
+    <form method="dialog" id="form-signalement">
+      <h3>Signaler ce message</h3>
+      <p class="extrait" id="extrait-signalement"></p>
+      <label>Motif
+        <select name="motif" id="motif-signalement" required></select>
+      </label>
+      <div class="actions-dialogue">
+        <button type="button" class="bouton-icone" data-fermer>Annuler</button>
+        <button type="submit" class="bouton-principal">Envoyer aux modérateurs</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dialogue-moderation" class="dialogue dialogue-large">
+    <div class="entete-dialogue">
+      <h3>Signalements en attente</h3>
+      <button type="button" class="bouton-icone" data-fermer aria-label="Fermer">✕</button>
+    </div>
+    <div id="liste-signalements"></div>
+  </dialog>
 
   <template id="modele-message">
     <article class="message">

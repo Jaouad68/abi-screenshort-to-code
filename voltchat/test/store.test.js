@@ -8,6 +8,7 @@ import {
   creerLimiteur,
   LIMITES,
   SALONS_PAR_DEFAUT,
+  DUREE_SESSION,
 } from "../lib/store.js";
 
 const profil = { nom: "  Camille   Martin ", metier: "Ingénieur·e batteries", entreprise: "Volta" };
@@ -109,4 +110,170 @@ test("le limiteur bloque au-delà du quota dans la fenêtre", () => {
   assert.equal(ok("x", 20), false);
   assert.equal(ok("y", 20), true);
   assert.equal(ok("x", 1005), true);
+});
+
+test("le limiteur libère les clés inactives", () => {
+  const ok = creerLimiteur(2, 1000);
+  ok("a", 0);
+  ok("b", 900);
+  ok.nettoyer(1500);
+  assert.equal(ok.taille(), 1);
+  ok.nettoyer(3000);
+  assert.equal(ok.taille(), 0);
+});
+
+// ---------- Sessions ----------
+
+test("la session expire, se prolonge et se révoque à la déconnexion", () => {
+  const store = creerStore(etatInitial());
+  const { membre } = store.inscrire(profil, 1000);
+  assert.equal(store.membre(membre.jeton, 1000 + DUREE_SESSION - 1), membre);
+  assert.equal(store.membre(membre.jeton, 1000 + DUREE_SESSION), undefined);
+
+  store.prolonger(membre, 1000 + DUREE_SESSION - 1);
+  assert.equal(store.membre(membre.jeton, 1000 + DUREE_SESSION + 10), membre);
+
+  const ancien = membre.jeton;
+  store.deconnecter(membre);
+  assert.equal(store.membre(ancien), undefined);
+  assert.equal(store.membre(membre.jeton), undefined);
+});
+
+test("le rôle est membre par défaut, modérateur sur demande", () => {
+  const store = creerStore(etatInitial());
+  assert.equal(store.public(store.inscrire(profil).membre).role, "membre");
+  const mod = store.inscrire({ ...profil, nom: "Modo" }, Date.now(), { moderateur: true }).membre;
+  assert.equal(store.public(mod).role, "moderateur");
+  assert.equal(store.estModerateur(mod), true);
+});
+
+// ---------- Modification & suppression ----------
+
+test("seul l'auteur peut modifier son message", () => {
+  const store = creerStore(etatInitial());
+  const a = store.inscrire(profil).membre;
+  const b = store.inscrire({ ...profil, nom: "Sam Leroy" }).membre;
+  const { message } = store.publier(a, "general", "Bonjuor", 1000);
+
+  assert.equal(store.modifier(b, "general", message.id, "piraté").statut, 403);
+  assert.equal(store.modifier(a, "general", message.id, "   ").ok, false);
+  const r = store.modifier(a, "general", message.id, "Bonjour", 2000);
+  assert.ok(r.ok);
+  assert.equal(message.texte, "Bonjour");
+  assert.equal(message.modifie, 2000);
+  assert.equal(store.modifier(a, "general", "nope", "x").ok, false);
+});
+
+test("suppression : auteur ou modérateur, jamais un autre membre", () => {
+  const store = creerStore(etatInitial());
+  const a = store.inscrire(profil).membre;
+  const b = store.inscrire({ ...profil, nom: "Sam Leroy" }).membre;
+  const mod = store.inscrire({ ...profil, nom: "Modo" }, Date.now(), { moderateur: true }).membre;
+  const m1 = store.publier(a, "general", "un").message;
+  const m2 = store.publier(a, "general", "deux").message;
+
+  assert.equal(store.supprimer(b, "general", m1.id).statut, 403);
+  assert.ok(store.supprimer(a, "general", m1.id).ok);
+  assert.ok(store.supprimer(mod, "general", m2.id).ok);
+  assert.ok(!store.etat.messages.general.some((m) => m.id === m1.id || m.id === m2.id));
+});
+
+// ---------- Messages privés ----------
+
+test("conversation privée : unique par paire, réservée aux participants", () => {
+  const store = creerStore(etatInitial());
+  const a = store.inscrire(profil).membre;
+  const b = store.inscrire({ ...profil, nom: "Sam Leroy" }).membre;
+  const c = store.inscrire({ ...profil, nom: "Eve Curieuse" }).membre;
+
+  const r1 = store.conversation(a, b.id);
+  assert.ok(r1.ok && r1.cree);
+  const r2 = store.conversation(b, a.id);
+  assert.equal(r2.conversation.id, r1.conversation.id);
+  assert.equal(r2.cree, false);
+
+  const id = r1.conversation.id;
+  assert.equal(store.peutAcceder(a, id), true);
+  assert.equal(store.peutAcceder(c, id), false);
+  assert.equal(store.peutAcceder(c, "general"), true);
+  assert.deepEqual(store.participants(id), [a.id, b.id]);
+  assert.equal(store.participants("general"), null);
+
+  assert.equal(store.publier(c, id, "intrus").ok, false);
+  assert.ok(store.publier(b, id, "Salut Camille").ok);
+
+  const liste = store.conversationsDe(a);
+  assert.equal(liste.length, 1);
+  assert.equal(liste[0].avec.nom, "Sam Leroy");
+  assert.equal(liste[0].total, 1);
+  assert.equal(store.conversationsDe(c).length, 0);
+
+  assert.equal(store.conversation(a, a.id).ok, false);
+  assert.equal(store.conversation(a, "inconnu").ok, false);
+});
+
+test("un modérateur ne supprime pas les messages privés des autres, et ils ne sont pas signalables", () => {
+  const store = creerStore(etatInitial());
+  const a = store.inscrire(profil).membre;
+  const mod = store.inscrire({ ...profil, nom: "Modo" }, Date.now(), { moderateur: true }).membre;
+  const { conversation } = store.conversation(a, mod.id);
+  const { message } = store.publier(a, conversation.id, "privé");
+  assert.equal(store.supprimer(mod, conversation.id, message.id).statut, 403);
+  assert.equal(store.signaler(mod, conversation.id, message.id, "Spam").ok, false);
+});
+
+// ---------- Signalements & exclusion ----------
+
+test("signalement : pas le sien, pas de doublon, retiré avec le message", () => {
+  const store = creerStore(etatInitial());
+  const a = store.inscrire(profil).membre;
+  const b = store.inscrire({ ...profil, nom: "Sam Leroy" }).membre;
+  const mod = store.inscrire({ ...profil, nom: "Modo" }, Date.now(), { moderateur: true }).membre;
+  const { message } = store.publier(a, "general", "Achetez mes bornes !!!");
+
+  assert.equal(store.signaler(a, "general", message.id, "Spam").ok, false);
+  assert.equal(store.signaler(b, "general", message.id, "  ").ok, false);
+  const accueil = store.etat.messages.general[0];
+  assert.equal(store.signaler(b, "general", accueil.id, "Spam").ok, false);
+
+  const r = store.signaler(b, "general", message.id, "Spam ou publicité");
+  assert.ok(r.ok && r.nouveau);
+  assert.equal(store.signaler(b, "general", message.id, "Spam").nouveau, false);
+  assert.equal(store.signalements().length, 1);
+  assert.equal(store.signalements()[0].auteur.id, a.id);
+
+  store.supprimer(mod, "general", message.id);
+  assert.equal(store.signalements().length, 0);
+
+  const m2 = store.publier(a, "general", "encore").message;
+  const s2 = store.signaler(b, "general", m2.id, "Hors sujet").signalement;
+  assert.ok(store.ignorerSignalement(s2.id).ok);
+  assert.equal(store.ignorerSignalement(s2.id).ok, false);
+});
+
+test("exclusion : réservée aux modérateurs, révoque la session et purge les messages publics", () => {
+  const store = creerStore(etatInitial());
+  const spam = store.inscrire({ ...profil, nom: "Spammeur" }).membre;
+  const b = store.inscrire({ ...profil, nom: "Sam Leroy" }).membre;
+  const mod = store.inscrire({ ...profil, nom: "Modo" }, Date.now(), { moderateur: true }).membre;
+  const mod2 = store.inscrire({ ...profil, nom: "Modo 2" }, Date.now(), { moderateur: true }).membre;
+  const jeton = spam.jeton;
+  const m1 = store.publier(spam, "general", "pub 1").message;
+  store.publier(spam, "batteries", "pub 2");
+  store.publier(b, "general", "message légitime");
+  store.signaler(b, "general", m1.id, "Spam");
+
+  assert.equal(store.exclure(b, spam.id).statut, 403);
+  assert.equal(store.exclure(mod, mod2.id).ok, false);
+  assert.equal(store.exclure(mod, mod.id).ok, false);
+
+  const r = store.exclure(mod, spam.id);
+  assert.ok(r.ok);
+  assert.equal(r.retires.length, 2);
+  assert.equal(store.membre(jeton), undefined);
+  assert.ok(!store.etat.messages.general.some((m) => m.auteur.id === spam.id));
+  assert.ok(store.etat.messages.general.some((m) => m.auteur.id === b.id));
+  assert.equal(store.signalements().length, 0);
+  assert.equal(store.conversation(b, spam.id).ok, false);
+  assert.equal(store.exclure(mod, spam.id).ok, false);
 });
