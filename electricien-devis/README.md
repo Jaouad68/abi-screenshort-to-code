@@ -27,7 +27,10 @@ pensée pour un usage quotidien sur chantier (mobile-first) par un artisan non-t
   TVA, préfixe des devis, TVA par défaut, durée de validité, mentions légales).
 - **Factures** : conversion d'un devis accepté en facture (numérotation `FAC-2026-001`,
   copie figée des lignes, PDF facture avec mentions légales de facturation), suivi
-  du statut **Émise → Payée**, tableau « encaissé / en attente ».
+  du statut **Émise → Payée**, tableau « encaissé / en attente ». Une facture émise ne
+  peut pas être supprimée (numérotation continue obligatoire) : elle s'annule.
+- **Franchise en base de TVA** (micro-entreprise) : option des Réglages qui force la
+  TVA à 0 et imprime « TVA non applicable, article 293 B du CGI » sur devis et factures.
 - **Acompte** : pourcentage d'acompte par devis, avec calcul automatique du montant
   à la commande et du solde, repris dans le PDF et la facture.
 - **Logo** : téléversement d'un logo (Réglages) affiché dans l'interface et les PDF.

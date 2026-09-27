@@ -19,6 +19,8 @@ const schema = z.object({
   iban: z.string().trim(),
   prefixeDevis: z.string().trim().min(1, "Le préfixe est obligatoire.").max(10),
   tauxTvaDefaut: z.coerce.number().int().min(0).max(20),
+  // Case à cocher : absente du FormData quand elle est décochée.
+  franchiseTva: z.preprocess((v) => v === "on", z.boolean()),
   dureeValidite: z.coerce.number().int().min(1).max(365),
   relanceJours: z.coerce.number().int().min(1).max(90),
   mentionsLegales: z.string().trim(),

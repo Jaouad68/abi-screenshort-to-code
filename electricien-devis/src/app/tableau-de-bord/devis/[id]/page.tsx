@@ -27,7 +27,7 @@ export default async function DevisEditPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ email?: string; facture?: string }>;
 }) {
-  const { user } = await requireUser();
+  const { user, company } = await requireUser();
   const { id } = await params;
   const { email: emailStatut, facture: factureStatut } = await searchParams;
 
@@ -148,7 +148,12 @@ export default async function DevisEditPage({
       )}
 
       {/* Éditeur */}
-      <DevisEditor devisId={devis.id} initial={initial} prestations={prestations} />
+      <DevisEditor
+        devisId={devis.id}
+        initial={initial}
+        prestations={prestations}
+        franchiseTva={company.franchiseTva}
+      />
 
       {/* Conversion en facture (devis accepté) */}
       {devis.statut === "ACCEPTE" && (
