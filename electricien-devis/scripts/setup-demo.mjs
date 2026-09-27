@@ -36,7 +36,7 @@ await client.query(
   [
     uid(), userId,
     "MELLADO Électricité", "20 rue Comblais", "28200", "Châteaudun",
-    "02 37 45 12 89", "contact@mellado-electricite.fr",
+    "02 37 45 08 03", "contact@mellado-electricite.fr",
     "412 398 754 00023", "FR76412398754",
     "MAAF Pro — Police n° 78-432-991",
     "Devis valable 30 jours à compter de sa date d'émission. TVA acquittée sur les débits. Règlement à réception de facture. Assurance décennale : MAAF Pro — Police n° 78-432-991.",

@@ -19,6 +19,10 @@ export function ParametresForm({ company }: { company: Company }) {
         <h2 className="font-bold text-lg mb-4">Identité de l’entreprise</h2>
         <div className="grid gap-4">
           <Field name="nom" libelle="Nom de l'entreprise" defaultValue={company.nom} required />
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field name="dirigeant" libelle="Dirigeant" defaultValue={company.dirigeant} />
+            <Field name="activite" libelle="Activité" defaultValue={company.activite} />
+          </div>
           <Field name="adresse" libelle="Adresse" defaultValue={company.adresse} />
           <div className="grid grid-cols-3 gap-3">
             <Field name="codePostal" libelle="Code postal" defaultValue={company.codePostal} />

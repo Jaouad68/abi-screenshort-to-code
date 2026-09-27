@@ -61,7 +61,7 @@ export default async function FactureDetailPage({
         <Link
           href={`/tableau-de-bord/factures/${facture.id}/imprimer`}
           target="_blank"
-          className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-white hover:bg-accent-d min-h-[44px]"
+          className="inline-flex items-center gap-2 rounded-control bg-accent px-4 py-2.5 font-semibold text-brand hover:brightness-95 min-h-[44px]"
         >
           Aperçu / PDF
         </Link>

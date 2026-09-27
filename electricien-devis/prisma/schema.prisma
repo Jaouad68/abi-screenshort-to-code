@@ -32,6 +32,9 @@ model Company {
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   nom             String   @default("")
+  /// Nom du dirigeant et activité, affichés sur l'accueil et l'écran de connexion.
+  dirigeant       String   @default("")
+  activite        String   @default("")
   adresse         String   @default("")
   codePostal      String   @default("")
   ville           String   @default("")

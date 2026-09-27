@@ -7,12 +7,12 @@
   --ink-2: #1e293b;
   --muted: #64748b;
   --line: #e2e8f0;
-  --brand: #1d4ed8;
-  --brand-d: #1e40af;
-  --brand-l: #dbeafe;
-  --accent: #f59e0b;
-  --accent-d: #b45309;
-  --accent-l: #fef3c7;
+  --brand: #03224e; /* bleu marine du logo */
+  --brand-d: #021634;
+  --brand-l: #e5eaf3;
+  --accent: #ffa602; /* orange de l'éclair */
+  --accent-d: #a15c00;
+  --accent-l: #fff3dc;
   --danger: #dc2626;
   --danger-l: #fee2e2;
   --ok: #16a34a;
