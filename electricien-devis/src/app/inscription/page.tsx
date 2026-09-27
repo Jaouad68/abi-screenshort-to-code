@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { inscrire, type InscriptionState } from "./actions";
 import { champ, label, btnPrimaire } from "@/lib/ui";
+import { EnTeteMarque } from "@/components/EnTeteMarque";
 
 const initialState: InscriptionState = {};
 
@@ -13,17 +14,7 @@ export default function InscriptionPage() {
   return (
     <main className="min-h-dvh flex items-center justify-center px-5 py-10">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <span className="grid h-10 w-10 place-items-center rounded-control bg-brand text-white text-lg font-bold">
-              M
-            </span>
-            <span className="text-xl font-bold text-ink">
-              MELLADO <span className="text-brand">Électricité</span>
-            </span>
-          </div>
-          <p className="text-muted">Création du compte</p>
-        </div>
+        <EnTeteMarque contexte="Création du compte" />
 
         <div className="rounded-card border border-line bg-card p-6 shadow-sm">
           <h1 className="text-2xl font-bold mb-1">Bienvenue</h1>

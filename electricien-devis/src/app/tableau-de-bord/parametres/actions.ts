@@ -7,6 +7,8 @@ import { requireUser } from "@/lib/auth";
 
 const schema = z.object({
   nom: z.string().trim().min(1, "Le nom de l'entreprise est obligatoire."),
+  dirigeant: z.string().trim(),
+  activite: z.string().trim(),
   prefixeFacture: z.string().trim().min(1).max(10),
   adresse: z.string().trim(),
   codePostal: z.string().trim(),
