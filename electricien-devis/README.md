@@ -38,6 +38,9 @@ pensée pour un usage quotidien sur chantier (mobile-first) par un artisan non-t
   (paramétrable) remontent dans une alerte « À relancer » du tableau de bord, et
   une route cron quotidienne (`/api/cron/relances`, voir `vercel.json`) envoie une
   relance par email au client.
+- **Relances via n8n (optionnel)** : séquence email + SMS à J+3, J+7 et J+15 avec
+  alerte à l'artisan, pilotée par un workflow n8n prêt à importer. Voir
+  [`n8n/README.md`](n8n/README.md).
 - **Export comptable CSV** : journal des devis et des factures exportable en CSV
   (séparateur `;`, décimales FR, BOM UTF-8) par année, pour le comptable.
 - **Bon de commande client** : n° de commande et date d'acceptation sur le devis,
