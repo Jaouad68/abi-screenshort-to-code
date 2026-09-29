@@ -5,12 +5,12 @@ import { Photo } from "../components/Photo";
 import type { PhotoKey } from "../photos";
 
 const items: { photo: PhotoKey; caption: string; alt: string; size: string }[] = [
-  { photo: "venueHepworth", caption: "Hepworth Wakefield, June", alt: "A wedding at the Hepworth Wakefield", size: "lg:col-span-5 aspect-[4/5]" },
-  { photo: "venueBarn", caption: "A barn near Otley, August", alt: "A party in a barn near Otley", size: "lg:col-span-3 lg:col-start-7 lg:translate-y-28 aspect-[1/1]" },
-  { photo: "venueBelgrave", caption: "Belgrave Music Hall, May", alt: "A late night at Belgrave Music Hall", size: "lg:col-span-3 lg:col-start-10 lg:translate-y-6 aspect-[3/4]" },
-  { photo: "venueIlkley", caption: "A garden in Ilkley, July", alt: "A marquee in a garden in Ilkley", size: "lg:col-span-4 lg:col-start-2 lg:translate-y-10 aspect-[5/4]" },
-  { photo: "venueCornExchange", caption: "Leeds Corn Exchange, December", alt: "A Christmas party at Leeds Corn Exchange", size: "lg:col-span-4 lg:col-start-6 lg:-translate-y-4 aspect-[4/5]" },
-  { photo: "venueAdelphi", caption: "The Adelphi, March", alt: "A birthday at The Adelphi pub", size: "lg:col-span-2 lg:col-start-11 lg:translate-y-32 aspect-[3/4]" },
+  { photo: "venueHepworth", caption: "Hepworth Wakefield, June", alt: "A narrow whitewashed street lined with blue planters", size: "lg:col-span-5 aspect-[4/5]" },
+  { photo: "venueBarn", caption: "A barn near Otley, August", alt: "Old ochre city walls and a gate behind a row of palm trees", size: "lg:col-span-3 lg:col-start-7 lg:translate-y-28 aspect-[1/1]" },
+  { photo: "venueBelgrave", caption: "Belgrave Music Hall, May", alt: "A white and yellow hotel front with carved balconies and palm trees", size: "lg:col-span-3 lg:col-start-10 lg:translate-y-6 aspect-[3/4]" },
+  { photo: "venueIlkley", caption: "A garden in Ilkley, July", alt: "Fortress terraces above a river mouth, a busy beach and the sea", size: "lg:col-span-4 lg:col-start-2 lg:translate-y-10 aspect-[5/4]" },
+  { photo: "venueCornExchange", caption: "Leeds Corn Exchange, December", alt: "Two friends on the stone steps of a fortress terrace above the sea", size: "lg:col-span-4 lg:col-start-6 lg:-translate-y-4 aspect-[4/5]" },
+  { photo: "venueAdelphi", caption: "The Adelphi, March", alt: "A quiet whitewashed street with carved doorways and green plants", size: "lg:col-span-2 lg:col-start-11 lg:translate-y-32 aspect-[3/4]" },
 ];
 
 export function Recently() {
