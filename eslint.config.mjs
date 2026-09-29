@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone Vite site with its own toolchain:
+    "four-frames/**",
   ]),
 ]);
 
