@@ -101,6 +101,9 @@ interface ReferentRow {
 }
 
 const REPORT_COLS = "id, uai, day, status, device_id, referent_id, created_at";
+/** Colonnes de la V1, tant que supabase/v2.sql n'a pas été exécuté. */
+const REPORT_COLS_V1 = "id, uai, day, status, device_id, created_at";
+const missingV2Column = (e: { message: string } | null) => Boolean(e && /referent_id/.test(e.message));
 
 const toReport = (r: ReportRow): AdminReport => ({
   id: r.id,
@@ -138,7 +141,10 @@ function supabaseStore(db: SupabaseClient): Store {
     mode: "supabase",
 
     async listReports(from, to) {
-      const rows = check(await db.from("reports").select(REPORT_COLS).gte("day", from).lte("day", to).limit(20000)) as ReportRow[];
+      const query = (cols: string) => db.from("reports").select(cols).gte("day", from).lte("day", to).limit(20000);
+      let res = await query(REPORT_COLS);
+      if (missingV2Column(res.error)) res = await query(REPORT_COLS_V1);
+      const rows = check(res) as unknown as ReportRow[];
       return rows.map((r) => {
         const { deviceId: _omit, ...rest } = toReport(r);
         void _omit;
@@ -160,7 +166,8 @@ function supabaseStore(db: SupabaseClient): Store {
             status: r.status,
             device_id: r.deviceId,
             ip_hash: r.ipHash,
-            referent_id: r.referentId,
+            // Colonne ajoutée par supabase/v2.sql : on ne l'envoie que si elle sert.
+            ...(r.referentId ? { referent_id: r.referentId } : {}),
             created_at: new Date().toISOString(),
           },
           { onConflict: "uai,day,device_id" },
@@ -175,9 +182,10 @@ function supabaseStore(db: SupabaseClient): Store {
     },
 
     async listRecentReports(limit) {
-      const rows = check(
-        await db.from("reports").select(REPORT_COLS).order("created_at", { ascending: false }).limit(limit),
-      ) as ReportRow[];
+      const query = (cols: string) => db.from("reports").select(cols).order("created_at", { ascending: false }).limit(limit);
+      let res = await query(REPORT_COLS);
+      if (missingV2Column(res.error)) res = await query(REPORT_COLS_V1);
+      const rows = check(res) as unknown as ReportRow[];
       return rows.map(toReport);
     },
 

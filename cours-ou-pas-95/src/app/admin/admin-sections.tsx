@@ -24,7 +24,8 @@ export function ReferentsSection({ notify, onUnauthorized }: { notify: Notify; o
   const load = useCallback(async () => {
     const res = await fetch("/api/admin/referents");
     if (res.status === 401) return onUnauthorized();
-    setReferents(((await res.json()) as { referents: Referent[] }).referents);
+    // Tableau vide si la table n'existe pas encore (supabase/v2.sql non exécuté).
+    setReferents(((await res.json().catch(() => ({}))) as { referents?: Referent[] }).referents ?? []);
   }, [onUnauthorized]);
 
   useEffect(() => {
