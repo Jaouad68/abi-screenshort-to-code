@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+/*
+ * Palette inspirée des couleurs système iOS, avec un mode sombre complet.
+ */
+:root {
+  --bg: #f2f2f7;
+  --bg-elevated: #ffffff;
+  --card: #ffffff;
+  --fill: rgba(118, 118, 128, 0.12);
+  --fill-strong: rgba(118, 118, 128, 0.2);
+  --label: #000000;
+  --label-2: rgba(60, 60, 67, 0.62);
+  --label-3: rgba(60, 60, 67, 0.36);
+  --separator: rgba(60, 60, 67, 0.14);
+  --glass: rgba(249, 249, 251, 0.72);
+  --accent: #5e5ce6;
+  --accent-2: #0a84ff;
+
+  --normal: #30c75e;
+  --perturbe: #ff9f0a;
+  --bloque: #ff3b30;
+  --inconnu: #aeaeb2;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.12);
+  --shadow-float: 0 10px 40px -10px rgba(0, 0, 0, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bg-elevated: #1c1c1e;
+    --card: #1c1c1e;
+    --fill: rgba(118, 118, 128, 0.24);
+    --fill-strong: rgba(118, 118, 128, 0.36);
+    --label: #ffffff;
+    --label-2: rgba(235, 235, 245, 0.62);
+    --label-3: rgba(235, 235, 245, 0.32);
+    --separator: rgba(84, 84, 88, 0.55);
+    --glass: rgba(22, 22, 24, 0.72);
+    --accent: #7d7aff;
+    --accent-2: #409cff;
+
+    --normal: #32d74b;
+    --perturbe: #ffb340;
+    --bloque: #ff453a;
+    --inconnu: #636366;
+
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --shadow-float: 0 10px 40px -10px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-elevated: var(--bg-elevated);
+  --color-card: var(--card);
+  --color-fill: var(--fill);
+  --color-fill-strong: var(--fill-strong);
+  --color-label: var(--label);
+  --color-label-2: var(--label-2);
+  --color-label-3: var(--label-3);
+  --color-separator: var(--separator);
+  --color-glass: var(--glass);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-normal: var(--normal);
+  --color-perturbe: var(--perturbe);
+  --color-bloque: var(--bloque);
+  --color-inconnu: var(--inconnu);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), system-ui, sans-serif;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --animate-fade-up: fade-up 0.5s var(--ease-spring) both;
+  --animate-sheet-in: sheet-in 0.45s var(--ease-spring) both;
+  --animate-backdrop-in: backdrop-in 0.3s ease-out both;
+  --animate-pop: pop 0.4s var(--ease-spring) both;
+  --animate-live: live 2s ease-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.9) translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes live {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--normal) 60%, transparent);
+    }
+    70% {
+      box-shadow: 0 0 0 8px transparent;
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--bg);
+  color: var(--label);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+/* Barres de défilement discrètes pour les carrousels horizontaux. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Effet « verre dépoli » des barres iOS. */
+.glass {
+  background: var(--glass);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
+}
+
+/* Retour tactile façon iOS. */
+.pressable {
+  transition: transform 0.2s var(--ease-spring), opacity 0.2s;
+}
+.pressable:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
