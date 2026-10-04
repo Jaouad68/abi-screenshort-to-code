@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
         config: {
           supabaseUrl: Boolean(process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL),
           serviceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
-          serviceRoleKeyShape: keyShape(process.env.SUPABASE_SERVICE_ROLE_KEY),
           anonKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
         },
       },
@@ -29,15 +28,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/** Forme de la clé (préfixe connu, longueur, caractères parasites), jamais sa valeur. */
-function keyShape(key: string | undefined) {
-  if (!key) return null;
-  const prefix = ["sb_secret_", "sb_publishable_", "eyJ"].find((p) => key.startsWith(p)) ?? "inconnu";
-  return {
-    prefix,
-    length: key.length,
-    whitespace: /\s/.test(key),
-    quotes: /["']/.test(key),
-    containsEquals: key.includes("="),
-  };
-}
