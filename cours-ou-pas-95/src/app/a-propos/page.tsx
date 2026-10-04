@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { IconMegaphone, IconShield, IconStar } from "@/components/icons";
+import Link from "next/link";
+import { IconBadge, IconBell, IconChevronRight, IconMapTab, IconMegaphone, IconShield, IconStar } from "@/components/icons";
 import { StatusIcon } from "@/components/status";
 import { CONFIDENCE_META, STATUS_META } from "@/lib/status";
 
@@ -33,6 +34,26 @@ export default function Page() {
           Les faux signalements sont supprimés. Un statut « Vérifié » a été validé par l&apos;équipe de modération.
         </Row>
       </Group>
+
+      <Group title="Fonctionnalités">
+        <Row icon={<Badge className="bg-accent-2"><IconMapTab width={18} height={18} /></Badge>} title="La carte">
+          Tous les lycées du Val d&apos;Oise sur une carte, colorés selon leur statut du jour.
+        </Row>
+        <Row icon={<Badge className="bg-[#ff9500]"><IconBell width={18} height={18} /></Badge>} title="Les alertes">
+          Sur la fiche d&apos;un lycée, active les alertes : tu es prévenu dès qu&apos;un changement est confirmé. Sur iPhone,
+          ajoute d&apos;abord l&apos;app à l&apos;écran d&apos;accueil.
+        </Row>
+        <Row icon={<Badge className="bg-accent"><IconBadge width={18} height={18} /></Badge>} title="Les référents vérifiés">
+          Des délégués, parents élus ou personnels reçoivent un code de la modération. Leurs signalements fixent le statut de
+          leur lycée.
+        </Row>
+      </Group>
+
+      <Link href="/referent" className="pressable mt-3 flex items-center gap-3 rounded-[22px] bg-card px-4 py-3.5 shadow-card">
+        <IconBadge width={20} height={20} className="text-accent" />
+        <span className="flex-1 font-semibold">Tu as un code référent ?</span>
+        <IconChevronRight width={16} height={16} className="text-label-3" />
+      </Link>
 
       <Group title="Les statuts">
         {(["normal", "perturbe", "bloque", "inconnu"] as const).map((s) => (

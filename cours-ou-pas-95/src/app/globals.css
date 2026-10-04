@@ -185,3 +185,59 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Bulles de la carte (Leaflet), au style de l'app. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--bg);
+}
+.leaflet-popup-content-wrapper {
+  background: var(--bg-elevated);
+  color: var(--label);
+  border-radius: 18px;
+  box-shadow: var(--shadow-float);
+}
+.leaflet-popup-tip {
+  background: var(--bg-elevated);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+.cop-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--label) !important;
+  text-decoration: none;
+  min-width: 170px;
+}
+.cop-popup-city {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--label-2);
+}
+.cop-popup strong {
+  font-size: 15px;
+  line-height: 1.2;
+}
+.cop-popup-status {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.cop-popup-more {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 4px;
+}
+.leaflet-control-zoom a {
+  background: var(--glass) !important;
+  color: var(--label) !important;
+  backdrop-filter: blur(20px);
+}
+.leaflet-bottom.leaflet-right {
+  margin-bottom: 84px;
+}

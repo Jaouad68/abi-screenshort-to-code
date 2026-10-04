@@ -121,3 +121,24 @@ export const IconTrash = (p: P) => (
     <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
   </svg>
 );
+
+export const IconBell = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z" />
+    <path d="M10 20a2.2 2.2 0 0 0 4 0" />
+  </svg>
+);
+
+export const IconMapTab = (p: P) => (
+  <svg {...base(p)}>
+    <path d="m3 6.5 6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" />
+    <path d="M9 4v13.5M15 6.5V20" />
+  </svg>
+);
+
+export const IconBadge = (p: P) => (
+  <svg {...base(p)}>
+    <path d="m12 2.5 2.4 1.8 3-.1.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.1L12 21.5l-2.4-1.8-3 .1-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .1z" />
+    <path d="m8.5 12 2.5 2.5 4.5-5" />
+  </svg>
+);

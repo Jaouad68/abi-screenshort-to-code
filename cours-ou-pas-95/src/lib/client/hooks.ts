@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { WeekPayload } from "@/lib/server/week";
 import { emptyDay, type DayStatus, type Status } from "@/lib/status";
+import { syncPushLycees } from "./push";
 import { getBrowserSupabase } from "./supabase";
 
 export type { WeekPayload };
@@ -142,11 +143,27 @@ const favStore = localStore<string[]>("cop:favoris", []);
 
 export function useFavorites() {
   const favs = useSyncExternalStore(favStore.subscribe, favStore.read, favStore.server);
-  const toggle = useCallback((uai: string) => {
-    const cur = favStore.read();
-    favStore.write(cur.includes(uai) ? cur.filter((u) => u !== uai) : [...cur, uai]);
+  const set = useCallback((next: string[]) => {
+    favStore.write(next);
+    // Les notifications suivent les favoris.
+    void syncPushLycees(next).catch(() => {});
   }, []);
-  return { favs, toggle, isFav: (uai: string) => favs.includes(uai) };
+  const toggle = useCallback(
+    (uai: string) => {
+      const cur = favStore.read();
+      set(cur.includes(uai) ? cur.filter((u) => u !== uai) : [...cur, uai]);
+    },
+    [set],
+  );
+  const add = useCallback(
+    (uai: string) => {
+      const cur = favStore.read();
+      if (!cur.includes(uai)) set([...cur, uai]);
+      return cur.includes(uai) ? cur : [...cur, uai];
+    },
+    [set],
+  );
+  return { favs, toggle, add, isFav: (uai: string) => favs.includes(uai) };
 }
 
 const voteStore = localStore<Record<string, Status>>("cop:mes-signalements", {});

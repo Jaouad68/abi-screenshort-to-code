@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconInfo, IconList } from "./icons";
+import { IconInfo, IconList, IconMapTab } from "./icons";
 
 const TABS = [
   { href: "/", label: "Lycées", Icon: IconList },
+  { href: "/carte", label: "Carte", Icon: IconMapTab },
   { href: "/a-propos", label: "À propos", Icon: IconInfo },
 ];
 
@@ -22,7 +23,7 @@ export function TabBar() {
             <Link
               key={href}
               href={href}
-              className={`pressable flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold transition-colors ${
+              className={`pressable flex items-center gap-2 rounded-full px-4 py-2.5 text-[14px] font-semibold transition-colors ${
                 active ? "bg-label text-bg" : "text-label-2"
               }`}
             >

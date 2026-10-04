@@ -1,10 +1,19 @@
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { z } from "zod";
 import { getLycee } from "@/data/lycees";
 import { addDays, isIsoDate, todayParis, weekdayIndex } from "@/lib/dates";
 import { STATUSES } from "@/lib/status";
+import { maybeNotifyStatusChange } from "@/lib/server/push";
 import { getStore } from "@/lib/server/store";
-import { clientIp, DEVICE_COOKIE, hashIp, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MIN } from "@/lib/server/security";
+import {
+  clientIp,
+  DEVICE_COOKIE,
+  getReferentSession,
+  hashIp,
+  RATE_LIMIT_MAX,
+  RATE_LIMIT_WINDOW_MIN,
+} from "@/lib/server/security";
 
 export const dynamic = "force-dynamic";
 
@@ -60,8 +69,17 @@ export async function POST(request: Request) {
     });
   }
 
-  await store.upsertReport({ uai: lycee.uai, date, status, deviceId, ipHash });
-  await store.notify(lycee.uai, date);
+  // Un référent n'a de poids que pour son propre lycée, et tant qu'il n'est pas révoqué.
+  let referentId: string | null = null;
+  const session = await getReferentSession();
+  if (session && session.uai === lycee.uai) {
+    const referent = await store.getReferent(session.rid);
+    if (referent && !referent.revokedAt) referentId = referent.id;
+  }
 
-  return Response.json({ ok: true });
+  await store.upsertReport({ uai: lycee.uai, date, status, deviceId, ipHash, referentId });
+  await store.notify(lycee.uai, date);
+  after(() => maybeNotifyStatusChange(lycee.uai, date));
+
+  return Response.json({ ok: true, referent: Boolean(referentId) });
 }

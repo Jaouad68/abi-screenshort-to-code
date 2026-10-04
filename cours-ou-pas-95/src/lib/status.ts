@@ -7,7 +7,7 @@ export const STATUSES = ["normal", "perturbe", "bloque"] as const;
 export type Status = (typeof STATUSES)[number];
 export type DisplayStatus = Status | "inconnu";
 
-export type Confidence = "officiel" | "confirme" | "non_confirme" | "contradictoire";
+export type Confidence = "officiel" | "referent" | "confirme" | "non_confirme" | "contradictoire";
 
 export interface Report {
   id: string;
@@ -15,6 +15,8 @@ export interface Report {
   date: string;
   status: Status;
   createdAt: string;
+  /** Signalement fait par un référent vérifié du lycée. */
+  referent?: boolean;
 }
 
 export interface Override {
@@ -57,7 +59,7 @@ export function emptyDay(date: string): DayStatus {
 
 export function computeDayStatus(
   date: string,
-  reports: Pick<Report, "status" | "createdAt">[],
+  reports: Pick<Report, "status" | "createdAt" | "referent">[],
   override: Pick<Override, "status" | "note" | "updatedAt"> | null,
   now: number = Date.now(),
 ): DayStatus {
@@ -84,6 +86,14 @@ export function computeDayStatus(
   }
 
   if (total === 0) return emptyDay(date);
+
+  // Un référent vérifié l'emporte sur les signalements anonymes : on retient son dernier signalement.
+  const lastReferent = reports
+    .filter((r) => r.referent)
+    .reduce<(typeof reports)[number] | null>((a, r) => (!a || r.createdAt > a.createdAt ? r : a), null);
+  if (lastReferent) {
+    return { date, status: lastReferent.status, confidence: "referent", count: reports.length, shares, updatedAt: latest, note: null };
+  }
 
   // En cas d'égalité, on privilégie le statut le plus prudent (bloqué > perturbé > normal).
   const winner = [...STATUSES].reverse().reduce((best, s) => (scores[s] > scores[best] ? s : best), "bloque" as Status);
@@ -132,6 +142,7 @@ export const STATUS_META: Record<DisplayStatus, { label: string; short: string; 
 
 export const CONFIDENCE_META: Record<Confidence, { label: string; description: string }> = {
   officiel: { label: "Vérifié", description: "Statut validé par l'équipe de modération." },
+  referent: { label: "Référent", description: "Signalé par un référent vérifié du lycée (délégué, parent, personnel)." },
   confirme: { label: "Confirmé", description: "Plusieurs signalements concordants." },
   non_confirme: { label: "Non confirmé", description: "Peu de signalements pour l'instant." },
   contradictoire: { label: "Contradictoire", description: "Les signalements ne sont pas d'accord entre eux." },

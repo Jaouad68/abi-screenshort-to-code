@@ -63,6 +63,24 @@ describe("computeDayStatus", () => {
     expect(d.status).toBe("normal");
   });
 
+  it("le dernier signalement d'un référent l'emporte sur la foule", () => {
+    const d = computeDayStatus(
+      "2026-10-05",
+      [
+        { status: "bloque", createdAt: ago(0.1) },
+        { status: "bloque", createdAt: ago(0.2) },
+        { status: "bloque", createdAt: ago(0.3) },
+        { status: "perturbe", createdAt: ago(3), referent: true },
+        { status: "normal", createdAt: ago(1), referent: true },
+      ],
+      null,
+      NOW,
+    );
+    expect(d.status).toBe("normal");
+    expect(d.confidence).toBe("referent");
+    expect(d.count).toBe(5);
+  });
+
   it("une décision de modération l'emporte", () => {
     const d = computeDayStatus(
       "2026-10-05",

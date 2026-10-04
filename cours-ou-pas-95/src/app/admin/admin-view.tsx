@@ -9,6 +9,7 @@ import { STATUS_META, type Override, type Report, type Status } from "@/lib/stat
 import { IconChevronLeft, IconShield, IconTrash } from "@/components/icons";
 import { Toast } from "@/components/sheet";
 import { StatusIcon, StatusPill } from "@/components/status";
+import { PushSection, ReferentsSection } from "./admin-sections";
 
 type AdminReport = Report & { deviceId: string };
 
@@ -228,6 +229,9 @@ function Dashboard({
         )}
       </section>
 
+      <ReferentsSection notify={notify} onUnauthorized={onUnauthorized} />
+      <PushSection notify={notify} onUnauthorized={onUnauthorized} />
+
       <section>
         <h2 className="mb-2 px-1 font-display text-[22px] font-bold">Derniers signalements</h2>
         {reports === null ? (
@@ -241,7 +245,8 @@ function Dashboard({
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold">{getLycee(r.uai)?.nom ?? r.uai}</div>
                   <div className="truncate text-[13px] text-label-2">
-                    Pour {longDate(r.date).toLowerCase()} · {timeAgo(r.createdAt, now)} · appareil {r.deviceId.slice(0, 6)}
+                    {r.referent ? "Référent · " : ""}Pour {longDate(r.date).toLowerCase()} · {timeAgo(r.createdAt, now)} · appareil{" "}
+                    {r.deviceId.slice(0, 6)}
                   </div>
                 </div>
                 <StatusPill status={r.status} />

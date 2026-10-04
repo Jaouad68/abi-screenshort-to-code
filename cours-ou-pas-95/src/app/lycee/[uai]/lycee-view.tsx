@@ -7,12 +7,24 @@ import { dayOf, useFavorites, useMounted, useMyVotes, useNow, useWeek } from "@/
 import { addDays, currentWeekStart, dayMonth, longDate, mondayOf, relativeDayLabel, timeAgo, weekDays } from "@/lib/dates";
 import { STATUS_META, STATUSES, type Status } from "@/lib/status";
 import { DayPicker } from "@/components/day-picker";
-import { IconChevronLeft, IconChevronRight, IconMap, IconMegaphone, IconShare, IconStar } from "@/components/icons";
+import { IconBadge, IconChevronLeft, IconChevronRight, IconMap, IconMegaphone, IconShare, IconStar } from "@/components/icons";
+import { NotifyCard } from "@/components/notify-card";
 import { LiveIndicator } from "@/components/live";
 import { Sheet, Toast } from "@/components/sheet";
 import { ConfidenceBadge, STATUS_COLOR, StatusIcon } from "@/components/status";
 
-export function LyceeView({ lycee, today, initialDay }: { lycee: Lycee; today: string; initialDay: string }) {
+export function LyceeView({
+  lycee,
+  today,
+  initialDay,
+  referentLabel,
+}: {
+  lycee: Lycee;
+  today: string;
+  initialDay: string;
+  /** Libellé du référent connecté, s'il est référent de ce lycée. */
+  referentLabel: string | null;
+}) {
   const [day, setDay] = useState(initialDay);
   const weekStart = mondayOf(day);
   const days = useMemo(() => weekDays(weekStart), [weekStart]);
@@ -55,11 +67,11 @@ export function LyceeView({ lycee, today, initialDay }: { lycee: Lycee; today: s
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uai: lycee.uai, date: day, status }),
       });
-      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      const json = (await res.json().catch(() => ({}))) as { error?: string; referent?: boolean };
       if (!res.ok) throw new Error(json.error ?? "Envoi impossible.");
       record(lycee.uai, day, status);
       setSheetOpen(false);
-      setToast({ msg: "Merci ! Signalement pris en compte", tone: "success" });
+      setToast({ msg: json.referent ? "Statut vérifié publié ✓" : "Merci ! Signalement pris en compte", tone: "success" });
       void refresh();
       navigator.vibrate?.(12);
     } catch (e) {
@@ -126,6 +138,12 @@ export function LyceeView({ lycee, today, initialDay }: { lycee: Lycee; today: s
           <p className="mt-1 text-[15px] text-label-2">
             {lycee.secteur} · {voiesLabel(lycee)}
           </p>
+          {referentLabel && (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] px-3 py-1 text-[13px] font-semibold text-accent">
+              <IconBadge width={15} height={15} strokeWidth={2.2} />
+              Tu es référent vérifié · {referentLabel}
+            </p>
+          )}
         </header>
 
         {/* Statut du jour */}
@@ -231,8 +249,12 @@ export function LyceeView({ lycee, today, initialDay }: { lycee: Lycee; today: s
             <IconMegaphone width={20} height={20} />
             {myVote ? "Modifier mon signalement" : "Signaler la situation"}
           </button>
-          <p className="mt-2 px-2 text-center text-[12px] text-label-2">Anonyme · Un signalement par appareil et par jour</p>
+          <p className="mt-2 px-2 text-center text-[12px] text-label-2">
+            {referentLabel ? "Tes signalements sont marqués « Référent »" : "Anonyme · Un signalement par appareil et par jour"}
+          </p>
         </section>
+
+        <NotifyCard uai={lycee.uai} onToast={(msg, tone = "success") => setToast({ msg, tone })} />
 
         {/* Infos */}
         <section className="mt-6">
@@ -267,6 +289,12 @@ export function LyceeView({ lycee, today, initialDay }: { lycee: Lycee; today: s
         <p className="-mt-1 mb-3 px-2 text-[15px] text-label-2">
           {lycee.nom} · <span className="font-semibold text-label">{relativeDayLabel(day, today)}</span>
         </p>
+        {referentLabel && (
+          <p className="mb-3 flex items-center gap-1.5 rounded-xl bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] px-3 py-2 text-[13px] font-medium text-accent">
+            <IconBadge width={15} height={15} strokeWidth={2.2} />
+            En tant que référent, ton signalement fixe le statut du jour.
+          </p>
+        )}
         <div className="space-y-2">
           {(["normal", "perturbe", "bloque"] as const).map((st) => (
             <button

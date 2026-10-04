@@ -89,13 +89,21 @@ src/
   lib/server/security.ts           Empreinte IP, cookie appareil, session admin
   lib/client/hooks.ts              Temps réel, favoris, mes signalements
 supabase/schema.sql                Tables, RLS, Realtime
+supabase/v2.sql                    Référents, abonnements push
+public/sw.js                       Service worker (notifications)
 ```
 
-## Feuille de route (V2)
+## V2
 
-- Carte interactive (Leaflet + OpenStreetMap)
-- Notifications push quand le statut d'un lycée suivi change
-- Référents vérifiés par lycée (délégués, parents, personnels)
+- **Carte** (`/carte`) : Leaflet + fonds CARTO (clair / sombre), pastilles colorées selon le statut du jour.
+- **Alertes push** : depuis la fiche d'un lycée. Une notification part quand un statut fiable change (`Vérifié`, `Référent` ou `Confirmé`), jamais sur un signalement isolé. Les alertes suivent les favoris. Sur iPhone : iOS 16.4+, app ajoutée à l'écran d'accueil.
+- **Référents vérifiés** : l'admin crée un code par personne (`/admin`), le référent l'active sur `/referent`. Son dernier signalement fixe le statut du jour de son lycée (confiance « Référent »), seule une décision de modération passe devant. Un code peut être désactivé à tout moment ; seule son empreinte est stockée.
+
+### Mise à jour vers la V2
+
+1. Supabase > SQL Editor : exécuter `supabase/v2.sql`.
+2. `/admin` > Notifications > « Générer les clés », puis ajouter dans Vercel : `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (ex. `mailto:toi@exemple.fr`).
+3. Redéployer.
 
 ## Avertissement
 

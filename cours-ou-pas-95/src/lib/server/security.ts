@@ -90,3 +90,67 @@ export async function isAdmin(): Promise<boolean> {
 export function unauthorized(): Response {
   return Response.json({ error: "Non autorisé" }, { status: 401 });
 }
+
+/* ------------------------------------------------------------------------ */
+/* Référents vérifiés                                                        */
+/* ------------------------------------------------------------------------ */
+
+export const REFERENT_COOKIE = "cop_referent";
+const REFERENT_SESSION_DAYS = 180;
+/** Sans caractères ambigus (0/O, 1/I/L). */
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+/** Code d'accès à 8 caractères, affiché sous la forme ABCD-EFGH. */
+export function generateReferentCode(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const chars = Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
+  return `${chars.slice(0, 4)}-${chars.slice(4)}`;
+}
+
+export function normalizeReferentCode(input: string): string {
+  const c = input.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return c.length === 8 ? `${c.slice(0, 4)}-${c.slice(4)}` : c;
+}
+
+/** Seule l'empreinte du code est stockée en base. */
+export function hashReferentCode(code: string): string {
+  return createHash("sha256").update(`${secret()}:referent:${normalizeReferentCode(code)}`).digest("hex");
+}
+
+export interface ReferentSession {
+  rid: string;
+  uai: string;
+  label: string;
+}
+
+export async function createReferentSession(s: ReferentSession): Promise<void> {
+  const token = await new SignJWT({ role: "referent", ...s })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${REFERENT_SESSION_DAYS}d`)
+    .sign(key());
+  (await cookies()).set(REFERENT_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: REFERENT_SESSION_DAYS * 86400,
+  });
+}
+
+export async function clearReferentSession(): Promise<void> {
+  (await cookies()).delete(REFERENT_COOKIE);
+}
+
+/** Session référent signée. La révocation est vérifiée en base au moment du signalement. */
+export async function getReferentSession(): Promise<ReferentSession | null> {
+  const token = (await cookies()).get(REFERENT_COOKIE)?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, key());
+    if (payload.role !== "referent" || typeof payload.rid !== "string" || typeof payload.uai !== "string") return null;
+    return { rid: payload.rid, uai: payload.uai, label: typeof payload.label === "string" ? payload.label : "" };
+  } catch {
+    return null;
+  }
+}

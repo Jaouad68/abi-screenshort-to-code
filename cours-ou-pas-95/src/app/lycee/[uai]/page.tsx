@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLycee } from "@/data/lycees";
 import { addDays, currentWeekStart, defaultDay, isIsoDate, todayParis, weekdayIndex } from "@/lib/dates";
+import { getReferentSession } from "@/lib/server/security";
 import { LyceeView } from "./lycee-view";
 
 type Props = {
@@ -26,5 +27,13 @@ export default async function Page({ params, searchParams }: Props) {
   const today = todayParis();
   const thisWeek = currentWeekStart(today);
   const valid = isIsoDate(jour) && weekdayIndex(jour) < 6 && jour >= thisWeek && jour < addDays(thisWeek, 14);
-  return <LyceeView lycee={lycee} today={today} initialDay={valid ? jour : defaultDay(today)} />;
+  const referent = await getReferentSession();
+  return (
+    <LyceeView
+      lycee={lycee}
+      today={today}
+      initialDay={valid ? jour : defaultDay(today)}
+      referentLabel={referent?.uai === lycee.uai ? referent.label || "Référent" : null}
+    />
+  );
 }

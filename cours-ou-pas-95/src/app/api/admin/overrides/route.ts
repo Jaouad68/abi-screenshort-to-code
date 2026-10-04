@@ -1,8 +1,9 @@
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getLycee } from "@/data/lycees";
 import { addDays, isIsoDate, todayParis } from "@/lib/dates";
 import { STATUSES } from "@/lib/status";
+import { maybeNotifyStatusChange } from "@/lib/server/push";
 import { getStore } from "@/lib/server/store";
 import { isAdmin, unauthorized } from "@/lib/server/security";
 
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
     note: parsed.data.note || null,
   });
   await store.notify(lycee.uai, parsed.data.date);
+  after(() => maybeNotifyStatusChange(lycee.uai, parsed.data.date));
   return Response.json({ ok: true });
 }
 
@@ -50,5 +52,6 @@ export async function DELETE(request: NextRequest) {
   const store = getStore();
   await store.deleteOverride(uai, date);
   await store.notify(uai, date);
+  after(() => maybeNotifyStatusChange(uai, date));
   return Response.json({ ok: true });
 }

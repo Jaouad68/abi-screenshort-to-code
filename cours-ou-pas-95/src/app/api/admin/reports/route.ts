@@ -1,4 +1,5 @@
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
+import { maybeNotifyStatusChange } from "@/lib/server/push";
 import { getStore } from "@/lib/server/store";
 import { isAdmin, unauthorized } from "@/lib/server/security";
 
@@ -18,6 +19,9 @@ export async function DELETE(request: NextRequest) {
   if (!id) return Response.json({ error: "id manquant" }, { status: 400 });
   const store = getStore();
   const deleted = await store.deleteReport(id);
-  if (deleted) await store.notify(deleted.uai, deleted.date);
+  if (deleted) {
+    await store.notify(deleted.uai, deleted.date);
+    after(() => maybeNotifyStatusChange(deleted.uai, deleted.date));
+  }
   return Response.json({ ok: true });
 }
