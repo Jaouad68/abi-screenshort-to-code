@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { IconBadge, IconBell, IconChevronRight, IconMapTab, IconMegaphone, IconShield, IconStar } from "@/components/icons";
+import { IconBadge, IconBell, IconChevronRight, IconMapTab, IconMegaphone, IconNews, IconShield, IconStar } from "@/components/icons";
 import { StatusIcon } from "@/components/status";
 import { CONFIDENCE_META, STATUS_META } from "@/lib/status";
 
@@ -42,6 +42,9 @@ export default function Page() {
         <Row icon={<Badge className="bg-[#ff9500]"><IconBell width={18} height={18} /></Badge>} title="Les alertes">
           Sur la fiche d&apos;un lycée, active les alertes : tu es prévenu dès qu&apos;un changement est confirmé. Sur iPhone,
           ajoute d&apos;abord l&apos;app à l&apos;écran d&apos;accueil.
+        </Row>
+        <Row icon={<Badge className="bg-[#34aadc]"><IconNews width={18} height={18} /></Badge>} title="La veille presse">
+          L&apos;app surveille l&apos;actualité en continu et affiche les articles qui citent un lycée du 95 (blocus, grève…).
         </Row>
         <Row icon={<Badge className="bg-accent"><IconBadge width={18} height={18} /></Badge>} title="Les référents vérifiés">
           Des délégués, parents élus ou personnels reçoivent un code de la modération. Leurs signalements fixent le statut de

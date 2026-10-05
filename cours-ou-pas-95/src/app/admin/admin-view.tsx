@@ -9,7 +9,7 @@ import { STATUS_META, type Override, type Report, type Status } from "@/lib/stat
 import { IconChevronLeft, IconShield, IconTrash } from "@/components/icons";
 import { Toast } from "@/components/sheet";
 import { StatusIcon, StatusPill } from "@/components/status";
-import { PushSection, ReferentsSection } from "./admin-sections";
+import { NewsSection, PushSection, ReferentsSection } from "./admin-sections";
 
 type AdminReport = Report & { deviceId: string };
 
@@ -229,6 +229,7 @@ function Dashboard({
         )}
       </section>
 
+      <NewsSection day={date} notify={notify} onUnauthorized={onUnauthorized} />
       <ReferentsSection notify={notify} onUnauthorized={onUnauthorized} />
       <PushSection notify={notify} onUnauthorized={onUnauthorized} />
 

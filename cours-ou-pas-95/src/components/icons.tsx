@@ -142,3 +142,10 @@ export const IconBadge = (p: P) => (
     <path d="m8.5 12 2.5 2.5 4.5-5" />
   </svg>
 );
+
+export const IconNews = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 5h13v13a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z" />
+    <path d="M17 9h3v9a2 2 0 0 1-2 2M8 9h5M8 13h5M8 17h3" />
+  </svg>
+);

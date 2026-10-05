@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getLycee, LYCEES } from "@/data/lycees";
-import { IconBadge, IconBell } from "@/components/icons";
+import { IconBadge, IconBell, IconNews } from "@/components/icons";
 
 type Notify = (msg: string, tone?: "success" | "error") => void;
 
@@ -188,6 +188,122 @@ export function PushSection({ notify, onUnauthorized }: { notify: Notify; onUnau
           </>
         )}
       </div>
+    </section>
+  );
+}
+
+interface Mention {
+  id: string;
+  uai: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  hidden: boolean;
+}
+
+/** Veille presse : articles détectés, à valider (statut vérifié) ou à masquer. */
+export function NewsSection({ day, notify, onUnauthorized }: { day: string; notify: Notify; onUnauthorized: () => void }) {
+  const [mentions, setMentions] = useState<Mention[] | null>(null);
+  const [ready, setReady] = useState(true);
+  const [scanning, setScanning] = useState(false);
+
+  const load = useCallback(async () => {
+    const res = await fetch("/api/admin/news");
+    if (res.status === 401) return onUnauthorized();
+    const json = (await res.json().catch(() => ({}))) as { mentions?: Mention[]; ready?: boolean };
+    setMentions(json.mentions ?? []);
+    setReady(json.ready !== false);
+  }, [onUnauthorized]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, [load]);
+
+  const scan = async () => {
+    setScanning(true);
+    const res = await fetch("/api/admin/news", { method: "POST" });
+    setScanning(false);
+    const json = (await res.json().catch(() => ({}))) as { error?: string; articles?: number; mentions?: number; errors?: string[] };
+    if (!res.ok) return notify(json.error ?? "Veille impossible", "error");
+    notify(`${json.articles ?? 0} article(s) récent(s), ${json.mentions ?? 0} lié(s) à un lycée${json.errors?.length ? " (sources en erreur)" : ""}`);
+    void load();
+  };
+
+  const setHidden = async (id: string, hidden: boolean) => {
+    const res = await fetch("/api/admin/news", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, hidden }),
+    });
+    if (!res.ok) return notify("Erreur", "error");
+    void load();
+  };
+
+  const publish = async (uai: string, status: "bloque" | "perturbe", source: string) => {
+    const res = await fetch("/api/admin/overrides", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uai, date: day, status, note: `Selon ${source}` }),
+    });
+    if (!res.ok) return notify("Erreur", "error");
+    notify("Statut vérifié publié");
+  };
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h2 className="flex items-center gap-2 font-display text-[22px] font-bold">
+          <IconNews width={22} height={22} className="text-accent" /> Veille presse
+        </h2>
+        <button onClick={scan} disabled={scanning || !ready} className="pressable rounded-full bg-fill px-3 py-1.5 text-[13px] font-semibold disabled:opacity-40">
+          {scanning ? "Recherche…" : "Lancer maintenant"}
+        </button>
+      </div>
+      {!ready ? (
+        <p className="rounded-[22px] bg-card p-4 text-[14px] text-label-2 shadow-card">
+          Exécute <b>supabase/v3.sql</b> dans Supabase pour activer la veille presse.
+        </p>
+      ) : mentions === null ? (
+        <p className="px-1 text-label-2">Chargement…</p>
+      ) : mentions.length === 0 ? (
+        <p className="rounded-[22px] bg-card p-4 text-[14px] text-label-2 shadow-card">
+          Aucun article sur un lycée précis ces 3 derniers jours. La veille tourne automatiquement toutes les 15 minutes.
+        </p>
+      ) : (
+        <ul className="overflow-hidden rounded-[22px] bg-card shadow-card">
+          {mentions.map((m) => (
+            <li key={m.id} className={`border-b border-separator px-4 py-3 last:border-0 ${m.hidden ? "opacity-45" : ""}`}>
+              <div className="text-[13px] font-semibold text-accent">{getLycee(m.uai)?.nom ?? m.uai}</div>
+              <a href={m.url} target="_blank" rel="noreferrer" className="mt-0.5 block text-[15px] font-semibold leading-snug">
+                {m.title}
+              </a>
+              <div className="mt-0.5 text-[12px] text-label-2">
+                {m.source} · {new Date(m.publishedAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {!m.hidden && (
+                  <>
+                    <button onClick={() => publish(m.uai, "bloque", m.source)} className="pressable rounded-full bg-[color-mix(in_srgb,var(--bloque)_15%,transparent)] px-3 py-1.5 text-[13px] font-semibold text-bloque">
+                      Publier « Bloqué »
+                    </button>
+                    <button onClick={() => publish(m.uai, "perturbe", m.source)} className="pressable rounded-full bg-[color-mix(in_srgb,var(--perturbe)_18%,transparent)] px-3 py-1.5 text-[13px] font-semibold text-perturbe">
+                      Publier « Perturbé »
+                    </button>
+                  </>
+                )}
+                <button onClick={() => setHidden(m.id, !m.hidden)} className="pressable rounded-full bg-fill px-3 py-1.5 text-[13px] font-semibold">
+                  {m.hidden ? "Réafficher" : "Masquer (hors sujet)"}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 px-2 text-[12px] leading-snug text-label-3">
+        Les boutons « Publier » s&apos;appliquent au jour sélectionné ({day}). Vérifie toujours l&apos;article avant de publier.
+      </p>
     </section>
   );
 }

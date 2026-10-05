@@ -16,6 +16,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${lycee.nom} (${lycee.commune})`,
     description: `Y a-t-il cours au ${lycee.nom} à ${lycee.commune} ? Grèves et blocages en temps réel, jour par jour.`,
+    // Aperçu de lien (WhatsApp, iMessage…) avec le statut du jour.
+    openGraph: { images: [{ url: `/api/story/${lycee.uai}?format=og`, width: 1200, height: 630 }] },
   };
 }
 

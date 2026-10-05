@@ -1,5 +1,6 @@
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { currentWeekStart, isIsoDate, mondayOf } from "@/lib/dates";
+import { scanNews } from "@/lib/server/news";
 import { getWeek } from "@/lib/server/week";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get("start");
   const start = isIsoDate(raw) ? mondayOf(raw) : currentWeekStart();
+  // Veille presse en arrière-plan, au plus toutes les 15 minutes (déclenchée par les visites).
+  after(() => scanNews().catch((e) => console.error("[news]", e)));
   try {
     const week = await getWeek(start);
     return Response.json(week, { headers: { "Cache-Control": "no-store" } });

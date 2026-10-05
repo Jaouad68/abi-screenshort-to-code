@@ -90,6 +90,7 @@ src/
   lib/client/hooks.ts              Temps réel, favoris, mes signalements
 supabase/schema.sql                Tables, RLS, Realtime
 supabase/v2.sql                    Référents, abonnements push
+supabase/v3.sql                    Veille presse
 public/sw.js                       Service worker (notifications)
 ```
 
@@ -98,6 +99,15 @@ public/sw.js                       Service worker (notifications)
 - **Carte** (`/carte`) : Leaflet + fonds CARTO (clair / sombre), pastilles colorées selon le statut du jour.
 - **Alertes push** : depuis la fiche d'un lycée. Une notification part quand un statut fiable change (`Vérifié`, `Référent` ou `Confirmé`), jamais sur un signalement isolé. Les alertes suivent les favoris. Sur iPhone : iOS 16.4+, app ajoutée à l'écran d'accueil.
 - **Référents vérifiés** : l'admin crée un code par personne (`/admin`), le référent l'active sur `/referent`. Son dernier signalement fixe le statut du jour de son lycée (confiance « Référent »), seule une décision de modération passe devant. Un code peut être désactivé à tout moment ; seule son empreinte est stockée.
+
+## V3
+
+- **Veille presse automatique** : Google Actualités est interrogé au plus toutes les 15 minutes (relancé par les visites, plus une tâche Vercel Cron chaque matin). Un article n'est rattaché à un lycée que si son titre contient « lycée <nom> », la ville et un mot-clé de mobilisation (`src/lib/news-match.ts`, testé sur un vrai flux). Les articles des 72 dernières heures s'affichent sur l'accueil et la fiche ; ils n'influencent pas le statut. Dans `/admin`, « Veille presse » permet de publier un statut vérifié en un clic ou de masquer un hors-sujet.
+- **Partage en story** : `/api/story/<uai>?jour=…` génère l'image 1080×1920 du statut (et `&format=og` l'aperçu de lien 1200×630). Bouton « Partager en story » sur chaque fiche.
+
+### Mise à jour vers la V3
+
+Supabase > SQL Editor : exécuter `supabase/v3.sql`. Rien d'autre à configurer.
 
 ### Mise à jour vers la V2
 

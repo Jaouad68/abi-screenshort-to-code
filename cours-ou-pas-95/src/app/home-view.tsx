@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { COMMUNES, LYCEES, normalize, voiesLabel, type Lycee } from "@/data/lycees";
+import { COMMUNES, getLycee, LYCEES, normalize, voiesLabel, type Lycee } from "@/data/lycees";
 import { dayOf, useFavorites, useMounted, useWeek } from "@/lib/client/hooks";
-import { addDays, dayMonth, longDate, mondayOf, relativeDayLabel, weekDays } from "@/lib/dates";
+import { addDays, dayMonth, longDate, mondayOf, relativeDayLabel, timeAgo, weekDays } from "@/lib/dates";
 import { STATUS_META, type DisplayStatus } from "@/lib/status";
 import { DayPicker, Segmented } from "@/components/day-picker";
-import { IconChevronRight, IconClose, IconSearch, IconStar } from "@/components/icons";
+import { IconChevronRight, IconClose, IconNews, IconSearch, IconStar } from "@/components/icons";
 import { LiveIndicator } from "@/components/live";
 import { STATUS_COLOR, StatusIcon, StatusPill } from "@/components/status";
 
@@ -58,6 +58,12 @@ export function HomeView({ today, thisWeek, initialDay }: { today: string; thisW
     for (const l of filtered) m.set(l.commune, [...(m.get(l.commune) ?? []), l]);
     return [...m.entries()];
   }, [filtered]);
+
+  // Les 4 articles les plus récents, tous lycées confondus.
+  const latestNews = Object.values(data?.news ?? {})
+    .flat()
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, 4);
 
   const favLycees = mounted ? LYCEES.filter((l) => favs.includes(l.uai)) : [];
 
@@ -128,6 +134,30 @@ export function HomeView({ today, thisWeek, initialDay }: { today: string; thisW
           </p>
         )}
       </section>
+
+      {/* Veille presse */}
+      {latestNews.length > 0 && (
+        <section className="mt-7 animate-fade-up">
+          <h2 className="mb-2 flex items-center gap-2 px-1 font-display text-[22px] font-bold tracking-tight">
+            <IconNews width={22} height={22} className="text-accent" /> Dans la presse
+          </h2>
+          <ul className="overflow-hidden rounded-[22px] bg-card shadow-card">
+            {latestNews.map((m) => (
+              <li key={m.id} className="border-b border-separator last:border-0">
+                <Link href={`/lycee/${m.uai}?jour=${day}`} className="block px-4 py-3 active:bg-fill">
+                  <div className="text-[13px] font-semibold text-accent">
+                    {getLycee(m.uai)?.nom} · {getLycee(m.uai)?.commune}
+                  </div>
+                  <div className="mt-0.5 line-clamp-2 text-[15px] font-semibold leading-snug">{m.title}</div>
+                  <div className="mt-0.5 text-[12px] text-label-2">
+                    {m.source} · {mounted ? timeAgo(m.publishedAt) : ""}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Favoris */}
       {favLycees.length > 0 && (
@@ -224,9 +254,16 @@ export function HomeView({ today, thisWeek, initialDay }: { today: string; thisW
                       <StatusIcon status={s} size={34} />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[16px] font-semibold">{l.nom}</div>
-                        <div className="truncate text-[13px] text-label-2">
-                          {l.secteur} · {voiesLabel(l)}
-                        </div>
+                        {data?.news?.[l.uai]?.length ? (
+                          <div className="flex items-center gap-1 truncate text-[13px] font-medium text-accent">
+                            <IconNews width={13} height={13} className="shrink-0" />
+                            Dans la presse · {data.news[l.uai][0].source}
+                          </div>
+                        ) : (
+                          <div className="truncate text-[13px] text-label-2">
+                            {l.secteur} · {voiesLabel(l)}
+                          </div>
+                        )}
                       </div>
                       {s !== "inconnu" && <StatusPill status={s} />}
                       <IconChevronRight width={16} height={16} className="shrink-0 text-label-3" />

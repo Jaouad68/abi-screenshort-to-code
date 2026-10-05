@@ -39,6 +39,16 @@ export interface PushSubscriptionRecord {
   uais: string[];
 }
 
+export interface NewsMention {
+  id: string;
+  uai: string;
+  title: string;
+  url: string;
+  source: string;
+  publishedAt: string;
+  hidden: boolean;
+}
+
 export interface Store {
   mode: "supabase" | "demo";
   listReports(from: string, to: string): Promise<Report[]>;
@@ -68,6 +78,13 @@ export interface Store {
   /** Dernier statut ayant fait l'objet d'une notification push (évite les doublons). */
   getNotified(uai: string, date: string): Promise<Status | null>;
   setNotified(uai: string, date: string, status: Status): Promise<void>;
+
+  /** Veille presse : articles rattachés à un lycée. */
+  upsertMentions(m: Omit<NewsMention, "hidden">[]): Promise<void>;
+  listMentions(sinceIso: string, includeHidden?: boolean): Promise<NewsMention[]>;
+  setMentionHidden(id: string, hidden: boolean): Promise<void>;
+  getMeta(key: string): Promise<string | null>;
+  setMeta(key: string, value: string): Promise<void>;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -277,6 +294,45 @@ function supabaseStore(db: SupabaseClient): Store {
     async setNotified(uai, date, status) {
       check(await db.from("notified").upsert({ uai, day: date, status, updated_at: new Date().toISOString() }, { onConflict: "uai,day" }));
     },
+
+    async upsertMentions(list) {
+      if (list.length === 0) return;
+      // ignoreDuplicates : un article déjà connu garde son état (masqué ou non).
+      check(
+        await db.from("news_mentions").upsert(
+          list.map((m) => ({ id: m.id, uai: m.uai, title: m.title, url: m.url, source: m.source, published_at: m.publishedAt })),
+          { onConflict: "id", ignoreDuplicates: true },
+        ),
+      );
+    },
+
+    async listMentions(sinceIso, includeHidden = false) {
+      let q = db.from("news_mentions").select("id, uai, title, url, source, published_at, hidden").gte("published_at", sinceIso);
+      if (!includeHidden) q = q.eq("hidden", false);
+      const rows = check(await q.order("published_at", { ascending: false }).limit(500)) as {
+        id: string;
+        uai: string;
+        title: string;
+        url: string;
+        source: string;
+        published_at: string;
+        hidden: boolean;
+      }[];
+      return rows.map((r) => ({ id: r.id, uai: r.uai, title: r.title, url: r.url, source: r.source, publishedAt: r.published_at, hidden: r.hidden }));
+    },
+
+    async setMentionHidden(id, hidden) {
+      check(await db.from("news_mentions").update({ hidden }).eq("id", id));
+    },
+
+    async getMeta(key) {
+      const rows = check(await db.from("app_meta").select("value").eq("key", key).limit(1)) as { value: string }[];
+      return rows[0]?.value ?? null;
+    },
+
+    async setMeta(key, value) {
+      check(await db.from("app_meta").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" }));
+    },
   };
 }
 
@@ -294,6 +350,8 @@ function memoryStore(): Store {
   const referents: (Referent & { codeHash: string })[] = [];
   const subscriptions = new Map<string, PushSubscriptionRecord>();
   const notified = new Map<string, Status>();
+  const mentions = new Map<string, NewsMention>();
+  const meta = new Map<string, string>();
   const strip = ({ codeHash: _omit, ...r }: Referent & { codeHash: string }): Referent => {
     void _omit;
     return r;
@@ -402,6 +460,29 @@ function memoryStore(): Store {
 
     async setNotified(uai, date, status) {
       notified.set(`${uai}|${date}`, status);
+    },
+
+    async upsertMentions(list) {
+      for (const m of list) if (!mentions.has(m.id)) mentions.set(m.id, { ...m, hidden: false });
+    },
+
+    async listMentions(sinceIso, includeHidden = false) {
+      return [...mentions.values()]
+        .filter((m) => m.publishedAt >= sinceIso && (includeHidden || !m.hidden))
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+    },
+
+    async setMentionHidden(id, hidden) {
+      const m = mentions.get(id);
+      if (m) m.hidden = hidden;
+    },
+
+    async getMeta(key) {
+      return meta.get(key) ?? null;
+    },
+
+    async setMeta(key, value) {
+      meta.set(key, value);
     },
   };
 }

@@ -8,7 +8,9 @@ import { addDays, currentWeekStart, dayMonth, longDate, mondayOf, relativeDayLab
 import { STATUS_META, STATUSES, type Status } from "@/lib/status";
 import { DayPicker } from "@/components/day-picker";
 import { IconBadge, IconChevronLeft, IconChevronRight, IconMap, IconMegaphone, IconShare, IconStar } from "@/components/icons";
+import { NewsCard } from "@/components/news-card";
 import { NotifyCard } from "@/components/notify-card";
+import { StoryButton } from "@/components/story-button";
 import { LiveIndicator } from "@/components/live";
 import { Sheet, Toast } from "@/components/sheet";
 import { ConfidenceBadge, STATUS_COLOR, StatusIcon } from "@/components/status";
@@ -249,10 +251,19 @@ export function LyceeView({
             <IconMegaphone width={20} height={20} />
             {myVote ? "Modifier mon signalement" : "Signaler la situation"}
           </button>
+          <StoryButton
+            uai={lycee.uai}
+            day={day}
+            version={`${s}-${current.count}-${current.confidence ?? ""}`}
+            text={`${lycee.nom} (${lycee.commune}) · ${relativeDayLabel(day, today)} : ${STATUS_META[s].label}`}
+            onToast={(msg, tone = "success") => setToast({ msg, tone })}
+          />
           <p className="mt-2 px-2 text-center text-[12px] text-label-2">
             {referentLabel ? "Tes signalements sont marqués « Référent »" : "Anonyme · Un signalement par appareil et par jour"}
           </p>
         </section>
+
+        <NewsCard mentions={data?.news?.[lycee.uai] ?? []} now={now} />
 
         <NotifyCard uai={lycee.uai} onToast={(msg, tone = "success") => setToast({ msg, tone })} />
 

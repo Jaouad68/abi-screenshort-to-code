@@ -5,7 +5,12 @@ import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: { default: "Cours ou Pas ? 95", template: "%s · Cours ou Pas ? 95" },
   description: "Grèves et blocages dans les lycées du Val d'Oise : sache en temps réel s'il y a cours, lycée par lycée, jour par jour.",
   applicationName: "Cours ou Pas ?",
