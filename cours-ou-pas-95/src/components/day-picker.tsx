@@ -70,7 +70,7 @@ export function Segmented<T extends string>({
     <div className="relative grid rounded-[10px] bg-fill p-0.5" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
       <span
         aria-hidden
-        className="absolute inset-y-0.5 left-0.5 rounded-[8px] bg-elevated shadow-[0_3px_8px_rgba(0,0,0,0.12),0_3px_1px_rgba(0,0,0,0.04)] transition-transform duration-300 ease-spring"
+        className="absolute inset-y-0.5 left-0.5 rounded-[8px] bg-segment shadow-[0_3px_8px_rgba(0,0,0,0.12),0_3px_1px_rgba(0,0,0,0.04)] transition-transform duration-300 ease-spring"
         style={{ width: `calc((100% - 4px) / ${options.length})`, transform: `translateX(${i * 100}%)` }}
       />
       {options.map((o) => (

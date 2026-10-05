@@ -111,3 +111,19 @@ export function parseRss(xml: string): RssItem[] {
   }
   return items;
 }
+
+const TOPIC = /\b(lycee|lycees|lyceen|lyceens|lyceenne|lyceennes|blocus|blocage|blocages)\b/;
+const VAL_DOISE = new RegExp(
+  ` (val d oise|${[...new Set([...COMMUNE_ALIASES.values()].flat())].join("|")}) `,
+);
+
+/** L'article parle-t-il de la mobilisation lycéenne ? (revue de presse) */
+export function isAboutLycees(title: string): boolean {
+  const text = simplify(title);
+  return TOPIC.test(text) && KEYWORDS.test(text);
+}
+
+/** L'article concerne-t-il le Val-d'Oise (département ou une de ses villes) ? */
+export function isValDoise(title: string): boolean {
+  return VAL_DOISE.test(simplify(title));
+}

@@ -10,7 +10,8 @@ export async function GET() {
   if (!(await isAdmin())) return unauthorized();
   const since = new Date(Date.now() - NEWS_WINDOW_HOURS * 3_600_000).toISOString();
   try {
-    const mentions = await getStore().listMentions(since, true);
+    // Les articles de la revue de presse (UAI vide) ne sont pas à modérer ici.
+    const mentions = (await getStore().listMentions(since, true)).filter((m) => m.uai !== "");
     return Response.json({ mentions, ready: true }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ mentions: [], ready: false }, { headers: { "Cache-Control": "no-store" } });

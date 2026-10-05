@@ -13,7 +13,8 @@
   --label-2: rgba(60, 60, 67, 0.62);
   --label-3: rgba(60, 60, 67, 0.36);
   --separator: rgba(60, 60, 67, 0.14);
-  --glass: rgba(249, 249, 251, 0.72);
+  --glass: rgba(249, 249, 251, 0.94);
+  --segment: #ffffff;
   --accent: #5e5ce6;
   --accent-2: #0a84ff;
 
@@ -37,7 +38,8 @@
     --label-2: rgba(235, 235, 245, 0.62);
     --label-3: rgba(235, 235, 245, 0.32);
     --separator: rgba(84, 84, 88, 0.55);
-    --glass: rgba(22, 22, 24, 0.72);
+    --glass: rgba(22, 22, 24, 0.94);
+    --segment: #636366;
     --accent: #7d7aff;
     --accent-2: #409cff;
 
@@ -62,6 +64,7 @@
   --color-label-3: var(--label-3);
   --color-separator: var(--separator);
   --color-glass: var(--glass);
+  --color-segment: var(--segment);
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
   --color-normal: var(--normal);
@@ -240,4 +243,11 @@ body {
 }
 .leaflet-bottom.leaflet-right {
   margin-bottom: 84px;
+}
+
+/* Une seule croix d'effacement dans les champs de recherche (celle de l'app). */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
 }

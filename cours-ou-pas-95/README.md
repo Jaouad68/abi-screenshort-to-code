@@ -103,6 +103,7 @@ public/sw.js                       Service worker (notifications)
 ## V3
 
 - **Veille presse automatique** : Google Actualités est interrogé au plus toutes les 15 minutes (relancé par les visites, plus une tâche Vercel Cron chaque matin). Un article n'est rattaché à un lycée que si son titre contient « lycée <nom> », la ville et un mot-clé de mobilisation (`src/lib/news-match.ts`, testé sur un vrai flux). Les articles des 72 dernières heures s'affichent sur l'accueil et la fiche ; ils n'influencent pas le statut. Dans `/admin`, « Veille presse » permet de publier un statut vérifié en un clic ou de masquer un hors-sujet.
+- **Onglet Presse** (`/presse`) : revue de presse des 7 derniers jours (titres, médias, liens), filtrable Val-d'Oise / toute la France, avec recherche, lycées cités et rappel sur les arrêtés préfectoraux. Alimentée par la même veille ; seuls le titre, la source et le lien sont conservés.
 - **Partage en story** : `/api/story/<uai>?jour=…` génère l'image 1080×1920 du statut (et `&format=og` l'aperçu de lien 1200×630). Bouton « Partager en story » sur chaque fiche.
 
 ### Mise à jour vers la V3

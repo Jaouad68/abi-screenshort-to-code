@@ -19,7 +19,7 @@ describe("scanNews", () => {
   it("enregistre les articles récents liés à un lycée, sans doublon, et respecte l'intervalle", async () => {
     const fetchMock = vi.fn(async () => new Response(recentFeed(), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
-    const { scanNews, recentMentionsByLycee } = await import("./news");
+    const { scanNews, recentMentionsByLycee, pressArticles } = await import("./news");
 
     const first = await scanNews();
     expect(first.skipped).toBe(false);
@@ -31,6 +31,18 @@ describe("scanNews", () => {
     const byLycee = await recentMentionsByLycee();
     expect(byLycee["0950641F"]?.[0].title).toContain("Jean-Jaurès");
     expect(byLycee["0952173W"]?.[0].source).toBe("Actu.fr");
+
+    // Revue de presse : tous les articles sur la mobilisation, lycées identifiés quand c'est possible.
+    const press = await pressArticles();
+    expect(press.length).toBeGreaterThan(30);
+    expect(new Set(press.map((p) => p.title)).size).toBe(press.length);
+    const jaures = press.find((p) => p.title.includes("Jean-Jaurès d'Argenteuil"));
+    expect(jaures?.uais).toEqual(["0950641F"]);
+    expect(jaures?.valDoise).toBe(true);
+    expect(press.find((p) => p.title.startsWith("Blocus des lycées : 37 établissements"))?.valDoise).toBe(true);
+    expect(press.some((p) => !p.valDoise)).toBe(true);
+    // Les articles de la revue n'apparaissent pas comme mentions de lycée.
+    expect(Object.keys(byLycee)).not.toContain("");
 
     // Une 2e veille dans les 15 minutes est ignorée…
     expect((await scanNews()).skipped).toBe(true);
