@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/*
+ * Dar Tanja : bleu du détroit, blanc de la médina, safran pour l'argent
+ * public, vert réservé à ce qui est vérifié.
+ */
+:root {
+  --bg: #f3f6f8;
+  --surface: #ffffff;
+  --surface-2: #e8eff3;
+  --ink: #0d1b26;
+  --muted: #566977;
+  --line: #d3dee6;
+  --glass: rgba(255, 255, 255, 0.9);
+  --detroit: #0b4f6c;
+  --detroit-soft: #dceaf1;
+  --on-detroit: #ffffff;
+  --safran: #9a6412;
+  --safran-soft: #faefd9;
+  --ok: #1b7444;
+  --ok-soft: #ddf1e5;
+  --warn: #965600;
+  --warn-soft: #fcedd5;
+  --risk: #b42318;
+  --risk-soft: #fbe3e0;
+  --unk: #566977;
+  --unk-soft: #e7edf1;
+  --photo-a: #8db9cf;
+  --photo-b: #0b4f6c;
+  --shadow: 0 1px 2px rgba(13, 27, 38, 0.05), 0 10px 28px -14px rgba(13, 27, 38, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #09131a;
+    --surface: #10202b;
+    --surface-2: #162b39;
+    --ink: #e7eff4;
+    --muted: #93a7b5;
+    --line: #233a4b;
+    --glass: rgba(16, 32, 43, 0.9);
+    --detroit: #62b6dc;
+    --detroit-soft: #12354a;
+    --on-detroit: #052030;
+    --safran: #e8b866;
+    --safran-soft: #3a2b12;
+    --ok: #5dcb8c;
+    --ok-soft: #113221;
+    --warn: #f0b25a;
+    --warn-soft: #39290f;
+    --risk: #f3887d;
+    --risk-soft: #3c1613;
+    --unk: #93a7b5;
+    --unk-soft: #1c2d3a;
+    --photo-a: #2c5a72;
+    --photo-b: #0a2433;
+    --shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-detroit: var(--detroit);
+  --color-detroit-soft: var(--detroit-soft);
+  --color-on-detroit: var(--on-detroit);
+  --color-safran: var(--safran);
+  --color-safran-soft: var(--safran-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-risk: var(--risk);
+  --color-risk-soft: var(--risk-soft);
+  --color-unk: var(--unk);
+  --color-unk-soft: var(--unk-soft);
+  --font-display: var(--font-bricolage), "Avenir Next", system-ui, sans-serif;
+  --font-ar: var(--font-plex-arabic), "Geeza Pro", Tahoma, sans-serif;
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html[lang="ar"] body {
+  font-family: var(--font-plex-arabic), "Geeza Pro", Tahoma, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-bricolage), "Avenir Next", system-ui, sans-serif;
+}
+html[lang="ar"] .font-display {
+  font-family: var(--font-plex-arabic), "Geeza Pro", Tahoma, sans-serif;
+  font-weight: 600;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.carte-ombre {
+  box-shadow: var(--shadow);
+}
+
+/* Motif zellige utilisé sur les visuels de programme. */
+.zellige {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cg fill='none' stroke='white' stroke-opacity='.22' stroke-width='1.4'%3E%3Crect x='10' y='10' width='20' height='20'/%3E%3Crect x='10' y='10' width='20' height='20' transform='rotate(45 20 20)'/%3E%3Ccircle cx='20' cy='20' r='4'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(160deg, var(--photo-a), var(--photo-b));
+}
+
+:focus-visible {
+  outline: 3px solid var(--safran);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse {
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% {
+      box-shadow: 0 0 0 6px transparent;
+    }
+  }
+  .apparition {
+    animation: apparition 150ms ease-out;
+  }
+  @keyframes apparition {
+    from {
+      opacity: 0.4;
+    }
+  }
+}
+
+/* Fenêtre Leaflet aux couleurs de l'app. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+}
+.leaflet-container {
+  font: inherit;
+  background: var(--surface-2);
+}
+
+/* Un contenu trop large défile dans son propre bloc, jamais la page entière. */
+main > .grid > * {
+  min-width: 0;
+}
