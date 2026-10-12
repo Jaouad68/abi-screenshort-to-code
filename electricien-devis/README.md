@@ -135,7 +135,11 @@ DATABASE_URL="postgresql://…" node scripts/setup-demo.mjs
    - `DATABASE_URL` = l'URI Supabase (port 5432)
    - `SESSION_SECRET` = une longue chaîne aléatoire (`openssl rand -base64 32`)
    - *(optionnel)* `RESEND_API_KEY` + `EMAIL_FROM` pour l'envoi réel des devis par
-     email. Sans elles, l'app fonctionne mais l'envoi est simulé.
+     email. Sans elles, l'app fonctionne mais l'envoi est simulé. `EMAIL_FROM`
+     doit utiliser un domaine **vérifié** sur resend.com/domains : sinon Resend
+     refuse l'envoi, ou n'envoie qu'à l'adresse du titulaire du compte (mode test).
+     En cas d'échec, la page du devis affiche la cause précise et la réponse brute
+     de Resend est écrite dans les journaux Vercel (`[email] échec Resend …`).
    - *(optionnel)* `CRON_SECRET` pour protéger la route de relances. Le fichier
      `vercel.json` planifie déjà l'appel quotidien de `/api/cron/relances` ;
      Vercel transmet automatiquement `CRON_SECRET` dans l'en-tête `Authorization`.

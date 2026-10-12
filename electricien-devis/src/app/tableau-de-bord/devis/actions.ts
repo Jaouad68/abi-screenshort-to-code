@@ -240,7 +240,7 @@ export async function envoyerParEmail(id: string) {
   });
 
   if (!resultat.ok) {
-    redirect(`/tableau-de-bord/devis/${id}?email=erreur`);
+    redirect(`/tableau-de-bord/devis/${id}?email=erreur&raison=${resultat.raison ?? "autre"}`);
   }
 
   // Un devis envoyé passe automatiquement au statut « Envoyé ».
