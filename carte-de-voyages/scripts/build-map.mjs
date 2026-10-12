@@ -3,7 +3,7 @@
 // Usage : npm install && npm run build:map
 import { writeFileSync, mkdirSync } from "node:fs";
 import { createRequire } from "node:module";
-import { feature } from "topojson-client";
+import { feature, mergeArcs } from "topojson-client";
 import { presimplify, simplify, quantile } from "topojson-simplify";
 import { geoNaturalEarth1, geoPath, geoArea } from "d3-geo";
 import iso from "i18n-iso-countries";
@@ -23,6 +23,15 @@ const SANS_ISO = {
 };
 const CONTINENTS = { AF: "Afrique", AS: "Asie", EU: "Europe", NA: "Amérique du Nord", SA: "Amérique du Sud", OC: "Océanie" };
 // Noms plus courts ou plus courants que ceux du paquet i18n.
+// Le Sahara marocain (Natural Earth : « W. Sahara », 732) est rattaché au Maroc (504) :
+// un seul tracé, sans frontière intérieure, colorié en entier quand le Maroc est visité.
+{
+  const geoms = topo.objects.countries.geometries;
+  const parts = geoms.filter((g) => g.id === "504" || g.id === "732");
+  const maroc = { ...mergeArcs(topo, parts), id: "504", properties: { name: "Morocco" } };
+  topo.objects.countries.geometries = [...geoms.filter((g) => !parts.includes(g)), maroc];
+}
+
 const NOMS = {
   US: "États-Unis", GB: "Royaume-Uni", RU: "Russie", KR: "Corée du Sud", KP: "Corée du Nord",
   CD: "RD Congo", CG: "Congo", IR: "Iran", SY: "Syrie", LA: "Laos", VN: "Vietnam", BO: "Bolivie",
