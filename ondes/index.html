@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Écoute les radios et regarde les télévisions du monde entier, en direct et gratuitement." />
+  <meta name="theme-color" content="#0a0a12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ondes" />
+  <title>Ondes</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+
+  <div class="app">
+    <!-- Barre latérale (ordinateur) -->
+    <aside class="sidebar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="5" /><path d="M14 14a14 14 0 0 0 0 20M34 14a14 14 0 0 1 0 20M8 8a22 22 0 0 0 0 32M40 8a22 22 0 0 1 0 32" /></svg>
+        <span>Ondes</span>
+      </div>
+      <nav class="side-nav" aria-label="Navigation principale">
+        <a href="#radio" data-tab="radio"><svg viewBox="0 0 24 24"><path d="M4 9h16v11H4zM8 9l9-5" /><circle cx="9" cy="14.5" r="2.5" /><path d="M14 13h3M14 16h3" /></svg>Radio</a>
+        <a href="#tv" data-tab="tv"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M8 21h8M12 17v4" /></svg>Télévision</a>
+        <a href="#recherche" data-tab="recherche"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>Rechercher</a>
+        <a href="#favoris" data-tab="favoris"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></svg>Favoris</a>
+      </nav>
+      <p class="side-foot">Annuaires libres : Radio Browser et iptv-org.</p>
+    </aside>
+
+    <main id="view" class="view" tabindex="-1"></main>
+  </div>
+
+  <!-- Mini-lecteur -->
+  <div class="mini" id="mini" hidden>
+    <button type="button" class="mini-open" id="mini-open" aria-label="Ouvrir le lecteur">
+      <span class="mini-art" id="mini-art"></span>
+      <span class="mini-text">
+        <strong id="mini-name"></strong>
+        <small id="mini-sub"></small>
+      </span>
+    </button>
+    <span class="eq" id="mini-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <button type="button" class="round" id="mini-toggle" aria-label="Lecture"></button>
+  </div>
+
+  <!-- Barre d'onglets (mobile) -->
+  <nav class="tabbar" aria-label="Onglets">
+    <a href="#radio" data-tab="radio"><svg viewBox="0 0 24 24"><path d="M4 9h16v11H4zM8 9l9-5" /><circle cx="9" cy="14.5" r="2.5" /><path d="M14 13h3M14 16h3" /></svg><span>Radio</span></a>
+    <a href="#tv" data-tab="tv"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M8 21h8M12 17v4" /></svg><span>TV</span></a>
+    <a href="#recherche" data-tab="recherche"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg><span>Rechercher</span></a>
+    <a href="#favoris" data-tab="favoris"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" /></svg><span>Favoris</span></a>
+  </nav>
+
+  <!-- Lecteur radio plein écran -->
+  <section class="sheet now" id="now" hidden aria-label="Lecture en cours">
+    <div class="sheet-bar"><button type="button" class="ghost-btn" data-close="now" aria-label="Réduire le lecteur"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg></button><span>En direct</span><span class="spacer"></span></div>
+    <div class="now-body">
+      <div class="now-art" id="now-art"></div>
+      <div class="now-meta">
+        <div class="now-title">
+          <h2 id="now-name"></h2>
+          <p id="now-sub"></p>
+        </div>
+        <button type="button" class="fav-btn" id="now-fav" aria-label="Ajouter aux favoris"></button>
+      </div>
+      <div class="live-row"><span class="live-dot"></span><span id="now-status">En direct</span><span class="spacer"></span><span id="now-tech"></span></div>
+      <div class="controls">
+        <button type="button" class="ctrl" id="now-prev" aria-label="Station précédente"><svg viewBox="0 0 24 24"><path d="M6 5v14M19 5 9 12l10 7z" /></svg></button>
+        <button type="button" class="ctrl big" id="now-toggle" aria-label="Lecture"></button>
+        <button type="button" class="ctrl" id="now-next" aria-label="Station suivante"><svg viewBox="0 0 24 24"><path d="M18 5v14M5 5l10 7-10 7z" /></svg></button>
+      </div>
+      <label class="volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" /></svg><input type="range" id="volume" min="0" max="1" step="0.01" value="1" aria-label="Volume" /><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4zM16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14" /></svg></label>
+      <div class="now-actions">
+        <button type="button" class="pill" id="sleep-btn"><svg viewBox="0 0 24 24"><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z" /></svg><span id="sleep-label">Minuteur</span></button>
+        <a class="pill" id="now-site" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg>Site</a>
+        <button type="button" class="pill" id="share-btn"><svg viewBox="0 0 24 24"><path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6" /></svg>Partager</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lecteur TV -->
+  <section class="sheet tvsheet" id="tvsheet" hidden aria-label="Télévision en direct">
+    <div class="sheet-bar"><button type="button" class="ghost-btn" data-close="tvsheet" aria-label="Fermer la télévision"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></svg></button><span>Télévision en direct</span><span class="spacer"></span></div>
+    <div class="tv-body">
+      <div class="screen" id="screen">
+        <video id="video" playsinline controls></video>
+        <div class="screen-msg" id="screen-msg" hidden></div>
+        <div class="screen-load" id="screen-load" hidden><span class="spinner"></span></div>
+      </div>
+      <div class="tv-meta">
+        <span class="tv-logo" id="tv-logo"></span>
+        <div class="now-title"><h2 id="tv-name"></h2><p id="tv-sub"></p></div>
+        <button type="button" class="fav-btn" id="tv-fav" aria-label="Ajouter aux favoris"></button>
+      </div>
+      <div class="tv-actions">
+        <button type="button" class="pill" id="tv-prev"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6" /></svg>Précédente</button>
+        <button type="button" class="pill" id="tv-next">Suivante<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" /></svg></button>
+        <button type="button" class="pill" id="tv-pip"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><rect x="12" y="11" width="7" height="6" rx="1" /></svg>Incrustation</button>
+        <button type="button" class="pill" id="tv-full"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>Plein écran</button>
+      </div>
+      <h3 class="tv-more-title">Zapper</h3>
+      <div class="tv-more" id="tv-more"></div>
+    </div>
+  </section>
+
+  <!-- Choix du pays -->
+  <section class="sheet picker" id="picker" hidden aria-label="Choisir un pays">
+    <div class="sheet-bar"><button type="button" class="ghost-btn" data-close="picker" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg></button><span>Choisir un pays</span><span class="spacer"></span></div>
+    <div class="picker-body">
+      <input type="search" id="picker-search" class="field" placeholder="Rechercher un pays" autocomplete="off" />
+      <ul class="picker-list" id="picker-list"></ul>
+    </div>
+  </section>
+
+  <!-- Minuteur de sommeil -->
+  <div class="menu" id="sleep-menu" hidden role="menu" aria-label="Minuteur de sommeil">
+    <button type="button" role="menuitem" data-sleep="15">Dans 15 min</button>
+    <button type="button" role="menuitem" data-sleep="30">Dans 30 min</button>
+    <button type="button" role="menuitem" data-sleep="60">Dans 1 h</button>
+    <button type="button" role="menuitem" data-sleep="90">Dans 1 h 30</button>
+    <button type="button" role="menuitem" data-sleep="0">Désactiver</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+  <audio id="audio" preload="none"></audio>
+
+  <script src="vendor/hls.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
