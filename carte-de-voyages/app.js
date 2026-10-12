@@ -379,7 +379,7 @@
               h("span", {}, h("strong", {}, String(t.year)), t.cities.length ? ` · ${t.cities.join(", ")}` : ""),
               h("span", { class: "actions" },
                 h("button", { type: "button", class: "icon-btn", onclick: () => { editingId = t.id; renderPanel(); $("#f-year").focus(); } }, "Modifier"),
-                h("button", { type: "button", class: "icon-btn danger", "aria-label": `Supprimer le voyage ${t.year}`, onclick: () => removeTrip(t.id) }, "Supprimer"),
+                h("button", { type: "button", class: "icon-btn danger", "aria-label": `Supprimer le voyage ${t.year}`, onclick: (e) => removeTrip(t.id, e.currentTarget) }, "Supprimer"),
               ),
             ),
           ),
@@ -390,9 +390,21 @@
     );
   }
 
-  function removeTrip(id) {
+  // Premier clic : le bouton demande confirmation ; second clic dans les 3 s : suppression.
+  function removeTrip(id, btn) {
     const t = state.trips.find((x) => x.id === id);
-    if (!t || !confirm(`Supprimer le voyage ${t.year} (${byCode.get(t.code).name}) ?`)) return;
+    if (!t) return;
+    if (btn.dataset.armed !== "1") {
+      btn.dataset.armed = "1";
+      btn.textContent = "Confirmer ?";
+      setTimeout(() => {
+        if (btn.isConnected) {
+          btn.dataset.armed = "";
+          btn.textContent = "Supprimer";
+        }
+      }, 3000);
+      return;
+    }
     state.trips = state.trips.filter((x) => x.id !== id);
     if (editingId === id) editingId = null;
     save();
@@ -566,7 +578,13 @@
   // ---------- Export / import / réinitialisation ----------
   $("#btn-export").addEventListener("click", () => {
     const data = { app: "carte-de-voyages", version: 1, ...state };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    const json = JSON.stringify(data, null, 2);
+    // Copie en plus du téléchargement : certains navigateurs intégrés bloquent les téléchargements.
+    navigator.clipboard?.writeText(json).then(
+      () => toast("Carnet exporté et copié dans le presse-papiers."),
+      () => {},
+    );
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
     const a = h("a", { href: url, download: `carte-de-voyages-${new Date().toISOString().slice(0, 10)}.json` });
     document.body.append(a);
     a.click();
@@ -592,9 +610,14 @@
   });
 
   $("#btn-reset").addEventListener("click", () => {
-    const choice = prompt("Tape « vider » pour effacer tous tes voyages, ou « exemple » pour recharger les voyages d'exemple.");
-    const v = choice && normalize(choice);
-    if (v !== "vider" && v !== "exemple") return;
+    $("#reset-box").hidden = !$("#reset-box").hidden;
+  });
+
+  $("#reset-box").addEventListener("click", (e) => {
+    const v = e.target.closest("button")?.dataset.reset;
+    if (!v) return;
+    $("#reset-box").hidden = true;
+    if (v === "cancel") return;
     state = v === "vider" ? { marks: {}, trips: [] } : withIds(EXAMPLE);
     selected = null;
     save();

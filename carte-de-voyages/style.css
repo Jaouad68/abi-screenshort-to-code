@@ -409,6 +409,15 @@ button, input, select { font: inherit; color: inherit; }
 }
 .link-btn:hover { color: var(--accent-dark); }
 
+.reset-box {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+.reset-box p { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
+.reset-box .form-actions { flex-wrap: wrap; }
+
 .toast {
   position: fixed; left: 50%; bottom: 24px;
   transform: translateX(-50%);
