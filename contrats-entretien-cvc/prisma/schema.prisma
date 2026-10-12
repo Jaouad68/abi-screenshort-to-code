@@ -1,0 +1,235 @@
+// Schéma de base de données — SuiviCVC (suivi des contrats d'entretien
+// chauffage / climatisation). Base : PostgreSQL. Client Prisma généré dans
+// src/generated/prisma.
+//
+// Multi-entreprise : chaque ligne métier porte un companyId. Toutes les
+// requêtes de l'application filtrent explicitement par companyId (voir
+// src/lib/auth.ts) — c'est la seule frontière d'étanchéité entre entreprises,
+// il n'y a pas de schéma Postgres séparé par client.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  DIRIGEANT
+  ADMINISTRATIF
+  TECHNICIEN
+}
+
+/// Une entreprise cliente (le locataire / tenant). Toutes les autres tables
+/// sont rattachées à une Company et ne doivent jamais être lues/écrites en
+/// dehors du companyId de l'utilisateur connecté.
+model Company {
+  id        String   @id @default(cuid())
+  nom       String
+  /// Entreprise de démonstration créée par le script de seed — sert à afficher
+  /// un bandeau "données de démonstration" partout dans l'interface.
+  demo      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  users         User[]
+  clients       Client[]
+  equipements   Equipement[]
+  contrats      Contrat[]
+  interventions Intervention[]
+}
+
+/// Compte de connexion. L'email est unique globalement (c'est l'identifiant de
+/// connexion) mais chaque compte n'appartient qu'à une seule entreprise.
+model User {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  passwordHash String
+  nom          String
+  role         Role     @default(TECHNICIEN)
+  actif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  interventions      Intervention[]      @relation("TechnicienInterventions")
+  contratsHistorique ContratHistorique[]
+
+  @@index([companyId])
+}
+
+/// Fiche client (le foyer / la copropriété / l'entreprise qui a signé le
+/// contrat d'entretien).
+model Client {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  nom        String
+  adresse    String   @default("")
+  codePostal String   @default("")
+  ville      String   @default("")
+  telephone  String   @default("")
+  email      String   @default("")
+  notes      String   @default("")
+  /// Rempli quand la fiche vient d'un import CSV, pour traçabilité.
+  importeLe  DateTime?
+  createdAt  DateTime @default(now())
+
+  equipements   Equipement[]
+  contrats      Contrat[]
+  interventions Intervention[]
+
+  @@index([companyId])
+}
+
+/// Équipement installé chez un client (chaudière, pompe à chaleur, climatiseur…).
+model Equipement {
+  id                String    @id @default(cuid())
+  companyId         String
+  company           Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId          String
+  client            Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type              String    @default("")
+  marque            String    @default("")
+  modele            String    @default("")
+  numeroSerie       String    @default("")
+  localisation      String    @default("")
+  dateInstallation  DateTime?
+  notes             String    @default("")
+  createdAt         DateTime  @default(now())
+
+  contrats      Contrat[]
+  interventions Intervention[]
+
+  @@index([companyId])
+  @@index([clientId])
+}
+
+enum Periodicite {
+  MENSUELLE
+  TRIMESTRIELLE
+  SEMESTRIELLE
+  ANNUELLE
+  BIENNALE
+  AUTRE
+}
+
+enum StatutRenouvellement {
+  A_CONTACTER
+  CONTACTE
+  RENOUVELE
+  PERDU
+}
+
+/// Contrat d'entretien. dateEcheance est la date de renouvellement suivie par
+/// la page Renouvellements ; elle est recalculée automatiquement (dateEcheance
+/// + périodicité) quand le contrat passe au statut RENOUVELE.
+model Contrat {
+  id           String               @id @default(cuid())
+  companyId    String
+  company      Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reference    String
+  clientId     String
+  client       Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  equipementId String?
+  equipement   Equipement?          @relation(fields: [equipementId], references: [id], onDelete: SetNull)
+  type         String               @default("Entretien annuel")
+  periodicite  Periodicite          @default(ANNUELLE)
+  montantCents Int                  @default(0)
+  dateDebut    DateTime
+  dateEcheance DateTime
+  statut       StatutRenouvellement @default(A_CONTACTER)
+  actif        Boolean              @default(true)
+  notes        String               @default("")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  historique    ContratHistorique[]
+  interventions Intervention[]
+
+  @@unique([companyId, reference])
+  @@index([companyId])
+  @@index([clientId])
+  @@index([dateEcheance])
+}
+
+/// Historique des changements de statut de renouvellement (traçabilité :
+/// qui a fait quoi, quand, avec quel commentaire).
+model ContratHistorique {
+  id          String               @id @default(cuid())
+  contratId   String
+  contrat     Contrat              @relation(fields: [contratId], references: [id], onDelete: Cascade)
+  statut      StatutRenouvellement
+  commentaire String               @default("")
+  creeParId   String?
+  creePar     User?                @relation(fields: [creeParId], references: [id], onDelete: SetNull)
+  createdAt   DateTime             @default(now())
+
+  @@index([contratId])
+}
+
+enum StatutIntervention {
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}
+
+/// Intervention planifiée (entretien, dépannage…), affectée à un technicien.
+model Intervention {
+  id            String             @id @default(cuid())
+  companyId     String
+  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId      String
+  client        Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  equipementId  String?
+  equipement    Equipement?        @relation(fields: [equipementId], references: [id], onDelete: SetNull)
+  contratId     String?
+  contrat       Contrat?           @relation(fields: [contratId], references: [id], onDelete: SetNull)
+  titre         String             @default("Entretien")
+  datePrevue    DateTime
+  technicienId  String?
+  technicien    User?              @relation("TechnicienInterventions", fields: [technicienId], references: [id], onDelete: SetNull)
+  statut        StatutIntervention @default(PLANIFIEE)
+  commentaires  String             @default("")
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  termineeLe    DateTime?
+
+  checklist InterventionChecklistItem[]
+  photos    InterventionPhoto[]
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([technicienId])
+  @@index([datePrevue])
+}
+
+/// Ligne de checklist d'intervention (pré-remplie avec une checklist standard,
+/// modifiable). Le technicien coche au fur et à mesure sur le terrain.
+model InterventionChecklistItem {
+  id             String       @id @default(cuid())
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  libelle        String
+  fait           Boolean      @default(false)
+  ordre          Int          @default(0)
+
+  @@index([interventionId])
+}
+
+/// Photo jointe à une intervention, stockée en base64 directement en base.
+/// Volontairement simple pour cette V1 : suffisant pour quelques photos par
+/// intervention, mais à remplacer par un stockage objet externe (S3,
+/// Cloudinary…) avant une utilisation à grande échelle (voir README).
+model InterventionPhoto {
+  id             String       @id @default(cuid())
+  interventionId String
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  dataUrl        String
+  legende        String       @default("")
+  createdAt      DateTime     @default(now())
+
+  @@index([interventionId])
+}
