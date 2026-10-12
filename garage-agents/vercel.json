@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/rappels-ct",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/relances-devis",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}

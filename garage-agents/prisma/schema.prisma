@@ -1,0 +1,134 @@
+// Schéma de base de données — Atelier Radar
+// Agents automatiques pour garages indépendants : rappel du contrôle
+// technique (agent 1) et relance des devis dormants (agent 2).
+// Base : PostgreSQL (Supabase). Client Prisma généré dans src/generated/prisma.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Compte de connexion du gérant (email + mot de passe). Un compte = un garage.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  garage Garage?
+}
+
+/// Le garage lui-même : identité + réglages des agents.
+model Garage {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nom       String   @default("")
+  telephone String   @default("")
+  createdAt DateTime @default(now())
+
+  /// Décalages (en jours avant l'échéance CT) auxquels l'agent 1 relance.
+  /// Ex. [21, 10, 3] = un rappel à J-21, J-10 puis J-3.
+  rappelCtPaliers Int[] @default([21, 10, 3])
+
+  /// Nombre de jours d'inactivité sur un devis "Envoyé" avant relance.
+  devisRelanceApresJours Int @default(30)
+
+  /// Nombre de jours avant de proposer automatiquement un paiement en 2 fois.
+  devisPaiementFractionneApresJours Int @default(60)
+
+  vehicules Vehicule[]
+  devis     Devis[]
+}
+
+enum StatutRappelCt {
+  A_VENIR
+  ENVOYE
+  SANS_REPONSE
+  CONFIRME
+}
+
+/// Un véhicule suivi par l'agent 1, avec sa prochaine échéance de contrôle technique.
+model Vehicule {
+  id       String @id @default(cuid())
+  garageId String
+  garage   Garage @relation(fields: [garageId], references: [id], onDelete: Cascade)
+
+  plaque        String
+  clientNom     String
+  clientTelephone String @default("")
+  clientEmail   String  @default("")
+
+  ctEcheance DateTime
+  statut     StatutRappelCt @default(A_VENIR)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  rappels RappelCt[]
+
+  @@index([garageId, ctEcheance])
+}
+
+/// Journal des rappels de CT envoyés (un par palier déclenché).
+model RappelCt {
+  id         String   @id @default(cuid())
+  vehiculeId String
+  vehicule   Vehicule @relation(fields: [vehiculeId], references: [id], onDelete: Cascade)
+
+  palierJours Int
+  envoyeLe    DateTime @default(now())
+  canal       String   @default("sms")
+  simule      Boolean  @default(true)
+
+  @@index([vehiculeId])
+}
+
+enum StatutDevis {
+  EN_ATTENTE
+  RELANCE
+  SIGNE
+  PERDU
+}
+
+/// Un devis suivi par l'agent 2, en attente de signature du client.
+model Devis {
+  id       String @id @default(cuid())
+  garageId String
+  garage   Garage @relation(fields: [garageId], references: [id], onDelete: Cascade)
+
+  reference       String
+  clientNom       String
+  clientTelephone String @default("")
+  clientEmail     String @default("")
+
+  /// Montant en centimes, pour éviter les erreurs d'arrondi.
+  montantCentimes Int
+
+  statut               StatutDevis @default(EN_ATTENTE)
+  emisLe               DateTime    @default(now())
+  paiementFractionneProposeLe DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  relances RelanceDevis[]
+
+  @@index([garageId, statut])
+}
+
+/// Journal des relances de devis envoyées.
+model RelanceDevis {
+  id      String @id @default(cuid())
+  devisId String
+  devis   Devis  @relation(fields: [devisId], references: [id], onDelete: Cascade)
+
+  envoyeLe DateTime @default(now())
+  canal    String   @default("sms")
+  simule   Boolean  @default(true)
+
+  @@index([devisId])
+}
