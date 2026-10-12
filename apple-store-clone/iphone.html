@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iPhone — Store.</title>
+<meta name="description" content="Page produit de démonstration front-end inspirée d'une fiche iPhone. Non affilié à Apple Inc.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ GLOBAL NAV ============ -->
+<header class="global-nav" id="globalNav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo" aria-label="Accueil">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16.7 12.4c0-2.6 2.1-3.8 2.2-3.9-1.2-1.7-3-2-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.3 3.1-2.5.7-1 1.1-2 1.4-3.1-2.6-1-3.1-3.4-3.9-3.8zM14.3 4.6c.7-.9 1.2-2.1 1-3.3-1 .1-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.2 1.2.1 2.4-.6 3.1-1.5z"/></svg>
+    </a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="index.html#store">Store</a>
+      <a href="mac.html">Mac</a>
+      <a href="index.html#cat-ipad">iPad</a>
+      <a href="iphone.html" class="current">iPhone</a>
+      <a href="index.html#cat-watch">Watch</a>
+      <a href="index.html#cat-airpods">AirPods</a>
+      <a href="index.html#cat-tv">TV &amp; Home</a>
+      <a href="index.html#value">Assistance</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="searchToggle" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+      <button class="icon-btn" id="bagToggle" aria-label="Sac">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 8h12l1 12H5L6 8z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 8a3 3 0 016 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="bag-count" id="bagCount">0</span>
+      </button>
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="search-panel" id="searchPanel">
+    <div class="search-panel-inner">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <input type="text" placeholder="Rechercher dans le Store" aria-label="Rechercher dans le Store">
+      <button id="searchClose" aria-label="Fermer la recherche">✕</button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="index.html#store">Store</a>
+    <a href="mac.html">Mac</a>
+    <a href="index.html#cat-ipad">iPad</a>
+    <a href="iphone.html">iPhone</a>
+    <a href="index.html#cat-watch">Watch</a>
+    <a href="index.html#cat-airpods">AirPods</a>
+    <a href="index.html#cat-tv">TV &amp; Home</a>
+    <a href="index.html#value">Assistance</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ PRODUCT HERO ============ -->
+  <section class="product-hero">
+    <p class="eyebrow">Nouveau</p>
+    <h1>iPhone.</h1>
+    <p class="tagline">Vertigineusement rapide. Incroyablement intelligent.</p>
+    <div class="hero-cta">
+      <a href="#compare" class="btn btn-primary">Comparer les modèles</a>
+      <a href="#specs" class="btn btn-link">Voir les caractéristiques &rsaquo;</a>
+    </div>
+    <div class="hero-visual">
+      <div class="device device-phone"><div class="notch"></div></div>
+      <div class="device device-phone alt"><div class="notch"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE MODELS ============ -->
+  <section class="section" id="compare">
+    <h3 class="section-title">Trouvez le modèle qui vous correspond</h3>
+    <div class="compare-grid">
+
+      <article class="compare-card">
+        <div class="compare-visual"><div class="device device-phone small"><div class="notch"></div></div></div>
+        <h4>iPhone 17</h4>
+        <p class="compare-desc">Écran 6,1&nbsp;po. Puce A19. Deux appareils photo à haute résolution.</p>
+        <p class="compare-price">À partir de 969 €</p>
+        <div class="swatches" aria-label="Coloris disponibles">
+          <span class="swatch" style="--c:#1d1d1f"></span>
+          <span class="swatch" style="--c:#e3e4e6"></span>
+          <span class="swatch" style="--c:#7d8471"></span>
+          <span class="swatch" style="--c:#d6b98c"></span>
+        </div>
+        <a href="#" class="btn btn-primary btn-block">Acheter</a>
+      </article>
+
+      <article class="compare-card featured">
+        <p class="featured-tag">Le plus populaire</p>
+        <div class="compare-visual"><div class="device device-phone small"><div class="notch"></div></div></div>
+        <h4>iPhone 17 Pro</h4>
+        <p class="compare-desc">Écran 6,3&nbsp;po Super Retina XDR. Puce A19 Pro. Zoom optique 5x.</p>
+        <p class="compare-price">À partir de 1 229 €</p>
+        <div class="swatches" aria-label="Coloris disponibles">
+          <span class="swatch" style="--c:#3a3a3c"></span>
+          <span class="swatch" style="--c:#8e8e93"></span>
+          <span class="swatch" style="--c:#425c72"></span>
+        </div>
+        <a href="#" class="btn btn-primary btn-block">Acheter</a>
+      </article>
+
+      <article class="compare-card">
+        <div class="compare-visual"><div class="device device-phone small tall"><div class="notch"></div></div></div>
+        <h4>iPhone 17 Pro Max</h4>
+        <p class="compare-desc">Écran 6,9&nbsp;po. Autonomie la plus longue jamais proposée sur iPhone.</p>
+        <p class="compare-price">À partir de 1 479 €</p>
+        <div class="swatches" aria-label="Coloris disponibles">
+          <span class="swatch" style="--c:#3a3a3c"></span>
+          <span class="swatch" style="--c:#8e8e93"></span>
+          <span class="swatch" style="--c:#425c72"></span>
+        </div>
+        <a href="#" class="btn btn-primary btn-block">Acheter</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ SPEC TABLE ============ -->
+  <section class="section alt" id="specs">
+    <h3 class="section-title">Comparer les caractéristiques</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>iPhone 17</th>
+            <th>iPhone 17 Pro</th>
+            <th>iPhone 17 Pro Max</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Écran</td><td>6,1 po</td><td>6,3 po</td><td>6,9 po</td></tr>
+          <tr><td>Puce</td><td>A19</td><td>A19 Pro</td><td>A19 Pro</td></tr>
+          <tr><td>Appareil photo</td><td>Double 48 Mpx</td><td>Triple 48 Mpx</td><td>Triple 48 Mpx</td></tr>
+          <tr><td>Zoom optique</td><td>2x</td><td>5x</td><td>5x</td></tr>
+          <tr><td>Matériau</td><td>Aluminium</td><td>Titane</td><td>Titane</td></tr>
+          <tr><td>Prix</td><td>969 €</td><td>1 229 €</td><td>1 479 €</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="cta-band">
+    <h3>Envie d'en savoir plus&nbsp;?</h3>
+    <p>Discutez avec un membre de l'équipe Store, en ligne ou en magasin.</p>
+    <a href="index.html#value" class="btn btn-primary">Contacter un conseiller</a>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="footer-cols">
+    <div class="footer-col">
+      <h5>Boutique et Assistance</h5>
+      <ul>
+        <li><a href="#">Trouver un magasin</a></li>
+        <li><a href="#">Genius Bar</a></li>
+        <li><a href="#">Aujourd'hui au Store</a></li>
+        <li><a href="#">Formations</a></li>
+        <li><a href="#">Store pour les professionnels</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Compte</h5>
+      <ul>
+        <li><a href="#">Gérer votre identifiant</a></li>
+        <li><a href="#">Compte Store</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Boutique en ligne</h5>
+      <ul>
+        <li><a href="#">Statut de la commande</a></li>
+        <li><a href="#">Aide à l'achat</a></li>
+        <li><a href="#">Financement</a></li>
+        <li><a href="#">Trade&#8209;in</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>À propos</h5>
+      <ul>
+        <li><a href="#">Newsroom</a></li>
+        <li><a href="#">Emploi</a></li>
+        <li><a href="#">Investisseurs</a></li>
+        <li><a href="#">Éthique &amp; conformité</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-legal">
+    <p>Ceci est un projet de démonstration front-end à but éducatif. Il n'est ni affilié à, ni approuvé par Apple Inc. Toutes les marques citées appartiennent à leurs propriétaires respectifs.</p>
+    <p>Copyright © 2026 — Projet de démonstration. Tous droits réservés au titulaire du projet.</p>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mac — Store.</title>
+<meta name="description" content="Page produit de démonstration front-end inspirée d'une fiche Mac. Non affilié à Apple Inc.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ GLOBAL NAV ============ -->
+<header class="global-nav" id="globalNav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo" aria-label="Accueil">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M16.7 12.4c0-2.6 2.1-3.8 2.2-3.9-1.2-1.7-3-2-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.3 3.1-2.5.7-1 1.1-2 1.4-3.1-2.6-1-3.1-3.4-3.9-3.8zM14.3 4.6c.7-.9 1.2-2.1 1-3.3-1 .1-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.2 1.2.1 2.4-.6 3.1-1.5z"/></svg>
+    </a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="index.html#store">Store</a>
+      <a href="mac.html" class="current">Mac</a>
+      <a href="index.html#cat-ipad">iPad</a>
+      <a href="iphone.html">iPhone</a>
+      <a href="index.html#cat-watch">Watch</a>
+      <a href="index.html#cat-airpods">AirPods</a>
+      <a href="index.html#cat-tv">TV &amp; Home</a>
+      <a href="index.html#value">Assistance</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="searchToggle" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+      <button class="icon-btn" id="bagToggle" aria-label="Sac">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 8h12l1 12H5L6 8z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 8a3 3 0 016 0" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="bag-count" id="bagCount">0</span>
+      </button>
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="search-panel" id="searchPanel">
+    <div class="search-panel-inner">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <input type="text" placeholder="Rechercher dans le Store" aria-label="Rechercher dans le Store">
+      <button id="searchClose" aria-label="Fermer la recherche">✕</button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="index.html#store">Store</a>
+    <a href="mac.html">Mac</a>
+    <a href="index.html#cat-ipad">iPad</a>
+    <a href="iphone.html">iPhone</a>
+    <a href="index.html#cat-watch">Watch</a>
+    <a href="index.html#cat-airpods">AirPods</a>
+    <a href="index.html#cat-tv">TV &amp; Home</a>
+    <a href="index.html#value">Assistance</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ PRODUCT HERO ============ -->
+  <section class="product-hero">
+    <p class="eyebrow">Nouveau</p>
+    <h1>Mac.</h1>
+    <p class="tagline">Léger comme l'air. Puissant comme un pro.</p>
+    <div class="hero-cta">
+      <a href="#compare" class="btn btn-primary">Comparer les modèles</a>
+      <a href="#specs" class="btn btn-link">Voir les caractéristiques &rsaquo;</a>
+    </div>
+    <div class="hero-visual">
+      <div class="device device-mac"><div class="camera"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ COMPARE MODELS ============ -->
+  <section class="section" id="compare">
+    <h3 class="section-title">Trouvez le Mac qui vous correspond</h3>
+    <div class="compare-grid">
+
+      <article class="compare-card">
+        <div class="compare-visual"><div class="device device-mac small"><div class="camera"></div></div></div>
+        <h4>MacBook Air</h4>
+        <p class="compare-desc">13&nbsp;ou 15&nbsp;po. Puce M4. Jusqu'à 18&nbsp;heures d'autonomie.</p>
+        <p class="compare-price">À partir de 1 099 €</p>
+        <div class="swatches" aria-label="Coloris disponibles">
+          <span class="swatch" style="--c:#e3e4e6"></span>
+          <span class="swatch" style="--c:#8e8e93"></span>
+          <span class="swatch" style="--c:#425c72"></span>
+          <span class="swatch" style="--c:#f5d0a9"></span>
+        </div>
+        <a href="#" class="btn btn-primary btn-block">Acheter</a>
+      </article>
+
+      <article class="compare-card featured">
+        <p class="featured-tag">Le plus puissant</p>
+        <div class="compare-visual"><div class="device device-mac small"><div class="camera"></div></div></div>
+        <h4>MacBook Pro</h4>
+        <p class="compare-desc">14&nbsp;ou 16&nbsp;po. Puce M4 Pro ou M4 Max. Écran Liquid Retina XDR.</p>
+        <p class="compare-price">À partir de 1 899 €</p>
+        <div class="swatches" aria-label="Coloris disponibles">
+          <span class="swatch" style="--c:#1d1d1f"></span>
+          <span class="swatch" style="--c:#8e8e93"></span>
+        </div>
+        <a href="#" class="btn btn-primary btn-block">Acheter</a>
+      </article>
+
+      <article class="compare-card">
+        <div class="compare-visual"><div class="device device-mac small wide"><div class="camera"></div></div></div>
+        <h4>iMac</h4>
+        <p class="compare-desc">Écran 24&nbsp;po tout-en-un. Puce M4. Coloris éclatants.</p>
+        <p class="compare-price">À partir de 1 499 €</p>
+        <div class="swatches" aria-label="Coloris disponibles">
+          <span class="swatch" style="--c:#7fb2c9"></span>
+          <span class="swatch" style="--c:#e3956b"></span>
+          <span class="swatch" style="--c:#8bbf7a"></span>
+          <span class="swatch" style="--c:#d6b0d6"></span>
+        </div>
+        <a href="#" class="btn btn-primary btn-block">Acheter</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ SPEC TABLE ============ -->
+  <section class="section alt" id="specs">
+    <h3 class="section-title">Comparer les caractéristiques</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>MacBook Air</th>
+            <th>MacBook Pro</th>
+            <th>iMac</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Écran</td><td>13,6 / 15,3 po</td><td>14,2 / 16,2 po</td><td>24 po</td></tr>
+          <tr><td>Puce</td><td>M4</td><td>M4 Pro / M4 Max</td><td>M4</td></tr>
+          <tr><td>Mémoire unifiée</td><td>Jusqu'à 32&nbsp;Go</td><td>Jusqu'à 128&nbsp;Go</td><td>Jusqu'à 24&nbsp;Go</td></tr>
+          <tr><td>Autonomie</td><td>18&nbsp;heures</td><td>24&nbsp;heures</td><td>—</td></tr>
+          <tr><td>Prix</td><td>1 099 €</td><td>1 899 €</td><td>1 499 €</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="cta-band">
+    <h3>Envie d'en savoir plus&nbsp;?</h3>
+    <p>Discutez avec un membre de l'équipe Store, en ligne ou en magasin.</p>
+    <a href="index.html#value" class="btn btn-primary">Contacter un conseiller</a>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="footer-cols">
+    <div class="footer-col">
+      <h5>Boutique et Assistance</h5>
+      <ul>
+        <li><a href="#">Trouver un magasin</a></li>
+        <li><a href="#">Genius Bar</a></li>
+        <li><a href="#">Aujourd'hui au Store</a></li>
+        <li><a href="#">Formations</a></li>
+        <li><a href="#">Store pour les professionnels</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Compte</h5>
+      <ul>
+        <li><a href="#">Gérer votre identifiant</a></li>
+        <li><a href="#">Compte Store</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Boutique en ligne</h5>
+      <ul>
+        <li><a href="#">Statut de la commande</a></li>
+        <li><a href="#">Aide à l'achat</a></li>
+        <li><a href="#">Financement</a></li>
+        <li><a href="#">Trade&#8209;in</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>À propos</h5>
+      <ul>
+        <li><a href="#">Newsroom</a></li>
+        <li><a href="#">Emploi</a></li>
+        <li><a href="#">Investisseurs</a></li>
+        <li><a href="#">Éthique &amp; conformité</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-legal">
+    <p>Ceci est un projet de démonstration front-end à but éducatif. Il n'est ni affilié à, ni approuvé par Apple Inc. Toutes les marques citées appartiennent à leurs propriétaires respectifs.</p>
+    <p>Copyright © 2026 — Projet de démonstration. Tous droits réservés au titulaire du projet.</p>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>
