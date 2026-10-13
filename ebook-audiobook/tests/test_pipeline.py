@@ -206,3 +206,23 @@ def test_cancel_is_immediate_even_during_slow_synthesis(data_dir, sample_docx):
     assert job.status == "cancelled"
     assert elapsed < 1.0
     assert second.status == "done"
+
+
+def test_encoding_reports_progress(tmp_path):
+    """L'encodage signale son avancement (la barre ne reste plus figée)."""
+    import math
+    from array import array
+
+    from app.audio import ChapterWavWriter, encode_chapter
+
+    sr = 24000
+    wav = tmp_path / "c.wav"
+    with ChapterWavWriter(wav, sr) as w:
+        w.add_audio(array("h", (int(8000 * math.sin(i / 7)) for i in range(sr * 60))).tobytes())
+        duration = w.duration
+    seen: list[float] = []
+    encode_chapter(wav, tmp_path / "c.mp3", tmp_path / "c.m4a", 128, {"title": "t"},
+                   duration=duration, on_progress=seen.append)
+    assert seen and seen[-1] > 0.95
+    assert seen == sorted(seen)
+    assert (tmp_path / "c.mp3").stat().st_size > 500_000

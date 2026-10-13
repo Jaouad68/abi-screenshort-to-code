@@ -78,6 +78,27 @@ def _run(args: list[str], capture_stdout: bool = False) -> bytes:
     return proc.stdout if capture_stdout else b""
 
 
+def _run_with_progress(args: list[str], duration: float, on_progress) -> None:
+    """Comme ``_run``, en signalant l'avancement (0 à 1) pendant l'encodage."""
+    cmd = [ffmpeg_exe(), "-hide_banner", "-nostdin", "-loglevel", "error", "-y",
+           "-progress", "pipe:1", "-nostats", *args]
+    kwargs = {}
+    if os.name == "nt":
+        kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+    assert proc.stdout is not None and proc.stderr is not None
+    for raw in proc.stdout:
+        line = raw.decode("ascii", "replace").strip()
+        if line.startswith(("out_time_us=", "out_time_ms=")):  # microsecondes dans les deux cas
+            value = line.split("=", 1)[1]
+            if value.isdigit() and duration > 0:
+                on_progress(min(1.0, int(value) / 1e6 / duration))
+    err = proc.stderr.read()
+    if proc.wait() != 0:
+        msg = err.decode("utf-8", "replace").strip().splitlines()[-5:]
+        raise FFmpegError("FFmpeg a échoué : " + " | ".join(msg))
+
+
 # ---------------------------------------------------------------------------
 # Décodage et assemblage
 # ---------------------------------------------------------------------------
@@ -222,6 +243,8 @@ def encode_chapter(
     meta: dict[str, str],
     cover: Path | None = None,
     gain_db: float = 0.0,
+    duration: float = 0.0,
+    on_progress=None,
 ) -> None:
     """Ajuste le volume puis encode le chapitre en MP3 et/ou AAC (M4A).
 
@@ -257,7 +280,10 @@ def encode_chapter(
     if m4a_out:
         args += ["-map", labels["aac"], "-c:a", "aac", "-b:a", f"{bitrate}k", "-ac", "1",
                  *_meta_args(meta), str(m4a_out)]
-    _run(args)
+    if on_progress and duration > 0:
+        _run_with_progress(args, duration, on_progress)
+    else:
+        _run(args)
 
 
 _DURATION_RE = re.compile(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)")

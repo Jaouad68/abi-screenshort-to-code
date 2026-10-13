@@ -140,7 +140,11 @@ class JobManager:
         self._running: tuple[str, asyncio.Task] | None = None  # conversion en cours
         self._cancel_requested: set[str] = set()
         self._last_save: dict[str, float] = {}
-        self._run_start: dict[str, tuple[float, float]] = {}  # id -> (heure, progression)
+        self._run_start: dict[str, tuple[float, float]] = {}  # id -> (heure, caractères synthétisés)
+        # Mesures pour estimer le temps restant : encodage fini (caractères,
+        # secondes) et encodage en cours (caractères faits, début).
+        self._enc_done: dict[str, list[float]] = {}
+        self._enc_live: dict[str, tuple[float, float]] = {}
 
     # -- cycle de vie -----------------------------------------------------
 
@@ -355,8 +359,10 @@ class JobManager:
         job.synth_chars = job.encoded_chars = done_chars
         job.status = "running"
         job.message = "Démarrage…"
+        self._run_start[job.id] = (time.time(), float(job.synth_chars))
+        self._enc_done[job.id] = [0.0, 0.0]
+        self._enc_live.pop(job.id, None)
         self._update_progress(job)
-        self._run_start[job.id] = (time.time(), job.progress)
         self._save(job)
 
         async def finish_chapter(ch_job: ChapterJob, segments, paths, cache: Path) -> None:
@@ -380,10 +386,23 @@ class JobManager:
                 "track": f"{n}/{total}",
                 "genre": "Livre audio",
             }
-            duration = await asyncio.to_thread(
-                self._assemble_and_encode, segments, paths, wav, sample_rate,
-                mp3_tmp, m4a_tmp, s["bitrate"], meta, cover,
-            )
+            loop = asyncio.get_running_loop()
+            started = time.time()
+            self._enc_live[job.id] = (0.0, started)
+
+            def on_progress(fraction: float) -> None:  # appelé depuis le thread d'encodage
+                loop.call_soon_threadsafe(self._encode_progress, job, ch_job.chars * fraction, started)
+
+            try:
+                duration = await asyncio.to_thread(
+                    self._assemble_and_encode, segments, paths, wav, sample_rate,
+                    mp3_tmp, m4a_tmp, s["bitrate"], meta, cover, on_progress,
+                )
+            finally:
+                self._enc_live.pop(job.id, None)
+            stats = self._enc_done.setdefault(job.id, [0.0, 0.0])
+            stats[0] += ch_job.chars
+            stats[1] += time.time() - started
             if mp3_tmp:
                 mp3_tmp.replace(mp3)
             if m4a_tmp:
@@ -508,6 +527,7 @@ class JobManager:
     def _assemble_and_encode(
         segments: list[Segment], paths: list[Path], wav: Path, sample_rate: int,
         mp3: Path | None, m4a: Path | None, bitrate: int, meta: dict, cover: Path | None,
+        on_progress=None,
     ) -> float:
         """Concatène les segments avec les silences prévus, puis encode le chapitre."""
         with ChapterWavWriter(wav, sample_rate) as writer:
@@ -519,26 +539,51 @@ class JobManager:
             duration = writer.duration
             gain = writer.gain_db(config.LOUDNESS_TARGET)
         try:
-            encode_chapter(wav, mp3, m4a, bitrate, meta, cover, gain_db=gain)
+            encode_chapter(wav, mp3, m4a, bitrate, meta, cover, gain_db=gain,
+                           duration=duration, on_progress=on_progress)
         finally:
             wav.unlink(missing_ok=True)
         return duration
 
     # -- progression et sauvegarde ----------------------------------------
 
+    def _encode_progress(self, job: Job, chars_done: float, started: float) -> None:
+        """Avancement de l'encodage en cours (reçu du thread d'encodage)."""
+        if job.id in self._enc_live:
+            self._enc_live[job.id] = (chars_done, started)
+            self._update_progress(job)
+
     def _update_progress(self, job: Job) -> None:
         total = max(job.total_chars, 1)
-        job.progress = min(
-            0.999,
-            (_SYNTH_WEIGHT * job.synth_chars + (1 - _SYNTH_WEIGHT) * job.encoded_chars) / total,
-        )
-        start = self._run_start.get(job.id)
-        if start:
-            t0, p0 = start
-            done = job.progress - p0
-            if done > 0.005:
-                job.eta_seconds = (time.time() - t0) / done * (1 - job.progress)
+        live_chars, live_start = self._enc_live.get(job.id, (0.0, 0.0))
+        encoded = job.encoded_chars + live_chars
+        job.progress = min(0.999, (_SYNTH_WEIGHT * job.synth_chars + (1 - _SYNTH_WEIGHT) * encoded) / total)
+        job.eta_seconds = self._estimate_eta(job, encoded, live_chars, live_start)
         job.updated_at = time.time()
+
+    def _estimate_eta(self, job: Job, encoded: float, live_chars: float, live_start: float) -> float | None:
+        """Temps restant à partir des vitesses réellement mesurées.
+
+        Synthèse (réseau) et encodage (processeur) avancent en parallèle : le
+        temps restant est celui de la plus lente des deux chaînes. Sur un petit
+        serveur, c'est souvent l'encodage, d'où l'importance de le mesurer.
+        """
+        start = self._run_start.get(job.id)
+        if not start:
+            return None
+        now = time.time()
+        t0, synth0 = start
+        synth_rate = (job.synth_chars - synth0) / max(now - t0, 1e-6)
+        chars, secs = self._enc_done.get(job.id, [0.0, 0.0])
+        if live_start:
+            chars, secs = chars + live_chars, secs + (now - live_start)
+        enc_rate = chars / secs if secs > 3 and chars > 0 else None
+        if enc_rate is None:
+            return None  # pas encore de mesure fiable : on n'affiche rien plutôt qu'un chiffre faux
+        rest_synth = job.total_chars - job.synth_chars
+        t_synth = rest_synth / synth_rate if rest_synth > 0 and synth_rate > 0 else 0.0
+        t_enc = (job.total_chars - encoded) / enc_rate
+        return max(t_synth, t_enc) + (8.0 if "m4b" in job.settings.get("formats", []) else 0.0)
 
     def _save(self, job: Job, force: bool = True) -> None:
         """Écrit job.json (au plus toutes les 2 s pendant la synthèse)."""
