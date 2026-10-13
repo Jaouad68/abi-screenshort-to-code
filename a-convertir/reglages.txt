@@ -1,0 +1,29 @@
+# Réglages de conversion. Modifiez la valeur après le signe « = ».
+# Les lignes commençant par # sont des explications, elles sont ignorées.
+
+# Moteur : edge (meilleure qualité, recommandé) ou piper (hors ligne)
+moteur = edge
+
+# Voix Edge : fr-FR-HenriNeural (homme), fr-FR-DeniseNeural (femme),
+# fr-FR-RemyMultilingualNeural (homme), fr-FR-VivienneMultilingualNeural (femme),
+# fr-FR-EloiseNeural (femme, jeune), fr-BE-GerardNeural, fr-CA-SylvieNeural...
+# Voix Piper : fr_FR-siwis-medium, fr_FR-tom-medium, fr_FR-upmc-medium
+voix = fr-FR-HenriNeural
+
+# Vitesse : 1.0 = normale, de 0.7 (lent) à 1.5 (rapide)
+vitesse = 1.0
+
+# Ton : neutre, pose, chaleureux, vif, expressif
+ton = neutre
+
+# Pauses : 0.7 (courtes), 1.0 (normales), 1.35 (longues)
+pauses = 1.0
+
+# Débit audio en kbps : 128, 160, 192 ou 256
+debit = 128
+
+# Formats : m4b (un fichier avec chapitres), mp3 (un fichier par chapitre)
+formats = m4b, mp3
+
+# Lire le titre au début de chaque chapitre : oui ou non
+lire_titres = oui

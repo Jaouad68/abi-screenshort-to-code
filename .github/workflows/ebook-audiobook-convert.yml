@@ -1,0 +1,71 @@
+name: Ebook vers livre audio, conversion
+
+# Déposez un PDF ou un DOCX dans le dossier a-convertir/ de cette branche :
+# la conversion démarre et le livre audio est publié dans une Release.
+on:
+  push:
+    branches: [claude/ebook-to-audiobook-gypowe]
+    paths:
+      - 'a-convertir/**'
+
+permissions:
+  contents: write   # nécessaire pour créer la Release contenant le livre audio
+
+concurrency:
+  group: ebook-audiobook-convert
+  cancel-in-progress: false
+
+jobs:
+  convertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      AUDIOBOOK_DATA_DIR: ${{ runner.temp }}/audiobook-data
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ebook-audiobook/requirements.txt
+
+      - name: Installer les dépendances
+        run: pip install -r ebook-audiobook/requirements.txt
+
+      - name: Repérer les livres ajoutés
+        run: |
+          git -c core.quotepath=false diff --name-only --diff-filter=AM \
+            "${{ github.event.before }}" "${{ github.sha }}" -- a-convertir \
+            | grep -iE '\.(pdf|docx)$' > "$RUNNER_TEMP/livres.txt" || true
+          echo "Livres à convertir :"; cat "$RUNNER_TEMP/livres.txt"
+
+      - name: Convertir
+        run: |
+          python ebook-audiobook/convert_cli.py \
+            --list "$RUNNER_TEMP/livres.txt" \
+            --settings a-convertir/reglages.txt \
+            --out "$RUNNER_TEMP/sortie"
+
+      - name: Publier les livres audio
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          i=0
+          for dir in "$RUNNER_TEMP"/sortie/*/; do
+            i=$((i + 1))
+            title=$(cat "$dir/titre.txt")
+            tag="livre-audio-${{ github.run_id }}-$i"
+            files=("$dir"/*.m4b "$dir"/*.zip)
+            [ ${#files[@]} -eq 0 ] && continue
+            gh release create "$tag" "${files[@]}" \
+              --target "${{ github.sha }}" \
+              --title "Livre audio : $title" \
+              --notes "Touchez le fichier .m4b pour le télécharger (lecteurs : Apple Livres, BookPlayer, VLC). Le ZIP contient un MP3 par chapitre."
+            url="${{ github.server_url }}/${{ github.repository }}/releases/tag/$tag"
+            echo "### 🎧 [$title]($url)" >> "$GITHUB_STEP_SUMMARY"
+          done
