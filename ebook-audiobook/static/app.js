@@ -59,6 +59,10 @@ async function api(path, options = {}) {
     delete opts.json;
   }
   const res = await fetch(path, opts);
+  if (res.status === 404 && /^\/api\/(books|jobs)\/[^/]+/.test(path)) {
+    serverForgot();
+    throw new Error(GONE);
+  }
   if (!res.ok) {
     let msg = `Erreur ${res.status}`;
     try {
@@ -71,7 +75,26 @@ async function api(path, options = {}) {
   return type.includes("application/json") ? res.json() : res;
 }
 
+// Le livre ou la conversion affichés n'existent plus sur le serveur : en ligne,
+// cela arrive quand l'hébergeur redémarre (mise à jour ou mise en veille), car
+// son disque est alors vidé. Un seul message clair, puis retour à l'accueil.
+const GONE = "Introuvable sur le serveur.";
+let forgotNotified = false;
+function serverForgot() {
+  stopPolling();
+  clearTimeout(state.saveTimer);
+  if (!forgotNotified) {
+    forgotNotified = true;
+    toast(state.hosted
+      ? "Le serveur a redémarré (mise à jour ou mise en veille) et ses fichiers ont été effacés. Réimportez votre livre."
+      : "Ce livre ou cette conversion n'existe plus.", true);
+    setTimeout(() => { forgotNotified = false; }, 5000);
+  }
+  if (location.hash !== "#/") location.hash = "#/";
+}
+
 function toast(message, isError = false) {
+  if (message === GONE) return; // déjà expliqué par serverForgot()
   const el = document.createElement("div");
   el.className = "toast" + (isError ? " err" : "");
   el.textContent = message;
