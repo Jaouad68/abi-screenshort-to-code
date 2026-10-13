@@ -226,3 +226,54 @@ def test_encoding_reports_progress(tmp_path):
     assert seen and seen[-1] > 0.95
     assert seen == sorted(seen)
     assert (tmp_path / "c.mp3").stat().st_size > 500_000
+
+
+def test_origin_quality_joins_mp3_without_reencoding(data_dir, sample_docx):
+    """Qualité d'origine : MP3 de la voix recopiés tels quels, son intact."""
+    from app.mp3join import check_decodes_cleanly, parse_frames
+    from tests.conftest import EdgeLikeEngine
+
+    book = library.import_book(shutil.copy(sample_docx, data_dir / "in.docx"), "roman.docx")
+    engine = EdgeLikeEngine()
+    engine.concurrency = 4
+
+    async def scenario():
+        manager = JobManager({"fake": engine}, config.JOBS_DIR)
+        await manager.start()
+        job = manager.create(book.id, {**SETTINGS, "bitrate": 0})
+        await _run_until_finished(manager, job.id)
+        await manager.stop()
+        return manager.get(job.id)
+
+    job = asyncio.run(scenario())
+    assert job.status == "done", job.error
+    out = data_dir / "jobs" / job.id / "output"
+    mp3 = out / job.chapters[1].mp3
+    assert check_decodes_cleanly(mp3) == ""          # aucun craquement ni trame cassée
+    fmt, frames = parse_frames(mp3.read_bytes())
+    assert (fmt.sample_rate, fmt.bitrate, fmt.channels) == (24000, 48, 1)  # pas de réencodage
+    info = _probe(mp3)
+    assert "title           : Chapitre 1" in info
+    # Durée annoncée = durée réelle du fichier.
+    real = float(re.search(r"Duration: 00:(\d+):([\d.]+)", info).group(1)) * 60 + \
+        float(re.search(r"Duration: 00:(\d+):([\d.]+)", info).group(2))
+    assert abs(real - job.chapters[1].duration) < 0.2
+    m4b_info = _probe(out / job.m4b)
+    assert "aac" in m4b_info and len(re.findall(r"Chapter #0:\d+", m4b_info)) == 3
+
+
+def test_origin_quality_falls_back_for_wav_engines(data_dir, sample_docx):
+    """Voix hors ligne (WAV) : encodage classique à 128 kbps, sans erreur."""
+    book = library.import_book(shutil.copy(sample_docx, data_dir / "in.docx"), "roman.docx")
+
+    async def scenario():
+        manager = JobManager({"fake": FakeEngine()}, config.JOBS_DIR)
+        await manager.start()
+        job = manager.create(book.id, {**SETTINGS, "bitrate": 0, "formats": ["mp3"]})
+        await _run_until_finished(manager, job.id)
+        await manager.stop()
+        return manager.get(job.id)
+
+    job = asyncio.run(scenario())
+    assert job.status == "done", job.error
+    assert "128 kb/s" in _probe(data_dir / "jobs" / job.id / "output" / job.chapters[0].mp3)

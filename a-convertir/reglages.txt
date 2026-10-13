@@ -20,8 +20,9 @@ ton = narration
 # Pauses : 0.7 (courtes), 1.0 (normales), 1.35 (longues)
 pauses = 1.0
 
-# Débit audio en kbps : 128, 160, 192 ou 256
-debit = 128
+# Qualité : origine (son exact de la voix, sans réencodage, le plus rapide)
+# ou un débit en kbps : 128, 160, 192, 256 (plus lent, sans gain audible)
+debit = origine
 
 # Formats : m4b (un fichier avec chapitres), mp3 (un fichier par chapitre)
 formats = m4b, mp3

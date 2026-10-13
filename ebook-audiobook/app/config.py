@@ -46,9 +46,13 @@ LOUDNESS_TARGET = float(os.environ.get("AUDIOBOOK_RMS_DBFS", "-20"))
 # Fréquence d'échantillonnage des fichiers finaux.
 OUTPUT_SAMPLE_RATE = 44100
 
-# Débits proposés à l'utilisateur (kbps). Le cahier des charges impose
-# au minimum 128 kbps.
-ALLOWED_BITRATES = (128, 160, 192, 256)
+# Débits proposés à l'utilisateur (kbps). 0 = « qualité d'origine » : le MP3
+# fourni par la voix (48 kbps pour Edge) est recopié sans réencodage. C'est le
+# plus rapide et le plus fidèle : réencoder à 128 kbps ne restaure aucun détail.
+ALLOWED_BITRATES = (0, 128, 160, 192, 256)
+ORIGIN_BITRATE = 0
+# Débit AAC du M4B en qualité d'origine (transparent pour une source à 48 kbps).
+ORIGIN_AAC_BITRATE = 64
 
 
 def ensure_dirs() -> None:

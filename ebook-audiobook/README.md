@@ -5,7 +5,7 @@ Convertit un ebook **PDF ou Word (.docx)** en **livre audio** : un MP3 par chapi
 * Import PDF/DOCX, nettoyage automatique (numéros de page, en-têtes, pieds de page, notes, césures)
 * Détection des chapitres, que vous pouvez corriger (renommer, exclure, fusionner, modifier le texte)
 * Choix du moteur, de la voix, de la vitesse, du ton et de la longueur des pauses, avec écoute d'un extrait
-* Export MP3 (128 à 256 kbps) et M4B (chapitres, pochette, métadonnées)
+* Export MP3 (qualité d'origine sans réencodage, ou 128 à 256 kbps) et M4B (chapitres, pochette, métadonnées)
 * Barre de progression avec temps restant, reprise après coupure, livres de plus de 300 pages
 * Utilisable sur l'ordinateur et sur le téléphone (même Wi-Fi), 100 % gratuit
 
@@ -94,7 +94,7 @@ Pour un livre de 300 pages, comptez environ **550 000 caractères** et **9 à 10
 * Pauses maîtrisées : après le titre (1,4 s), entre paragraphes (0,65 s), entre répliques (0,45 s), au changement de scène « * * * » (1,8 s), en fin de chapitre (2,5 s). Le réglage « Pauses » les multiplie par 0,7 ou 1,35.
 * Volume homogène entre chapitres : niveau mesuré pendant l'assemblage puis ajusté (environ -18 LUFS, la norme des livres audio), sans saturation.
 
-**Qualité audio** : MP3 LAME et AAC à 128 kbps minimum (jusqu'à 256), 44,1 kHz, mono. Le mono est la norme pour la voix seule : à débit égal, il donne une meilleure qualité que la stéréo. Les voix Edge sont produites en 24 kHz et Piper en 22 kHz : un débit plus élevé n'apportera donc pas de gain audible au-delà de 128 kbps.
+**Qualité audio et vitesse** : par défaut, l'option **« Origine »** recopie le MP3 fourni par la voix (24 kHz, mono, 48 kbps pour Edge) **sans le réencoder** : c'est le son exact de la voix, et la création est bien plus rapide. Réencoder à 128 kbps ou plus ne restaure aucun détail perdu à la source : les débits 128 à 256 kbps restent proposés pour les lecteurs qui l'exigent, mais rendent la création plus lente. Le M4B est toujours encodé en AAC (format imposé par Apple), avec un encodeur rapide. Sur un livre de test, la création complète (MP3 + M4B) demande 2,5 fois moins de calcul qu'avant, et 11 fois moins en MP3 seul.
 
 ### Fichiers
 

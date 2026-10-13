@@ -405,7 +405,7 @@ class JobRequest(BaseModel):
     speed: float = 1.0
     tone: str = "narration"
     pause_factor: float = 1.0
-    bitrate: int = 128
+    bitrate: int = 0  # 0 = qualité d'origine (sans réencodage)
     formats: list[str] = ["mp3", "m4b"]
     read_titles: bool = True
     title: str | None = None

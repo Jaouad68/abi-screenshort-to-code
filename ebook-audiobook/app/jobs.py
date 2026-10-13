@@ -29,7 +29,8 @@ from pathlib import Path
 from typing import Any
 
 from . import config
-from .audio import ChapterWavWriter, build_m4b, decode_to_pcm, encode_chapter, trim_silence
+from .audio import ChapterWavWriter, build_m4b, decode_to_pcm, encode_aac, encode_chapter, trim_silence
+from .mp3join import Mp3Joiner, NotJoinable, finalize_mp3
 from .library import cover_path, load_book
 from .segment import Segment, build_segments
 from .tts import TONES, SynthesisSettings, TTSEngine
@@ -107,7 +108,7 @@ def validate_settings(settings: dict[str, Any], engines: dict[str, TTSEngine]) -
         raise ValueError(reason)
     if not settings.get("voice"):
         raise ValueError("Choisissez une voix.")
-    bitrate = int(settings.get("bitrate", 128))
+    bitrate = int(settings.get("bitrate", config.ORIGIN_BITRATE))
     if bitrate not in config.ALLOWED_BITRATES:
         raise ValueError(f"Débit non autorisé : {bitrate} kbps")
     formats = [f for f in settings.get("formats", ["mp3", "m4b"]) if f in ("mp3", "m4b")]
@@ -529,7 +530,19 @@ class JobManager:
         mp3: Path | None, m4a: Path | None, bitrate: int, meta: dict, cover: Path | None,
         on_progress=None,
     ) -> float:
-        """Concatène les segments avec les silences prévus, puis encode le chapitre."""
+        """Concatène les segments avec les silences prévus, puis encode le chapitre.
+
+        En qualité d'origine, les MP3 de la voix sont recopiés sans réencodage
+        (voir ``mp3join``) : seul le M4B demande un encodage AAC, léger. Si un
+        segment n'est pas un MP3 exploitable (voix Piper par exemple), on passe
+        par l'encodage classique.
+        """
+        if bitrate == config.ORIGIN_BITRATE:
+            try:
+                return JobManager._join_without_reencoding(
+                    segments, paths, wav.parent, wav.stem, mp3, m4a, meta, cover, on_progress)
+            except NotJoinable:
+                bitrate = 128
         with ChapterWavWriter(wav, sample_rate) as writer:
             writer.add_silence(500)  # courte respiration avant le début du chapitre
             for seg, path in zip(segments, paths):
@@ -540,10 +553,37 @@ class JobManager:
             gain = writer.gain_db(config.LOUDNESS_TARGET)
         try:
             encode_chapter(wav, mp3, m4a, bitrate, meta, cover, gain_db=gain,
-                           duration=duration, on_progress=on_progress)
+                           duration=duration, on_progress=on_progress, source_rate=sample_rate)
         finally:
             wav.unlink(missing_ok=True)
         return duration
+
+    @staticmethod
+    def _join_without_reencoding(
+        segments: list[Segment], paths: list[Path], workdir: Path, stem: str,
+        mp3: Path | None, m4a: Path | None, meta: dict, cover: Path | None, on_progress=None,
+    ) -> float:
+        """Chapitre assemblé directement à partir des trames MP3 de la voix."""
+        if any(p.suffix.lower() != ".mp3" for p in paths):
+            raise NotJoinable("segments non MP3")
+        raw = workdir / f"{stem}-raw.mp3"
+        try:
+            joiner = Mp3Joiner(raw, workdir)
+            try:
+                joiner.add_silence(500)  # courte respiration avant le début du chapitre
+                for seg, path in zip(segments, paths):
+                    joiner.add_segment(path.read_bytes())
+                    joiner.add_silence(seg.pause_ms)
+            finally:
+                joiner.close()
+            duration = joiner.duration
+            if mp3:
+                finalize_mp3(raw, mp3, meta, cover)
+            if m4a:
+                encode_aac(raw, m4a, config.ORIGIN_AAC_BITRATE, meta, duration, on_progress)
+            return duration
+        finally:
+            raw.unlink(missing_ok=True)
 
     # -- progression et sauvegarde ----------------------------------------
 

@@ -35,7 +35,7 @@ DEFAULTS = {
     "vitesse": "1.0",
     "ton": "narration",
     "pauses": "1.0",
-    "debit": "128",
+    "debit": "origine",
     "formats": "m4b, mp3",
     "lire_titres": "oui",
 }
@@ -66,7 +66,7 @@ def to_job_settings(s: dict[str, str]) -> dict:
         "speed": number("vitesse"),
         "tone": s["ton"].lower(),
         "pause_factor": number("pauses"),
-        "bitrate": int(number("debit")),
+        "bitrate": 0 if s["debit"].strip().lower() in ("origine", "0") else int(number("debit")),
         "formats": [f.strip().lower() for f in s["formats"].split(",") if f.strip()],
         "read_titles": s["lire_titres"].lower() in ("oui", "yes", "true", "1"),
     }

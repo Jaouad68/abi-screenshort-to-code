@@ -188,3 +188,25 @@ def sample_docx(tmp_path) -> Path:
     path = tmp_path / "roman.docx"
     d.save(str(path))
     return path
+
+
+class EdgeLikeEngine(FakeEngine):
+    """Imite Edge TTS : MP3 24 kHz mono 48 kbps, avec des blancs autour de la voix."""
+
+    output_ext = "mp3"
+
+    async def synthesize(self, text: str, settings: SynthesisSettings, out_path: Path) -> None:
+        import subprocess
+
+        from app.audio import ffmpeg_exe
+
+        self.calls += 1
+        self.texts.append(text)
+        voiced = min(2.0, 0.2 + len(text) / 300)
+        f = 300 + (hash(text) % 400)
+        graph = (f"anullsrc=r=24000:cl=mono:d=0.3[a];sine=f={f}:r=24000:d={voiced},volume=0.5[b];"
+                 "anullsrc=r=24000:cl=mono:d=0.4[c];[a][b][c]concat=n=3:v=0:a=1")
+        subprocess.run([ffmpeg_exe(), "-loglevel", "error", "-y", "-filter_complex", graph,
+                        "-c:a", "libmp3lame", "-b:a", "48k", "-ar", "24000", "-ac", "1",
+                        "-write_xing", "0", "-id3v2_version", "0", "-f", "mp3", str(out_path)],
+                       check=True)

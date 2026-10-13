@@ -26,10 +26,10 @@ const state = {
   preview: null,      // lecture de l'extrait de voix
 };
 
-const SETTINGS_KEY = "audiobook.settings.v2";
+const SETTINGS_KEY = "audiobook.settings.v3"; // v3 : qualité d'origine par défaut (création rapide)
 const DEFAULT_SETTINGS = {
   engine: "edge", voice: "", speed: 1.0, tone: "narration", pause_factor: 1.0,
-  bitrate: 128, formats: ["mp3", "m4b"], read_titles: true,
+  bitrate: 0, formats: ["mp3", "m4b"], read_titles: true,
 };
 
 const STATUS = {
@@ -507,7 +507,8 @@ function renderBook(book, engines) {
           <div class="group">
             <div class="group-row" style="flex-direction:column;align-items:stretch;gap:10px">
               <span class="row-label">Qualité audio</span>
-              ${radioGroup("bitrate", engines.bitrates.map((b) => ({ value: String(b), label: `${b} kbps` })))}
+              ${radioGroup("bitrate", engines.bitrates.map((b) => ({ value: String(b), label: b === 0 ? "Origine" : String(b) })))}
+              <span class="row-sub" id="bitrate-note"></span>
             </div>
             <label class="group-row indent">
               <span class="row-icon" style="background:linear-gradient(135deg,#ff9f0a,#ff375f)">${I.headphones}</span>
@@ -570,7 +571,7 @@ function renderBook(book, engines) {
   $("#speed").value = settings.speed;
   check("tone", settings.tone) || check("tone", "narration");
   check("pauses", String(settings.pause_factor)) || check("pauses", "1");
-  check("bitrate", String(settings.bitrate)) || check("bitrate", "128");
+  check("bitrate", String(settings.bitrate)) || check("bitrate", "0");
   $("#fmt-mp3").checked = settings.formats.includes("mp3");
   $("#fmt-m4b").checked = settings.formats.includes("m4b");
   $("#read-titles").checked = settings.read_titles;
@@ -617,7 +618,7 @@ function currentSettings() {
     speed: parseFloat($("#speed").value),
     tone: radioValue("tone", "narration"),
     pause_factor: parseFloat(radioValue("pauses", "1")),
-    bitrate: parseInt(radioValue("bitrate", "128"), 10),
+    bitrate: parseInt(radioValue("bitrate", "0"), 10),
     formats,
     read_titles: $("#read-titles").checked,
   };
@@ -639,6 +640,9 @@ function persist() {
   $("#est-dur").textContent = `≈ ${fmtMinutes(state.book.minutes / s.speed)}`;
   $("#est-sub").textContent = `${included} chapitre${included > 1 ? "s" : ""}${s.voice ? " · " + shortName(voiceName(s.voice)) : ""}`;
   $("#btn-convert").disabled = included === 0;
+  $("#bitrate-note").textContent = s.bitrate === 0
+    ? "Son exact de la voix, sans réencodage : création bien plus rapide. Recommandé."
+    : `Réencodage à ${s.bitrate} kbps : fichiers plus lourds et création plus lente, sans gain audible (la voix est fournie à 48 kbps).`;
 }
 
 // « Rémy (France) » -> « Rémy » : le drapeau indique déjà le pays.
