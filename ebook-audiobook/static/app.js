@@ -19,6 +19,7 @@ const state = {
   pollTimer: null,    // rafraîchissement périodique
   saveTimer: null,    // enregistrement différé des chapitres
   jobSignature: "",   // évite de reconstruire les lecteurs audio pendant l'écoute
+  hosted: false,      // version en ligne (Hugging Face) : fichiers temporaires
 };
 
 const SETTINGS_KEY = "audiobook.settings";
@@ -145,6 +146,7 @@ function showHome() {
       </label>
       <div id="upload-status"></div>
     </section>
+    ${state.hosted ? `<div class="notice warn">Version en ligne : les livres et fichiers audio sont effacés quand le serveur redémarre (après 48 h sans visite ou lors d'une mise à jour). Téléchargez vos livres audio dès qu'ils sont prêts.</div>` : ""}
     <section class="card">
       <div class="card-head"><h2>Conversions</h2></div>
       <div id="jobs" class="list"><div class="empty">Chargement…</div></div>
@@ -768,5 +770,16 @@ function debounce(fn, ms) {
 if ("serviceWorker" in navigator && window.isSecureContext) {
   navigator.serviceWorker.register("sw.js").catch(() => { /* facultatif */ });
 }
+
+// Version en ligne : le bouton « Sur le téléphone » n'a pas de sens.
+api("/api/server-info")
+  .then((info) => {
+    state.hosted = Boolean(info.hosted);
+    if (state.hosted) {
+      $("#btn-phone").hidden = true;
+      if (!location.hash || location.hash === "#/") showHome();
+    }
+  })
+  .catch(() => { /* facultatif */ });
 
 route();

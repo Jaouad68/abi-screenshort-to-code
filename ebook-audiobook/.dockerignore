@@ -1,0 +1,7 @@
+data/
+.venv/
+tests/
+__pycache__/
+*.pyc
+*.bat
+*.ps1

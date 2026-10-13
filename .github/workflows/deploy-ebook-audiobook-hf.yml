@@ -1,0 +1,32 @@
+name: Ebook vers livre audio, publication Hugging Face
+
+on:
+  push:
+    branches: [claude/ebook-to-audiobook-gypowe]
+    paths:
+      - 'ebook-audiobook/**'
+      - '.github/workflows/deploy-ebook-audiobook-hf.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hf-ebook-audiobook
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer huggingface_hub
+        run: pip install "huggingface_hub>=0.24"
+      - name: Publier sur le Space privé
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: python ebook-audiobook/deploy/push_to_hf.py

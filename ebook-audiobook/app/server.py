@@ -36,6 +36,8 @@ from .tts import TONES, SynthesisSettings, get_engines
 TOKEN = os.environ.get("AUDIOBOOK_TOKEN") or None
 PORT = int(os.environ.get("AUDIOBOOK_PORT", "8765"))
 LAN = os.environ.get("AUDIOBOOK_LAN") == "1"
+# Version en ligne (Docker / Hugging Face) : pas de mode téléphone, disque éphémère.
+HOSTED = os.environ.get("AUDIOBOOK_HOSTED") == "1"
 
 engines = get_engines()
 manager = JobManager(engines)
@@ -435,6 +437,7 @@ async def server_info() -> dict[str, Any]:
         urls = [f"http://{ip}:{PORT}{suffix}" for ip in lan_ips()]
     return {
         "lan": LAN,
+        "hosted": HOSTED,
         "urls": urls,
         "qr_svg": qr_svg(urls[0]) if urls else None,
     }
