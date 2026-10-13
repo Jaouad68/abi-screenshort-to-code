@@ -3,53 +3,88 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Ebook vers livre audio</title>
-  <meta name="description" content="Convertir un PDF ou un Word en livre audio MP3 et M4B">
-  <meta name="theme-color" content="#3b2f8f">
+  <title>Livre audio</title>
+  <meta name="description" content="Transformez vos ebooks PDF et Word en livres audio MP3 et M4B">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Livre audio">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#/">
-      <img src="icons/icon.svg" alt="" width="32" height="32">
-      <span>Ebook <span class="arrow">→</span> livre audio</span>
-    </a>
-    <button class="btn ghost" id="btn-phone" type="button" title="Ouvrir sur le téléphone">
-      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 3v13h10V5H7zm5 14.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
-      <span class="hide-sm">Sur le téléphone</span>
-    </button>
+  <!-- Barre de navigation translucide (titre compact au défilement) -->
+  <header class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a class="nav-back" id="nav-back" href="#/" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+        <span>Bibliothèque</span>
+      </a>
+      <div class="nav-title" id="nav-title"></div>
+      <button class="nav-action" id="btn-phone" type="button" aria-label="Ouvrir sur le téléphone">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></svg>
+      </button>
+    </div>
   </header>
 
   <main id="app" aria-live="polite"></main>
 
-  <!-- Éditeur de chapitre -->
-  <dialog id="dlg-chapter" class="dialog wide">
-    <form method="dialog" class="dialog-body" id="form-chapter">
-      <h2>Modifier le chapitre</h2>
-      <label class="field">Titre
-        <input type="text" id="chapter-title" required>
-      </label>
-      <label class="field grow">Texte <small>(un paragraphe par bloc, séparés par une ligne vide)</small>
-        <textarea id="chapter-text" rows="18" spellcheck="true"></textarea>
-      </label>
-      <div class="dialog-actions">
-        <button class="btn ghost" value="cancel" formnovalidate>Annuler</button>
-        <button class="btn primary" value="save" id="chapter-save">Enregistrer</button>
+  <!-- Mini-lecteur (écoute des chapitres, persistant entre les écrans) -->
+  <div class="miniplayer" id="miniplayer" hidden>
+    <div class="mp-progress"><div id="mp-bar"></div></div>
+    <div class="mp-row">
+      <div class="mp-art" id="mp-art"></div>
+      <div class="mp-text">
+        <div class="mp-title" id="mp-title"></div>
+        <div class="mp-sub" id="mp-sub"></div>
       </div>
+      <button class="mp-btn" id="mp-back" aria-label="Reculer de 15 secondes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 7V4L6 8l5 4V9a5 5 0 1 1-5 5" /><text x="12.5" y="17.2" font-size="6.5" text-anchor="middle" stroke="none" fill="currentColor" font-weight="700">15</text></svg>
+      </button>
+      <button class="mp-btn mp-play" id="mp-play" aria-label="Lecture"></button>
+      <button class="mp-btn" id="mp-close" aria-label="Fermer le lecteur">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </div>
+  </div>
+  <audio id="player" preload="none"></audio>
+
+  <!-- Panneau : modifier un chapitre -->
+  <dialog id="dlg-chapter" class="sheet wide">
+    <form method="dialog" class="sheet-body" id="form-chapter">
+      <div class="grabber"></div>
+      <div class="sheet-head">
+        <button class="link" value="cancel" formnovalidate>Annuler</button>
+        <h2>Chapitre</h2>
+        <button class="link strong" value="save" id="chapter-save">OK</button>
+      </div>
+      <div class="group">
+        <label class="group-row input-row">
+          <span class="row-label">Titre</span>
+          <input type="text" id="chapter-title" required>
+        </label>
+      </div>
+      <p class="footnote">Ce titre est lu au début du chapitre et apparaît dans votre lecteur.</p>
+      <label class="field-label" for="chapter-text">Texte lu</label>
+      <textarea id="chapter-text" rows="14" spellcheck="true"></textarea>
+      <p class="footnote">Un paragraphe par bloc, séparés par une ligne vide.</p>
+      <button class="btn-plain danger" type="button" id="chapter-merge" hidden>Fusionner avec le chapitre précédent</button>
     </form>
   </dialog>
 
-  <!-- QR code pour le téléphone -->
-  <dialog id="dlg-phone" class="dialog">
-    <form method="dialog" class="dialog-body">
-      <h2>Ouvrir sur le téléphone</h2>
+  <!-- Panneau : ouvrir sur le téléphone -->
+  <dialog id="dlg-phone" class="sheet">
+    <form method="dialog" class="sheet-body">
+      <div class="grabber"></div>
+      <div class="sheet-head">
+        <span></span>
+        <h2>Sur le téléphone</h2>
+        <button class="link strong" value="close">OK</button>
+      </div>
       <div id="phone-content"></div>
-      <div class="dialog-actions"><button class="btn primary" value="close">Fermer</button></div>
     </form>
   </dialog>
 

@@ -1,6 +1,6 @@
 /* Service worker : garde l'interface en cache pour un démarrage rapide.
    Les appels /api ne sont jamais mis en cache (données toujours fraîches). */
-const CACHE = "audiobook-shell-v1";
+const CACHE = "audiobook-shell-v2";
 const SHELL = ["./", "index.html", "style.css", "app.js", "manifest.webmanifest", "icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
