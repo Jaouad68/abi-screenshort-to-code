@@ -48,8 +48,29 @@ async def lifespan(_: FastAPI):
     config.ensure_dirs()
     manager.load_existing()
     await manager.start()
+    keepalive = asyncio.create_task(_keep_awake()) if _PUBLIC_URL else None
     yield
+    if keepalive:
+        keepalive.cancel()
     await manager.stop()
+
+
+# Adresse publique fournie par Render. Les services gratuits s'endorment après
+# 15 min sans visite, ce qui couperait une conversion : tant qu'une conversion
+# tourne, le serveur se rend visite à lui-même toutes les 4 minutes.
+_PUBLIC_URL = (os.environ.get("RENDER_EXTERNAL_URL") or "").rstrip("/")
+
+
+async def _keep_awake() -> None:
+    import urllib.request
+
+    while True:
+        await asyncio.sleep(240)
+        if any(j.status in ("queued", "running") for j in manager.jobs.values()):
+            try:
+                await asyncio.to_thread(urllib.request.urlopen, f"{_PUBLIC_URL}/api/health", timeout=20)
+            except Exception:
+                pass
 
 
 app = FastAPI(title="Ebook vers livre audio", lifespan=lifespan)
@@ -59,7 +80,7 @@ app = FastAPI(title="Ebook vers livre audio", lifespan=lifespan)
 # Accès depuis le réseau local : jeton obligatoire (sauf depuis l'ordinateur)
 # ---------------------------------------------------------------------------
 
-_PUBLIC_PATHS = ("/manifest.webmanifest", "/icons/", "/favicon")
+_PUBLIC_PATHS = ("/manifest.webmanifest", "/icons/", "/favicon", "/api/health")
 _COOKIE = "audiobook_token"
 
 
@@ -68,7 +89,9 @@ async def require_token(request: Request, call_next):
     if not TOKEN:
         return await call_next(request)
     client = request.client.host if request.client else ""
-    if client in ("127.0.0.1", "::1", "localhost") or request.url.path.startswith(_PUBLIC_PATHS):
+    # Sur l'ordinateur lui-même, pas de mot de passe ; en ligne, jamais d'exception.
+    local = not HOSTED and client in ("127.0.0.1", "::1", "localhost")
+    if local or request.url.path.startswith(_PUBLIC_PATHS):
         return await call_next(request)
     given = request.query_params.get("token")
     candidates = [given, request.cookies.get(_COOKIE), request.headers.get("x-token")]
@@ -78,11 +101,38 @@ async def require_token(request: Request, call_next):
             # Le jeton du QR code est mémorisé un an dans un cookie.
             response.set_cookie(_COOKIE, TOKEN, max_age=365 * 86400, httponly=True, samesite="lax")
         return response
-    return HTMLResponse(
-        "<h1>Accès protégé</h1><p>Ouvrez l'application depuis l'ordinateur, "
-        "puis scannez le QR code affiché dans « Ouvrir sur le téléphone ».</p>",
-        status_code=401,
-    )
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"detail": "Accès protégé : mot de passe requis."}, status_code=401)
+    return HTMLResponse(_login_page(error=given is not None), status_code=401)
+
+
+def _login_page(error: bool) -> str:
+    """Page de connexion : le mot de passe est mémorisé un an par le navigateur."""
+    if LAN:
+        hint = ("Ouvrez l'application depuis l'ordinateur, puis scannez le QR code "
+                "affiché dans « Sur le téléphone ». Ou saisissez la clé d'accès :")
+    else:
+        hint = "Saisissez le mot de passe choisi lors de l'installation :"
+    message = '<p class="err">Mot de passe incorrect.</p>' if error else ""
+    return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ebook vers livre audio</title><link rel="icon" href="/icons/icon.svg">
+<style>
+body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#f6f5fb;color:#1d1b2c;
+font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}}
+@media (prefers-color-scheme:dark){{body{{background:#121119;color:#ecebf4}}form{{background:#1b1a25!important;border-color:#2f2d3d!important}}input{{background:#121119;color:#ecebf4}}}}
+form{{background:#fff;border:1px solid #e2dfee;border-radius:14px;padding:24px;width:min(360px,100%)}}
+img{{width:48px}}h1{{font-size:1.3rem;margin:.6rem 0}}
+input{{width:100%;box-sizing:border-box;font:inherit;padding:11px;border:1px solid #ccc;border-radius:10px;margin:8px 0 12px}}
+button{{width:100%;font:inherit;font-weight:700;padding:12px;border:0;border-radius:10px;background:#4b3cc4;color:#fff}}
+.err{{color:#c0362c;font-weight:600}}
+</style></head><body>
+<form method="get" action="/">
+<img src="/icons/icon.svg" alt=""><h1>Ebook vers livre audio</h1>
+<p>{hint}</p>{message}
+<input type="password" name="token" autocomplete="current-password" required autofocus>
+<button type="submit">Entrer</button>
+</form></body></html>"""
 
 
 @app.exception_handler(BookNotFound)

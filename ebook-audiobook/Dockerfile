@@ -19,5 +19,6 @@ COPY --chown=user . .
 # Voix Piper intégrées à l'image : le mode hors ligne marche dès le démarrage.
 RUN python scripts/download_voices.py
 
+# Render fournit le port dans $PORT ; 7860 par défaut ailleurs.
 EXPOSE 7860
-CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "exec uvicorn app.server:app --host 0.0.0.0 --port ${PORT:-7860}"]

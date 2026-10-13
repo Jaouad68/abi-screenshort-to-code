@@ -146,7 +146,7 @@ function showHome() {
       </label>
       <div id="upload-status"></div>
     </section>
-    ${state.hosted ? `<div class="notice warn">Version en ligne : les livres et fichiers audio sont effacés quand le serveur redémarre (après 48 h sans visite ou lors d'une mise à jour). Téléchargez vos livres audio dès qu'ils sont prêts.</div>` : ""}
+    ${state.hosted ? `<div class="notice warn">Version en ligne : livres et fichiers audio sont effacés quand le serveur se met en veille (15 min sans visite) ou redémarre. Téléchargez vos livres audio dès qu'ils sont prêts. Pour les gros livres, préférez la conversion par GitHub.</div>` : ""}
     <section class="card">
       <div class="card-head"><h2>Conversions</h2></div>
       <div id="jobs" class="list"><div class="empty">Chargement…</div></div>

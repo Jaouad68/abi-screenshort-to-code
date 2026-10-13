@@ -1,0 +1,17 @@
+# Déploiement de l'application « Ebook vers livre audio » sur Render (offre gratuite).
+# Render > New > Blueprint > ce dépôt, branche claude/ebook-to-audiobook-gypowe.
+services:
+  - type: web
+    name: ebook-livre-audio
+    runtime: docker
+    plan: free
+    branch: claude/ebook-to-audiobook-gypowe
+    rootDir: ebook-audiobook
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Mot de passe de l'application, saisi lors de la création (jamais dans le code).
+      - key: AUDIOBOOK_TOKEN
+        sync: false
