@@ -4,17 +4,18 @@
 # Moteur : edge (meilleure qualité, recommandé) ou piper (hors ligne)
 moteur = edge
 
-# Voix Edge : fr-FR-HenriNeural (homme), fr-FR-DeniseNeural (femme),
-# fr-FR-RemyMultilingualNeural (homme), fr-FR-VivienneMultilingualNeural (femme),
+# Voix Edge les plus naturelles : fr-FR-RemyMultilingualNeural (homme),
+# fr-FR-VivienneMultilingualNeural (femme).
+# Autres : fr-FR-HenriNeural (homme), fr-FR-DeniseNeural (femme),
 # fr-FR-EloiseNeural (femme, jeune), fr-BE-GerardNeural, fr-CA-SylvieNeural...
 # Voix Piper : fr_FR-siwis-medium, fr_FR-tom-medium, fr_FR-upmc-medium
-voix = fr-FR-HenriNeural
+voix = fr-FR-RemyMultilingualNeural
 
 # Vitesse : 1.0 = normale, de 0.7 (lent) à 1.5 (rapide)
 vitesse = 1.0
 
-# Ton : neutre, pose, chaleureux, vif, expressif
-ton = neutre
+# Ton : narration (recommandé, débit posé), neutre, pose, chaleureux, vif, expressif
+ton = narration
 
 # Pauses : 0.7 (courtes), 1.0 (normales), 1.35 (longues)
 pauses = 1.0

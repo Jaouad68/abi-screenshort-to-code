@@ -22,10 +22,10 @@ from .base import SynthesisSettings, TTSEngine, VoiceInfo
 
 # Liste de secours si la récupération en ligne échoue.
 _FALLBACK_VOICES = [
-    VoiceInfo("fr-FR-DeniseNeural", "Denise (France)", "fr-FR", "Female"),
+    VoiceInfo("fr-FR-RemyMultilingualNeural", "Rémy (France)", "fr-FR", "Male"),
+    VoiceInfo("fr-FR-VivienneMultilingualNeural", "Vivienne (France)", "fr-FR", "Female"),
     VoiceInfo("fr-FR-HenriNeural", "Henri (France)", "fr-FR", "Male"),
-    VoiceInfo("fr-FR-VivienneMultilingualNeural", "Vivienne (France, multilingue)", "fr-FR", "Female"),
-    VoiceInfo("fr-FR-RemyMultilingualNeural", "Rémy (France, multilingue)", "fr-FR", "Male"),
+    VoiceInfo("fr-FR-DeniseNeural", "Denise (France)", "fr-FR", "Female"),
     VoiceInfo("fr-FR-EloiseNeural", "Éloïse (France, voix jeune)", "fr-FR", "Female"),
     VoiceInfo("fr-BE-CharlineNeural", "Charline (Belgique)", "fr-BE", "Female"),
     VoiceInfo("fr-BE-GerardNeural", "Gérard (Belgique)", "fr-BE", "Male"),
@@ -38,8 +38,16 @@ _FALLBACK_VOICES = [
 ]
 
 _GENDER_FR = {"Female": "voix féminine", "Male": "voix masculine"}
+_NATURAL = "la plus naturelle"
+
+
+def _describe(voice_id: str, gender: str) -> str:
+    text = _GENDER_FR.get(gender, "")
+    return f"{text}, {_NATURAL}" if "Multilingual" in voice_id else text
+
+
 for _v in _FALLBACK_VOICES:
-    _v.description = _GENDER_FR.get(_v.gender, "")
+    _v.description = _describe(_v.id, _v.gender)
 
 
 class EdgeEngine(TTSEngine):
@@ -72,16 +80,17 @@ class EdgeEngine(TTSEngine):
             voices = [
                 VoiceInfo(
                     id=v["ShortName"],
-                    name=f'{v["ShortName"].split("-")[-1].replace("Neural", "")} ({v["Locale"]})',
+                    name=v["ShortName"].split("-")[-1].replace("MultilingualNeural", "").replace("Neural", ""),
                     locale=v["Locale"],
                     gender=v.get("Gender", ""),
-                    description=_GENDER_FR.get(v.get("Gender", ""), ""),
+                    description=_describe(v["ShortName"], v.get("Gender", "")),
                 )
                 for v in raw
                 if v["Locale"].startswith("fr-")
             ]
             # Voix de France en premier, puis par nom.
-            voices.sort(key=lambda v: (v.locale != "fr-FR", v.locale, v.name))
+            # France d'abord, voix « Multilingual » (plus naturelles) en tête.
+            voices.sort(key=lambda v: (v.locale != "fr-FR", v.locale, _NATURAL not in v.description, v.name))
             if voices:
                 self._voices, self._voices_time = voices, time.time()
                 return voices
@@ -91,7 +100,9 @@ class EdgeEngine(TTSEngine):
 
     def default_voice(self, voices: list[VoiceInfo]) -> str | None:
         ids = [v.id for v in voices]
-        for preferred in ("fr-FR-HenriNeural", "fr-FR-DeniseNeural"):
+        # Voix « Multilingual » : génération la plus récente, la plus naturelle.
+        for preferred in ("fr-FR-RemyMultilingualNeural", "fr-FR-VivienneMultilingualNeural",
+                          "fr-FR-HenriNeural", "fr-FR-DeniseNeural"):
             if preferred in ids:
                 return preferred
         return super().default_voice(voices)

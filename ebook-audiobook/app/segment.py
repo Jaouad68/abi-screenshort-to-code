@@ -16,6 +16,7 @@ interrompue sans tout recommencer : chaque segment est mis en cache.
 from __future__ import annotations
 
 import re
+import zlib
 from dataclasses import dataclass
 
 from .chapters import SCENE_BREAK_TOKEN
@@ -32,6 +33,26 @@ PAUSE_CHAPTER_END = 2500
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?…;:])\s+")
 _CLAUSE_SPLIT = re.compile(r"(?<=[,;:])\s+")
 _SPEAKABLE = re.compile(r"[^\W_]", re.UNICODE)
+
+
+def _humanize(pause_ms: int, text: str) -> int:
+    """Rend une pause moins mécanique.
+
+    * une question, une exclamation ou des points de suspension appellent un
+      temps un peu plus long, comme le ferait un lecteur ;
+    * une variation de plus ou moins 10 % évite le métronome. Elle est tirée du
+      texte lui-même : le résultat est identique à chaque conversion (la
+      reprise après coupure reste exacte).
+    """
+    end = text.rstrip()[-1:]
+    if end in "?!":
+        pause_ms += 120
+    elif end == "…":
+        pause_ms += 220
+    elif end in ",;:":
+        pause_ms = int(pause_ms * 0.8)
+    jitter = (zlib.crc32(text.encode("utf-8")) % 2001) / 10000 - 0.1  # entre -10 % et +10 %
+    return max(0, int(pause_ms * (1 + jitter)))
 
 
 @dataclass
@@ -108,5 +129,5 @@ def build_segments(
     if segments:
         segments[-1].pause_ms = PAUSE_CHAPTER_END
     for s in segments:
-        s.pause_ms = int(s.pause_ms * pause_factor)
+        s.pause_ms = int(_humanize(s.pause_ms, s.text) * pause_factor)
     return segments

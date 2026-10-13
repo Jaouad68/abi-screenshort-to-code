@@ -22,9 +22,9 @@ const state = {
   hosted: false,      // version en ligne (Hugging Face) : fichiers temporaires
 };
 
-const SETTINGS_KEY = "audiobook.settings";
+const SETTINGS_KEY = "audiobook.settings.v2"; // v2 : voix et ton plus naturels par défaut
 const DEFAULT_SETTINGS = {
-  engine: "edge", voice: "", speed: 1.0, tone: "neutre", pause_factor: 1.0,
+  engine: "edge", voice: "", speed: 1.0, tone: "narration", pause_factor: 1.0,
   bitrate: 128, formats: ["mp3", "m4b"], read_titles: true,
 };
 

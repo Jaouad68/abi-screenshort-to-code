@@ -113,7 +113,7 @@ def validate_settings(settings: dict[str, Any], engines: dict[str, TTSEngine]) -
     formats = [f for f in settings.get("formats", ["mp3", "m4b"]) if f in ("mp3", "m4b")]
     if not formats:
         raise ValueError("Choisissez au moins un format de sortie (MP3 ou M4B).")
-    tone = settings.get("tone", "neutre")
+    tone = settings.get("tone", "narration")
     if tone not in TONES:
         raise ValueError(f"Ton inconnu : {tone}")
     return {

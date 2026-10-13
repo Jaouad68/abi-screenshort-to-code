@@ -36,24 +36,29 @@ class Tone:
     piper_length: float = 1.0   # Piper : multiplicateur de durée
 
 
+# Les voix neuronales sonnent le plus naturel sans décalage de hauteur : chaque
+# hertz ajouté s'entend comme un traitement artificiel. Les tons jouent donc
+# surtout sur le débit, et très peu sur la hauteur.
 TONES: dict[str, Tone] = {
-    "neutre": Tone("Neutre"),
-    "pose": Tone("Posé, grave", pitch_hz=-6, rate_pct=-6, piper_noise=0.5, piper_noise_w=0.6, piper_length=1.06),
-    "chaleureux": Tone("Chaleureux", pitch_hz=-3, rate_pct=-3, piper_noise=0.75, piper_noise_w=0.85, piper_length=1.03),
-    "vif": Tone("Vif, dynamique", pitch_hz=3, rate_pct=7, piper_noise=0.75, piper_noise_w=0.9, piper_length=0.95),
-    "expressif": Tone("Expressif", pitch_hz=2, rate_pct=0, piper_noise=0.9, piper_noise_w=1.0, piper_length=1.0),
+    "narration": Tone("Narration (recommandé)", rate_pct=-6, piper_noise=0.7, piper_noise_w=0.9, piper_length=1.06),
+    "neutre": Tone("Neutre (débit d'origine)"),
+    "pose": Tone("Posé, grave", pitch_hz=-2, rate_pct=-10, piper_noise=0.6, piper_noise_w=0.75, piper_length=1.1),
+    "chaleureux": Tone("Chaleureux", pitch_hz=-1, rate_pct=-8, piper_noise=0.75, piper_noise_w=0.9, piper_length=1.08),
+    "vif": Tone("Vif, dynamique", pitch_hz=1, rate_pct=4, piper_noise=0.75, piper_noise_w=0.95, piper_length=0.97),
+    "expressif": Tone("Expressif", rate_pct=-4, piper_noise=0.85, piper_noise_w=1.0, piper_length=1.04),
 }
+DEFAULT_TONE = "narration"
 
 
 @dataclass
 class SynthesisSettings:
     voice: str
     speed: float = 1.0         # 1.0 = vitesse normale, 0.7 à 1.5
-    tone: str = "neutre"
+    tone: str = DEFAULT_TONE
 
     @property
     def tone_preset(self) -> Tone:
-        return TONES.get(self.tone, TONES["neutre"])
+        return TONES.get(self.tone, TONES[DEFAULT_TONE])
 
 
 class TTSEngine(ABC):

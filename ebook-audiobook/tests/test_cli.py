@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def test_settings_file_of_the_repository_is_valid():
     s = convert_cli.to_job_settings(convert_cli.read_settings(ROOT.parent / "a-convertir" / "reglages.txt"))
     assert s == {
-        "engine": "edge", "voice": "fr-FR-HenriNeural", "speed": 1.0, "tone": "neutre",
+        "engine": "edge", "voice": "fr-FR-RemyMultilingualNeural", "speed": 1.0, "tone": "narration",
         "pause_factor": 1.0, "bitrate": 128, "formats": ["m4b", "mp3"], "read_titles": True,
     }
 

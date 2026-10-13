@@ -19,7 +19,7 @@ Pour un livre de 300 pages, comptez environ **550 000 caractères** et **9 à 10
 
 | Moteur | Coût pour un livre de 300 pages | Qualité en français | Hors ligne | Remarques |
 |---|---|---|---|---|
-| **Edge TTS** (voix neuronales Microsoft) | **Gratuit** | ★★★★½ très naturel (Henri, Denise, Vivienne, Rémy…) | Non | Pas de compte ni de clé. Service non officiel : il peut changer ou être limité. |
+| **Edge TTS** (voix neuronales Microsoft) | **Gratuit** | ★★★★½ très naturel (Rémy et Vivienne « Multilingual » en tête, puis Henri, Denise…) | Non | Pas de compte ni de clé. Service non officiel : il peut changer ou être limité. |
 | **Piper** | **Gratuit** | ★★★ correct, un peu monotone | **Oui** | Rapide sur processeur (10 à 30× le temps réel), aucune dépendance externe. |
 | XTTS-v2 (Coqui) | Gratuit | ★★★★ très expressif | Oui | Il faut une carte graphique NVIDIA : sur processeur, comptez plusieurs jours par livre. Licence non commerciale. |
 | Kokoro | Gratuit | ★★★ (une seule voix française) | Oui | Choix de voix trop limité en français. |
@@ -156,7 +156,7 @@ La fenêtre noire (console) doit rester ouverte : la fermer arrête l'applicatio
 
 1. Glissez votre PDF ou DOCX dans la zone « Importer un ebook ».
 2. Vérifiez les chapitres : décochez ce qui ne doit pas être lu, renommez, fusionnez, ou corrigez un passage avec l'icône crayon.
-3. Choisissez la voix (essayez **Henri** ou **Denise** en premier), la vitesse et le ton, puis cliquez sur « Écouter un extrait ».
+3. Choisissez la voix (**Rémy** ou **Vivienne**, les plus naturelles, sont proposées par défaut), le ton **Narration** et la vitesse, puis cliquez sur « Écouter un extrait ».
 4. Cliquez sur « Lancer la conversion ». Pour un livre de 300 pages avec Edge TTS, comptez environ 30 à 60 minutes selon votre connexion.
 5. Téléchargez le **M4B** (pour Apple Livres, Smart AudioBook Player, BookPlayer, VLC…) ou le **ZIP des MP3**.
 

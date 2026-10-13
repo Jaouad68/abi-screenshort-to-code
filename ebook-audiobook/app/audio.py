@@ -88,11 +88,17 @@ def decode_to_pcm(path: Path, sample_rate: int) -> bytes:
     )
 
 
-def trim_silence(pcm: bytes, sample_rate: int, threshold: int = 250, keep_ms: int = 40) -> bytes:
-    """Retire le silence en début et fin de segment.
+def trim_silence(
+    pcm: bytes, sample_rate: int, threshold: int = 120, keep_start_ms: int = 60,
+    keep_end_ms: int = 140, fade_ms: int = 12,
+) -> bytes:
+    """Retire le silence en début et fin de segment, sans abîmer la voix.
 
     Les moteurs ajoutent des blancs variables autour de chaque segment ; les
     retirer rend les pauses régulières et maîtrisées par l'application.
+    On garde une marge plus longue en fin de segment (les fins de phrase
+    s'éteignent doucement : « s », « f », souffle) et on applique un fondu très
+    court aux deux extrémités pour éviter tout « clic » au raccord.
     Seules les extrémités sont parcourues : le coût reste négligeable.
     """
     samples = array("h")
@@ -108,10 +114,15 @@ def trim_silence(pcm: bytes, sample_rate: int, threshold: int = 250, keep_ms: in
     end = n - 1
     while end > start and abs(samples[end]) < threshold:
         end -= 1
-    keep = int(sample_rate * keep_ms / 1000)
-    start = max(0, start - keep)
-    end = min(n, end + 1 + keep)
-    return samples[start:end].tobytes()
+    start = max(0, start - int(sample_rate * keep_start_ms / 1000))
+    end = min(n, end + 1 + int(sample_rate * keep_end_ms / 1000))
+    out = samples[start:end]
+    fade = min(int(sample_rate * fade_ms / 1000), len(out) // 2)
+    for i in range(fade):
+        gain = i / fade
+        out[i] = int(out[i] * gain)
+        out[-1 - i] = int(out[-1 - i] * gain)
+    return out.tobytes()
 
 
 class ChapterWavWriter:

@@ -31,9 +31,9 @@ from app.tts import get_engines  # noqa: E402
 # Réglages par défaut, modifiables dans le fichier de réglages.
 DEFAULTS = {
     "moteur": "edge",
-    "voix": "fr-FR-HenriNeural",
+    "voix": "fr-FR-RemyMultilingualNeural",
     "vitesse": "1.0",
-    "ton": "neutre",
+    "ton": "narration",
     "pauses": "1.0",
     "debit": "128",
     "formats": "m4b, mp3",

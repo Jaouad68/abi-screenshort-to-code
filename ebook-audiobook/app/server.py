@@ -232,7 +232,7 @@ class PreviewRequest(BaseModel):
     engine: str = "edge"
     voice: str
     speed: float = Field(1.0, ge=0.5, le=2.0)
-    tone: str = "neutre"
+    tone: str = "narration"
     text: str = Field(
         "Le soir tombait sur la ville. — Vous partez déjà ? demanda-t-elle. "
         "Il sourit, sans répondre, et referma doucement la porte.",
@@ -403,7 +403,7 @@ class JobRequest(BaseModel):
     engine: str = "edge"
     voice: str
     speed: float = 1.0
-    tone: str = "neutre"
+    tone: str = "narration"
     pause_factor: float = 1.0
     bitrate: int = 128
     formats: list[str] = ["mp3", "m4b"]

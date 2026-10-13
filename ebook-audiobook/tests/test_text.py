@@ -124,9 +124,38 @@ def test_segments_pauses_and_splitting():
         f"{EM} Bonjour.", f"{EM} Salut.", "Narration.", SCENE_BREAK_TOKEN, long,
     ], max_chars=300)
     assert segs[0].text == "Chapitre 1."
-    assert segs[1].text == "Bonjour." and segs[1].pause_ms == PAUSE_DIALOGUE
-    assert segs[3].pause_ms == PAUSE_SCENE
+    # Pauses légèrement variées (± 10 %) mais reproductibles.
+    assert segs[1].text == "Bonjour."
+    assert 0.9 * PAUSE_DIALOGUE <= segs[1].pause_ms <= 1.1 * PAUSE_DIALOGUE
+    assert segs[3].pause_ms >= 0.9 * PAUSE_SCENE
     assert all(len(s.text) <= 300 for s in segs)
-    assert segs[-1].pause_ms == PAUSE_CHAPTER_END
+    assert segs[-1].pause_ms >= 0.9 * PAUSE_CHAPTER_END
+    again = build_segments("Chapitre 1", [f"{EM} Bonjour.", f"{EM} Salut.", "Narration."], max_chars=300)
+    assert [s.pause_ms for s in again[:3]] == [s.pause_ms for s in segs[:3]]
     pieces = split_long_text("a" * 50 + " " + "b" * 50, 60)
     assert pieces == ["a" * 50, "b" * 50]
+
+
+def test_questions_get_a_longer_pause():
+    from app.segment import _humanize
+
+    assert _humanize(600, "Tu viens ?") > _humanize(600, "Tu viens ?") - 1  # déterministe
+    base = [_humanize(600, f"Phrase numéro {i}.") for i in range(50)]
+    asked = [_humanize(600, f"Phrase numéro {i} ?") for i in range(50)]
+    assert sum(asked) / 50 > sum(base) / 50 + 80
+
+
+def test_trim_silence_keeps_tail_and_fades_edges():
+    from array import array
+
+    from app.audio import trim_silence
+
+    sr = 24000
+    voice = array("h", [8000] * sr)               # 1 s de « voix »
+    pcm = array("h", [0] * sr) + voice + array("h", [0] * sr)
+    out = array("h")
+    out.frombytes(trim_silence(pcm.tobytes(), sr))
+    # 60 ms gardées avant, 140 ms après la voix
+    assert len(out) == sr + int(sr * 0.06) + int(sr * 0.14)
+    assert out[0] == 0 and out[-1] == 0          # extrémités en fondu
+    assert max(out) == 8000
