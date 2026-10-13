@@ -19,8 +19,6 @@ jobs:
   convertir:
     runs-on: ubuntu-latest
     timeout-minutes: 350
-    env:
-      AUDIOBOOK_DATA_DIR: ${{ runner.temp }}/audiobook-data
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,6 +42,7 @@ jobs:
 
       - name: Convertir
         run: |
+          export AUDIOBOOK_DATA_DIR="$RUNNER_TEMP/audiobook-data"
           python ebook-audiobook/convert_cli.py \
             --list "$RUNNER_TEMP/livres.txt" \
             --settings a-convertir/reglages.txt \
