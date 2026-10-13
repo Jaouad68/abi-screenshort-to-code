@@ -172,24 +172,24 @@ Le lien contient une clé secrète, mémorisée par le téléphone : vous ne sca
 
 > Astuce : pour utiliser l'application hors de chez vous, installez **Tailscale** (gratuit) sur le PC et le téléphone, puis utilisez l'adresse Tailscale du PC.
 
-### Sans ordinateur : version en ligne (Hugging Face, gratuite)
+### Sans ordinateur : conversion par GitHub Actions (gratuite)
 
-L'application peut tourner sur un **Space privé Hugging Face** (2 processeurs, 16 Go de mémoire, gratuit). Tout se règle depuis un téléphone :
+Tout se fait depuis le téléphone, avec votre compte GitHub :
 
-1. Créez un compte sur <https://huggingface.co/join>.
-2. Créez un jeton : <https://huggingface.co/settings/tokens> → « Create new token » → type **Write** → copiez-le.
-3. Sur GitHub, dans le dépôt : **Settings → Secrets and variables → Actions → New repository secret**. Nom : `HF_TOKEN`, valeur : le jeton.
-4. Relancez la publication : onglet **Actions** → « Ebook vers livre audio, publication Hugging Face » → dernière exécution → **Re-run all jobs**.
-5. Après 5 à 10 minutes de construction, ouvrez `https://huggingface.co/spaces/<votre-nom>/ebook-livre-audio` en étant connecté à Hugging Face, puis « Ajouter à l'écran d'accueil ».
+1. Déposez le livre (PDF ou DOCX) dans le dossier `a-convertir/` de la branche `claude/ebook-to-audiobook-gypowe` :
+   <https://github.com/Jaouad68/abi-screenshort-to-code/upload/claude/ebook-to-audiobook-gypowe/a-convertir>
+2. La conversion démarre seule. Suivi dans l'onglet **Actions** (« Ebook vers livre audio, conversion »). Comptez environ 30 à 60 minutes pour 300 pages.
+3. Le livre audio est publié dans l'onglet **Releases** : le fichier **.m4b** se télécharge directement, et le **ZIP** contient un MP3 par chapitre.
 
-Ensuite, chaque mise à jour du code sur la branche republie l'application automatiquement.
+Les réglages (voix, vitesse, ton, pauses, débit, formats) sont dans `a-convertir/reglages.txt`, modifiable depuis GitHub (icône crayon).
 
 À savoir :
 
-* le Space est **privé** : vous seul pouvez l'ouvrir, une fois connecté à Hugging Face ;
-* le disque est **temporaire** : livres et fichiers audio sont effacés au redémarrage (mise à jour, ou mise en veille après 48 h sans visite). Téléchargez vos livres audio dès qu'ils sont prêts ;
-* la conversion continue côté serveur même si le téléphone se verrouille ;
-* pour couper l'accès de GitHub à Hugging Face, supprimez le jeton sur Hugging Face.
+* le plan gratuit de GitHub offre 2 000 minutes de calcul par mois pour un dépôt privé, soit plusieurs dizaines de livres ;
+* il n'y a pas d'étape de vérification des chapitres : les sommaires et mentions légales sont exclus automatiquement, et le journal de l'exécution liste les chapitres convertis ;
+* en cas de coupure du service Microsoft, la conversion reprend automatiquement jusqu'à 3 fois.
+
+Une image Docker (`Dockerfile`) est aussi fournie pour héberger l'application complète, avec son interface, chez n'importe quel hébergeur Docker.
 
 ### macOS / Linux
 
