@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ebook vers livre audio</title>
+  <meta name="description" content="Convertir un PDF ou un Word en livre audio MP3 et M4B">
+  <meta name="theme-color" content="#3b2f8f">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Livre audio">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <img src="icons/icon.svg" alt="" width="32" height="32">
+      <span>Ebook <span class="arrow">→</span> livre audio</span>
+    </a>
+    <button class="btn ghost" id="btn-phone" type="button" title="Ouvrir sur le téléphone">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 3v13h10V5H7zm5 14.2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+      <span class="hide-sm">Sur le téléphone</span>
+    </button>
+  </header>
+
+  <main id="app" aria-live="polite"></main>
+
+  <!-- Éditeur de chapitre -->
+  <dialog id="dlg-chapter" class="dialog wide">
+    <form method="dialog" class="dialog-body" id="form-chapter">
+      <h2>Modifier le chapitre</h2>
+      <label class="field">Titre
+        <input type="text" id="chapter-title" required>
+      </label>
+      <label class="field grow">Texte <small>(un paragraphe par bloc, séparés par une ligne vide)</small>
+        <textarea id="chapter-text" rows="18" spellcheck="true"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button class="btn ghost" value="cancel" formnovalidate>Annuler</button>
+        <button class="btn primary" value="save" id="chapter-save">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- QR code pour le téléphone -->
+  <dialog id="dlg-phone" class="dialog">
+    <form method="dialog" class="dialog-body">
+      <h2>Ouvrir sur le téléphone</h2>
+      <div id="phone-content"></div>
+      <div class="dialog-actions"><button class="btn primary" value="close">Fermer</button></div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" role="status"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

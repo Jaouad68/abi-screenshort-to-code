@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Application Python autonome (interface en JavaScript sans compilation).
+    "ebook-audiobook/**",
   ]),
 ]);
 
