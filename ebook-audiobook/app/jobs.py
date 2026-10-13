@@ -359,25 +359,17 @@ class JobManager:
         self._run_start[job.id] = (time.time(), job.progress)
         self._save(job)
 
-        for ch_job, ch in zip(job.chapters, text["chapters"]):
-            self._check_cancel(job)
-            if ch_job.status == "done":
-                continue
+        async def finish_chapter(ch_job: ChapterJob, segments, paths, cache: Path) -> None:
+            """Assemble et encode un chapitre déjà synthétisé (dans un thread)."""
             n = ch_job.number
-            job.current_chapter = n
-            job.message = f"Chapitre {n}/{total} : synthèse vocale"
-            segments = build_segments(ch["title"], ch["paragraphs"], engine.max_chars,
-                                      s["pause_factor"], s["read_titles"])
-            cache = work_dir / f"{n:03d}"
-            cache.mkdir(exist_ok=True)
-            paths = [cache / f"{k:05d}.{engine.output_ext}" for k in range(len(segments))]
-            await self._synthesize_chapter(job, engine, synth, segments, paths)
-
-            # Assemblage + encodage (bloquant : exécuté dans un thread).
-            job.message = f"Chapitre {n}/{total} : assemblage et encodage"
-            self._save(job, force=True)
             base = f"{n:0{width}d} - {safe_filename(ch_job.title)}"
-            wav = work_dir / f"{n:03d}.wav"
+            # Fichiers temporaires propres à cette tentative : un encodage
+            # abandonné (annulation) qui se termine en arrière-plan ne peut
+            # pas écraser le travail d'une reprise.
+            attempt = uuid.uuid4().hex[:8]
+            wav = work_dir / f"{n:03d}-{attempt}.wav"
+            mp3_tmp = work_dir / f"{n:03d}-{attempt}.mp3" if want_mp3 else None
+            m4a_tmp = work_dir / f"{n:03d}-{attempt}.m4a" if want_m4b else None
             mp3 = out_dir / f"{base}.mp3" if want_mp3 else None
             m4a = work_dir / f"{n:03d}.m4a" if want_m4b else None
             meta = {
@@ -388,12 +380,15 @@ class JobManager:
                 "track": f"{n}/{total}",
                 "genre": "Livre audio",
             }
-            duration = await asyncio.to_thread(self._assemble, segments, paths, wav, sample_rate)
-            self._check_cancel(job)
-            await asyncio.to_thread(encode_chapter, wav, mp3, m4a, s["bitrate"], meta, cover)
-            wav.unlink(missing_ok=True)
+            duration = await asyncio.to_thread(
+                self._assemble_and_encode, segments, paths, wav, sample_rate,
+                mp3_tmp, m4a_tmp, s["bitrate"], meta, cover,
+            )
+            if mp3_tmp:
+                mp3_tmp.replace(mp3)
+            if m4a_tmp:
+                m4a_tmp.replace(m4a)
             shutil.rmtree(cache, ignore_errors=True)  # segments devenus inutiles
-
             ch_job.status = "done"
             ch_job.duration = duration
             ch_job.mp3 = mp3.name if mp3 else None
@@ -401,6 +396,42 @@ class JobManager:
             job.encoded_chars += ch_job.chars
             self._update_progress(job)
             self._save(job, force=True)
+
+        # Travail à la chaîne : pendant que le processeur encode le chapitre N,
+        # la synthèse (qui attend surtout le réseau) avance déjà sur N+1.
+        pending: asyncio.Task | None = None
+        try:
+            for ch_job, ch in zip(job.chapters, text["chapters"]):
+                self._check_cancel(job)
+                if ch_job.status == "done":
+                    continue
+                n = ch_job.number
+                job.current_chapter = n
+                job.message = f"Chapitre {n}/{total} : synthèse vocale"
+                segments = build_segments(ch["title"], ch["paragraphs"], engine.max_chars,
+                                          s["pause_factor"], s["read_titles"])
+                cache = work_dir / f"{n:03d}"
+                cache.mkdir(exist_ok=True)
+                paths = [cache / f"{k:05d}.{engine.output_ext}" for k in range(len(segments))]
+                await self._synthesize_chapter(job, engine, synth, segments, paths)
+
+                if pending is not None:  # un seul encodage à la fois
+                    job.message = f"Chapitre {n}/{total} : synthèse terminée, fin de l'encodage précédent"
+                    await pending
+                job.message = f"Chapitre {n}/{total} : assemblage et encodage"
+                self._save(job, force=True)
+                pending = asyncio.create_task(finish_chapter(ch_job, segments, paths, cache))
+            if pending is not None:
+                await pending
+                pending = None
+        finally:
+            if pending is not None and not pending.done():
+                me = asyncio.current_task()
+                if me is not None and me.cancelling():
+                    pending.cancel()  # annulation : on n'attend pas
+                # Sur une erreur de synthèse, l'encodage déjà lancé est mené à
+                # terme : ce chapitre n'aura pas à être refait à la reprise.
+                await asyncio.gather(pending, return_exceptions=True)
 
         if want_m4b:
             job.message = "Création du livre audio M4B…"
@@ -474,15 +505,24 @@ class JobManager:
             raise
 
     @staticmethod
-    def _assemble(segments: list[Segment], paths: list[Path], wav: Path, sample_rate: int) -> float:
-        """Concatène les segments d'un chapitre avec les silences prévus."""
+    def _assemble_and_encode(
+        segments: list[Segment], paths: list[Path], wav: Path, sample_rate: int,
+        mp3: Path | None, m4a: Path | None, bitrate: int, meta: dict, cover: Path | None,
+    ) -> float:
+        """Concatène les segments avec les silences prévus, puis encode le chapitre."""
         with ChapterWavWriter(wav, sample_rate) as writer:
             writer.add_silence(500)  # courte respiration avant le début du chapitre
             for seg, path in zip(segments, paths):
                 pcm = trim_silence(decode_to_pcm(path, sample_rate), sample_rate)
                 writer.add_audio(pcm)
                 writer.add_silence(seg.pause_ms)
-            return writer.duration
+            duration = writer.duration
+            gain = writer.gain_db(config.LOUDNESS_TARGET)
+        try:
+            encode_chapter(wav, mp3, m4a, bitrate, meta, cover, gain_db=gain)
+        finally:
+            wav.unlink(missing_ok=True)
+        return duration
 
     # -- progression et sauvegarde ----------------------------------------
 

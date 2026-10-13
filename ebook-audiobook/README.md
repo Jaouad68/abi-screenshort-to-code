@@ -74,7 +74,7 @@ Pour un livre de 300 pages, comptez environ **550 000 caractères** et **9 à 10
 │  segment.py + normalize.py → segments de texte « parlé » + pauses     │
 │  tts/edge.py | tts/piper_engine.py → 1 fichier audio par segment     │
 │        (cache disque, 3 requêtes en parallèle, 5 essais par segment)  │
-│  audio.py  → chapitre WAV (silences) → loudnorm → MP3 + AAC           │
+│  audio.py  → chapitre WAV (silences) → gain → MP3 + AAC               │
 │           → M4B (concaténation sans réencodage + chapitres + pochette)│
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -92,7 +92,7 @@ Pour un livre de 300 pages, comptez environ **550 000 caractères** et **9 à 10
 * Nombres : « XIXe siècle » → dix-neuvième siècle, « Louis XIV » → Louis quatorze, « François Ier » → François premier, « 1er » → premier, « 14h30 » → 14 heures 30.
 * Dialogues : le tiret de dialogue n'est pas lu, les incises « , dit-il, » deviennent des pauses, et les répliques s'enchaînent un peu plus vite que la narration.
 * Pauses maîtrisées : après le titre (1,4 s), entre paragraphes (0,65 s), entre répliques (0,45 s), au changement de scène « * * * » (1,8 s), en fin de chapitre (2,5 s). Le réglage « Pauses » les multiplie par 0,7 ou 1,35.
-* Volume homogène entre chapitres : normalisation à -18 LUFS, la norme des livres audio.
+* Volume homogène entre chapitres : niveau mesuré pendant l'assemblage puis ajusté (environ -18 LUFS, la norme des livres audio), sans saturation.
 
 **Qualité audio** : MP3 LAME et AAC à 128 kbps minimum (jusqu'à 256), 44,1 kHz, mono. Le mono est la norme pour la voix seule : à débit égal, il donne une meilleure qualité que la stéréo. Les voix Edge sont produites en 24 kHz et Piper en 22 kHz : un débit plus élevé n'apportera donc pas de gain audible au-delà de 128 kbps.
 
@@ -219,7 +219,7 @@ cd ebook-audiobook
 | Un chapitre mal découpé | Icône de fusion (flèche) pour le rattacher au précédent, ou crayon pour corriger le texte. |
 | Un en-tête ou un numéro est encore lu | Corrigez le passage avec le crayon avant de lancer la conversion. |
 
-Variables d'environnement utiles : `AUDIOBOOK_EDGE_CONCURRENCY` (requêtes parallèles, 3 par défaut), `AUDIOBOOK_EDGE_PROXY`, `AUDIOBOOK_LUFS` (-18 par défaut), `AUDIOBOOK_DATA_DIR`.
+Variables d'environnement utiles : `AUDIOBOOK_EDGE_CONCURRENCY` (requêtes parallèles, 5 par défaut), `AUDIOBOOK_EDGE_PROXY`, `AUDIOBOOK_RMS_DBFS` (niveau sonore visé, -20 par défaut), `AUDIOBOOK_DATA_DIR`.
 
 ## Limites connues
 

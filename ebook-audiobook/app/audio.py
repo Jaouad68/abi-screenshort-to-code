@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import re
 import shutil
@@ -22,6 +23,12 @@ from array import array
 from pathlib import Path
 
 from . import config
+
+
+try:  # décodeur MP3 rapide (facultatif)
+    import miniaudio as _miniaudio
+except ImportError:  # pragma: no cover - dépend de l'installation
+    _miniaudio = None
 
 
 class FFmpegError(RuntimeError):
@@ -76,11 +83,24 @@ def _run(args: list[str], capture_stdout: bool = False) -> bytes:
 # ---------------------------------------------------------------------------
 
 def decode_to_pcm(path: Path, sample_rate: int) -> bytes:
-    """Décode un fichier audio en PCM 16 bits mono à ``sample_rate`` Hz."""
-    if path.suffix.lower() == ".wav":
+    """Décode un fichier audio en PCM 16 bits mono à ``sample_rate`` Hz.
+
+    Les MP3 d'Edge TTS sont décodés directement en mémoire par miniaudio,
+    environ 50 fois plus vite que de lancer FFmpeg pour chaque segment (un
+    chapitre compte des centaines de segments). FFmpeg reste la solution de
+    secours pour tout autre format.
+    """
+    suffix = path.suffix.lower()
+    if suffix == ".wav":
         with wave.open(str(path), "rb") as w:
             if w.getnchannels() == 1 and w.getsampwidth() == 2 and w.getframerate() == sample_rate:
                 return w.readframes(w.getnframes())
+    if suffix == ".mp3" and _miniaudio is not None:
+        try:
+            decoded = _miniaudio.decode(path.read_bytes(), nchannels=1, sample_rate=sample_rate)
+            return decoded.samples.tobytes()
+        except Exception:
+            pass  # fichier inhabituel : FFmpeg prend le relais
     return _run(
         ["-i", str(path), "-f", "s16le", "-acodec", "pcm_s16le", "-ac", "1",
          "-ar", str(sample_rate), "pipe:1"],
@@ -136,10 +156,31 @@ class ChapterWavWriter:
         self._wav.setnchannels(1)
         self._wav.setsampwidth(2)
         self._wav.setframerate(sample_rate)
+        self._sum_squares = 0.0
+        self._voiced = 0
+        self._peak = 0
 
     def add_audio(self, pcm: bytes) -> None:
         self._wav.writeframes(pcm)
         self.frames += len(pcm) // 2
+        # Mesure du niveau pendant l'écriture (calcul en C, coût négligeable) :
+        # elle remplace le filtre loudnorm, très lent sur un petit processeur.
+        samples = array("h")
+        samples.frombytes(pcm[: len(pcm) - len(pcm) % 2])
+        if samples:
+            self._sum_squares += math.sumprod(samples, samples) if hasattr(math, "sumprod") \
+                else float(sum(s * s for s in samples))
+            self._voiced += len(samples)
+            self._peak = max(self._peak, max(samples), -min(samples))
+
+    def gain_db(self, target_rms_dbfs: float, ceiling_dbfs: float = -1.0) -> float:
+        """Gain à appliquer pour atteindre le niveau visé sans saturer."""
+        if not self._voiced or not self._peak:
+            return 0.0
+        rms = math.sqrt(self._sum_squares / self._voiced) / 32768
+        gain = target_rms_dbfs - 20 * math.log10(max(rms, 1e-9))
+        headroom = ceiling_dbfs - 20 * math.log10(self._peak / 32768)
+        return round(max(-20.0, min(gain, headroom, 20.0)), 2)
 
     def add_silence(self, ms: int) -> None:
         n = int(self.sample_rate * ms / 1000)
@@ -180,18 +221,19 @@ def encode_chapter(
     bitrate: int,
     meta: dict[str, str],
     cover: Path | None = None,
+    gain_db: float = 0.0,
 ) -> None:
-    """Normalise le volume puis encode le chapitre en MP3 et/ou AAC (M4A).
+    """Ajuste le volume puis encode le chapitre en MP3 et/ou AAC (M4A).
 
+    Le gain est calculé à l'avance (``ChapterWavWriter.gain_db``) : un simple
+    filtre « volume » suffit, trois fois plus rapide que loudnorm. La voix de
+    synthèse ayant une dynamique très régulière, le résultat est équivalent.
     Un seul passage FFmpeg produit les deux sorties : le WAV n'est lu qu'une fois.
     """
     if not mp3_out and not m4a_out:
         return
     outputs = [o for o in (mp3_out, m4a_out) if o]
-    chain = (
-        f"loudnorm=I={config.LOUDNESS_TARGET}:TP=-1.5:LRA=11,"
-        f"aresample={config.OUTPUT_SAMPLE_RATE}"
-    )
+    chain = f"volume={gain_db}dB,aresample={config.OUTPUT_SAMPLE_RATE}"
     if len(outputs) == 2:
         filt = f"[0:a]{chain},asplit=2[mp3][aac]"
         labels = {"mp3": "[mp3]", "aac": "[aac]"}

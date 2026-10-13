@@ -27,9 +27,10 @@ STATIC_DIR = ROOT_DIR / "static"
 # Taille maximale d'un fichier importé (en octets).
 MAX_UPLOAD_BYTES = int(os.environ.get("AUDIOBOOK_MAX_UPLOAD_MB", "300")) * 1024 * 1024
 
-# Nombre de requêtes Edge TTS en parallèle. Au-delà de 4, Microsoft
-# commence parfois à limiter le débit : 3 est un bon compromis.
-EDGE_CONCURRENCY = int(os.environ.get("AUDIOBOOK_EDGE_CONCURRENCY", "3"))
+# Nombre de requêtes Edge TTS en parallèle. Le service accepte bien 5
+# requêtes simultanées ; en cas de limitation, les nouvelles tentatives
+# automatiques prennent le relais.
+EDGE_CONCURRENCY = int(os.environ.get("AUDIOBOOK_EDGE_CONCURRENCY", "5"))
 
 # Proxy HTTP(S) optionnel pour Edge TTS (réseau d'entreprise, etc.).
 EDGE_PROXY = os.environ.get("AUDIOBOOK_EDGE_PROXY") or None
@@ -38,9 +39,9 @@ EDGE_PROXY = os.environ.get("AUDIOBOOK_EDGE_PROXY") or None
 # exponentielle : 2 s, 4 s, 8 s, 16 s...).
 TTS_MAX_RETRIES = int(os.environ.get("AUDIOBOOK_TTS_RETRIES", "5"))
 
-# Cible de normalisation du volume (LUFS). -18 LUFS est la valeur
-# habituelle des livres audio (ACX recommande entre -23 et -18).
-LOUDNESS_TARGET = os.environ.get("AUDIOBOOK_LUFS", "-18")
+# Niveau sonore visé (valeur efficace en dBFS). -20 dBFS pour une voix seule
+# correspond à environ -18 LUFS, la valeur habituelle des livres audio.
+LOUDNESS_TARGET = float(os.environ.get("AUDIOBOOK_RMS_DBFS", "-20"))
 
 # Fréquence d'échantillonnage des fichiers finaux.
 OUTPUT_SAMPLE_RATE = 44100

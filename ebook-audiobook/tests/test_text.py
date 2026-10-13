@@ -159,3 +159,25 @@ def test_trim_silence_keeps_tail_and_fades_edges():
     assert len(out) == sr + int(sr * 0.06) + int(sr * 0.14)
     assert out[0] == 0 and out[-1] == 0          # extrémités en fondu
     assert max(out) == 8000
+
+
+def test_volume_gain_targets_level_without_clipping(tmp_path):
+    import math
+    from array import array
+
+    from app.audio import ChapterWavWriter
+
+    sr = 24000
+    quiet = array("h", (int(1000 * math.sin(i / 5)) for i in range(sr)))
+    with ChapterWavWriter(tmp_path / "a.wav", sr) as w:
+        w.add_audio(quiet.tobytes())
+        w.add_silence(2000)            # les silences ne faussent pas la mesure
+        gain = w.gain_db(-20.0)
+    # sinus d'amplitude 1000 : RMS ≈ -33 dBFS -> environ +13 dB
+    assert 12 < gain < 14
+
+    loud = array("h", (int(30000 * math.sin(i / 5)) for i in range(sr)))
+    with ChapterWavWriter(tmp_path / "b.wav", sr) as w:
+        w.add_audio(loud.tobytes())
+        # le gain est plafonné pour que les crêtes restent sous -1 dBFS
+        assert w.gain_db(-3.0) <= -1.0 - 20 * math.log10(30000 / 32768) + 0.01
