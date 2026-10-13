@@ -137,6 +137,7 @@ class JobManager:
         self.jobs: dict[str, Job] = {}
         self._queue: asyncio.Queue[str] | None = None
         self._worker: asyncio.Task | None = None
+        self._running: tuple[str, asyncio.Task] | None = None  # conversion en cours
         self._cancel_requested: set[str] = set()
         self._last_save: dict[str, float] = {}
         self._run_start: dict[str, tuple[float, float]] = {}  # id -> (heure, progression)
@@ -249,6 +250,10 @@ class JobManager:
         elif job.status == "running":
             self._cancel_requested.add(job_id)
             job.message = "Annulation en cours…"
+            # Arrêt immédiat, sans attendre la fin des morceaux en cours de
+            # synthèse ou d'encodage. Les segments déjà produits restent en cache.
+            if self._running and self._running[0] == job_id:
+                self._running[1].cancel()
         return job
 
     def resume(self, job_id: str) -> Job:
@@ -291,12 +296,20 @@ class JobManager:
             job = self.jobs.get(job_id)
             if job is None or job.status != "queued":
                 continue
+            task = asyncio.create_task(self._run(job))
+            self._running = (job.id, task)
             try:
-                await self._run(job)
+                await task
             except JobCancelled:
                 job.status = "cancelled"
                 job.message = "Annulée. Les segments déjà produits sont conservés : vous pouvez reprendre."
             except asyncio.CancelledError:
+                me = asyncio.current_task()
+                if job.id in self._cancel_requested and not (me and me.cancelling()):
+                    # Annulation demandée par l'utilisateur : la file continue.
+                    job.status = "cancelled"
+                    job.message = "Annulée. Les segments déjà produits sont conservés : vous pouvez reprendre."
+                    continue
                 job.status = "interrupted"
                 job.message = "Interrompue. Cliquez sur Reprendre."
                 self._save(job)
@@ -306,6 +319,7 @@ class JobManager:
                 job.error = str(exc)
                 job.message = "Erreur : la conversion peut être reprise là où elle s'est arrêtée."
             finally:
+                self._running = None
                 self._cancel_requested.discard(job.id)
                 job.eta_seconds = None
                 job.current_chapter = None if job.status == "done" else job.current_chapter

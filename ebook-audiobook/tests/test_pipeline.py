@@ -173,3 +173,36 @@ def test_web_api(data_dir, sample_docx, monkeypatch):
         # Un nom de fichier qui ne fait pas partie de la conversion est refusé.
         assert client.get(f"/api/jobs/{job_id}/files/..%2Fjob.json").status_code == 404
         assert client.get("/api/books/..%2F..%2Fetc").status_code == 404
+
+
+def test_cancel_is_immediate_even_during_slow_synthesis(data_dir, sample_docx):
+    """L'annulation n'attend pas la fin des segments en cours."""
+    book = library.import_book(shutil.copy(sample_docx, data_dir / "in.docx"), "roman.docx")
+
+    class SlowEngine(FakeEngine):
+        async def synthesize(self, text, settings, out_path):
+            await asyncio.sleep(30)  # segment interminable
+
+    async def scenario():
+        manager = JobManager({"fake": SlowEngine()}, config.JOBS_DIR)
+        await manager.start()
+        job = manager.create(book.id, SETTINGS)
+        while manager.get(job.id).status != "running":
+            await asyncio.sleep(0.02)
+        await asyncio.sleep(0.2)
+        start = time.time()
+        manager.cancel(job.id)
+        while manager.get(job.id).status == "running":
+            await asyncio.sleep(0.02)
+        elapsed = time.time() - start
+        # la file continue de fonctionner après une annulation
+        second = manager.create(book.id, {**SETTINGS, "formats": ["mp3"]})
+        manager.engines["fake"] = FakeEngine()
+        await _run_until_finished(manager, second.id)
+        await manager.stop()
+        return manager.get(job.id), elapsed, manager.get(second.id)
+
+    job, elapsed, second = asyncio.run(scenario())
+    assert job.status == "cancelled"
+    assert elapsed < 1.0
+    assert second.status == "done"

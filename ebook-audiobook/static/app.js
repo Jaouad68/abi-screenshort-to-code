@@ -676,7 +676,18 @@ function renderJob(job) {
 
     const cancel = $("#btn-cancel");
     if (cancel) cancel.addEventListener("click", async () => {
-      try { renderJob(await api(`/api/jobs/${job.id}/cancel`, { method: "POST" })); } catch (err) { toast(err.message, true); }
+      if (!confirm("Arrêter la conversion ? Vous pourrez la reprendre plus tard sans tout recommencer.")) return;
+      cancel.disabled = true;
+      cancel.textContent = "Arrêt…";
+      try {
+        await api(`/api/jobs/${job.id}/cancel`, { method: "POST" });
+        stopPolling();
+        setTimeout(() => refreshJob(job.id), 500);
+      } catch (err) {
+        toast(err.message, true);
+        cancel.disabled = false;
+        cancel.textContent = "Annuler";
+      }
     });
     const resume = $("#btn-resume");
     if (resume) resume.addEventListener("click", async () => {
