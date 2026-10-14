@@ -181,3 +181,18 @@ def test_volume_gain_targets_level_without_clipping(tmp_path):
         w.add_audio(loud.tobytes())
         # le gain est plafonné pour que les crêtes restent sous -1 dBFS
         assert w.gain_db(-3.0) <= -1.0 - 20 * math.log10(30000 / 32768) + 0.01
+
+
+def test_capitals_are_not_spelled_out():
+    """Les mots en MAJUSCULES seraient épelés par la voix : on les remet en minuscules."""
+    assert normalize_title("II. POURQUOI LE MOYEN-ÂGE DÉSESPÉRA") == "Deux. Pourquoi le moyen-âge désespéra."
+    assert normalize_title("LA SORCIÈRE") == "La sorcière."
+    assert normalize_title("CHAPITRE PREMIER") == "Chapitre premier."
+    assert normalize_for_speech("IL ÉTAIT une fois un roi.") == "Il était une fois un roi."
+    assert normalize_for_speech("À LA FIN DU JOUR, il partit.") == "À la fin du jour, il partit."
+    assert normalize_for_speech("Un cri retentit : ATTENTION !") == "Un cri retentit: attention!"
+    assert normalize_for_speech("C H A P I T R E premier") == "Chapitre premier"
+    # Les vrais sigles courts et isolés restent en capitales.
+    assert "SNCF" in normalize_for_speech("Elle travaillait à la SNCF depuis dix ans.")
+    # Les nombres romains sont convertis avant la mise en minuscules.
+    assert normalize_for_speech("Sous Louis XIV, au XVIIe siècle.") == "Sous Louis quatorze, au dix-septième siècle."

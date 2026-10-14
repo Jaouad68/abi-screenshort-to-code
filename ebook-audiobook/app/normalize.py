@@ -151,6 +151,58 @@ def is_dialogue(text: str) -> bool:
     return t.startswith((EM_DASH, EN_DASH, "« ", "«")) or bool(re.match(r"^-\s", t))
 
 
+# ---------------------------------------------------------------------------
+# Majuscules : la cause n°1 des mots épelés
+# ---------------------------------------------------------------------------
+# Les voix de synthèse lisent un mot en MAJUSCULES comme un sigle et
+# l'épellent (« P-O-U-R-Q-U-O-I »). Or les livres en sont pleins : titres de
+# chapitres, premiers mots en petites capitales (« IL ÉTAIT une fois »), mots
+# mis en valeur. On les remet en minuscules, en gardant les vrais sigles courts
+# isolés (« la SNCF », « l'ONU »).
+
+_UPPER_LETTER = "A-ZÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸŒÆ"
+# Lettres capitales espacées des titres de PDF : « C H A P I T R E ».
+_SPACED_LETTERS = re.compile(rf"(?<![\w])(?:[{_UPPER_LETTER}] ){{2,}}[{_UPPER_LETTER}](?![\w])")
+_SENTENCE_START = re.compile(r"(^|[.!?…]\s+)([a-zàâäçéèêëîïôöùûüÿœæ])")
+# Un mot isolé en capitales de 5 lettres ou plus n'est pas un sigle.
+_MAX_ACRONYM = 4
+
+
+def _is_caps_word(word: str) -> bool:
+    letters = [c for c in word if c.isalpha()]
+    return bool(letters) and all(c.isupper() for c in letters)
+
+
+def _sentence_case(t: str) -> str:
+    return _SENTENCE_START.sub(lambda m: m.group(1) + m.group(2).upper(), t)
+
+
+def fix_capitals(text: str) -> str:
+    """Remet en minuscules ce qui serait épelé par la voix."""
+    t = _SPACED_LETTERS.sub(lambda m: m.group(0).replace(" ", ""), text)
+    letters = [c for c in t if c.isalpha()]
+    if not letters:
+        return t
+    # Phrase ou titre écrit (presque) entièrement en capitales.
+    if len(letters) >= 4 and sum(c.isupper() for c in letters) / len(letters) > 0.6:
+        return _sentence_case(t.lower())
+    parts = re.split(r"(\s+)", t)
+    words = [i for i, p in enumerate(parts) if p and not p.isspace()]
+    caps = {i: _is_caps_word(parts[i]) for i in words}
+    changed = False
+    for k, i in enumerate(words):
+        if not caps[i]:
+            continue
+        n_letters = sum(c.isalpha() for c in parts[i])
+        in_run = (k > 0 and caps[words[k - 1]]) or (k + 1 < len(words) and caps[words[k + 1]])
+        # Suite de mots en capitales (« IL ÉTAIT ») ou mot long (« ATTENTION ») :
+        # un mot d'une seule lettre (« À », « A ») n'est jamais un sigle.
+        if (in_run and n_letters >= 1) or n_letters > _MAX_ACRONYM:
+            parts[i] = parts[i].lower()
+            changed = True
+    return _sentence_case("".join(parts)) if changed else t
+
+
 def normalize_for_speech(text: str) -> str:
     """Réécrit un paragraphe pour qu'il soit lu naturellement."""
     t = text.replace("’", "'").replace("‘", "'")
@@ -178,6 +230,9 @@ def normalize_for_speech(text: str) -> str:
     t = _ARABIC_ORDINAL_RE.sub(_arabic_ordinal, t)
     t = _TIME_RE.sub(lambda m: f"{m.group(1)} heures {m.group(2)}", t)
 
+    # Après les conversions de nombres romains (qui ont besoin des capitales).
+    t = fix_capitals(t)
+
     # Ponctuation répétée et symboles décoratifs.
     t = re.sub(r"([!?])\1+", r"\1", t)
     t = re.sub(r"\.{4,}", "…", t)
@@ -197,6 +252,12 @@ def normalize_title(title: str) -> str:
         t = f"Chapitre {_cardinal(n)}"
     elif re.fullmatch(r"\d{1,3}\.?", t):
         t = f"Chapitre {t.rstrip('.')}"
+    else:
+        # Numéro romain en tête de titre : « II. Pourquoi… » -> « Deux. Pourquoi… »
+        m = re.match(r"([IVXLC]+)\s*[.):\-\u2013\u2014]\s*(?=\S)", t)
+        lead = roman_to_int(m.group(1)) if m else None
+        if m and lead is not None:
+            t = f"{_cardinal(lead).capitalize()}. {t[m.end():]}"
     t = normalize_for_speech(t)
     if t and not t.endswith((".", "!", "?", "…")):
         t += "."
