@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 from .. import config
-from .base import SynthesisSettings, TTSEngine, VoiceInfo
+from .base import NothingToSay, SynthesisSettings, TTSEngine, VoiceInfo
 
 # Liste de secours si la récupération en ligne échoue.
 _FALLBACK_VOICES = [
@@ -128,8 +128,12 @@ class EdgeEngine(TTSEngine):
             proxy=config.EDGE_PROXY,
             receive_timeout=90,
         )
-        await communicate.save(str(tmp))
+        try:
+            await communicate.save(str(tmp))
+        except edge_tts.exceptions.NoAudioReceived as exc:
+            tmp.unlink(missing_ok=True)
+            raise NothingToSay(str(exc)) from exc
         if not tmp.exists() or tmp.stat().st_size < 200:
             tmp.unlink(missing_ok=True)
-            raise RuntimeError("Edge TTS n'a renvoyé aucun son pour ce segment.")
+            raise NothingToSay("Edge TTS n'a renvoyé aucun son pour ce segment.")
         tmp.replace(out_path)

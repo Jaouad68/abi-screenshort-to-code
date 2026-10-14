@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from .base import TONES, SynthesisSettings, TTSEngine, VoiceInfo
+from .base import TONES, NothingToSay, SynthesisSettings, TTSEngine, VoiceInfo
 from .edge import EdgeEngine
 from .piper_engine import PiperEngine
 
-__all__ = ["TONES", "SynthesisSettings", "TTSEngine", "VoiceInfo", "get_engines"]
+__all__ = ["TONES", "NothingToSay", "SynthesisSettings", "TTSEngine", "VoiceInfo", "get_engines"]
 
 
 def get_engines() -> dict[str, TTSEngine]:

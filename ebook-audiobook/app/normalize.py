@@ -13,6 +13,7 @@ conventions typographiques des livres. Ce module les réécrit en langage parlé
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from num2words import num2words
 
@@ -203,9 +204,15 @@ def fix_capitals(text: str) -> str:
     return _sentence_case("".join(parts)) if changed else t
 
 
+# Lettres et chiffres « mathématiques » (𝑓, 𝑥, 𝐀, 𝟐…) des PDF scientifiques :
+# la voix ne sait pas les lire. On les ramène aux caractères ordinaires.
+_MATH_ALNUM = re.compile("[\U0001D400-\U0001D7FF\u2100-\u214F]")
+
+
 def normalize_for_speech(text: str) -> str:
     """Réécrit un paragraphe pour qu'il soit lu naturellement."""
-    t = text.replace("’", "'").replace("‘", "'")
+    t = _MATH_ALNUM.sub(lambda m: unicodedata.normalize("NFKC", m.group()), text)
+    t = t.replace("’", "'").replace("‘", "'")
 
     # Notes et renvois résiduels : « [1] », « (2) » collé à un mot, astérisques.
     t = re.sub(r"\[\d{1,3}\]", "", t)

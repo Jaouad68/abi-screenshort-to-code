@@ -33,7 +33,12 @@ from .audio import ChapterWavWriter, build_m4b, decode_to_pcm, encode_aac, encod
 from .mp3join import Mp3Joiner, NotJoinable, finalize_mp3
 from .library import cover_path, load_book
 from .segment import Segment, build_segments
-from .tts import TONES, SynthesisSettings, TTSEngine
+from .tts import TONES, NothingToSay, SynthesisSettings, TTSEngine
+
+
+def skip_marker(path: Path) -> Path:
+    """Fichier témoin d'un segment ignoré (aucun son possible pour ce texte)."""
+    return path.with_suffix(".skip")
 
 # Part de la progression attribuée à la synthèse (le reste = encodage).
 _SYNTH_WEIGHT = 0.85
@@ -78,6 +83,7 @@ class Job:
     eta_seconds: float | None = None
     current_chapter: int | None = None
     m4b: str | None = None
+    skipped: int = 0          # passages illisibles ignorés
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
     finished_at: float | None = None
@@ -478,6 +484,8 @@ class JobManager:
         h, m = divmod(seconds // 60, 60)
         length = f"{h} h {m:02d} min" if h else f"{max(m, 1)} min"
         job.message = f"Terminé : {total} chapitres, {length} d'écoute."
+        if job.skipped:
+            job.message += f" {job.skipped} passage(s) sans texte lisible ignoré(s)."
 
     async def _synthesize_chapter(
         self,
@@ -492,7 +500,8 @@ class JobManager:
         retries = max(1, config.TTS_MAX_RETRIES)
 
         async def one(seg: Segment, path: Path) -> None:
-            if path.exists() and path.stat().st_size > 0:  # déjà en cache (reprise)
+            skip = skip_marker(path)
+            if (path.exists() and path.stat().st_size > 0) or skip.exists():  # déjà traité (reprise)
                 job.synth_chars += len(seg.text)
                 return
             async with sem:
@@ -501,6 +510,14 @@ class JobManager:
                     try:
                         await engine.synthesize(seg.text, synth, path)
                         break
+                    except NothingToSay:
+                        # Texte illisible (symboles mathématiques...) : un seul
+                        # nouvel essai, puis on l'ignore sans bloquer le livre.
+                        if attempt >= 1:
+                            skip.touch()
+                            job.skipped += 1
+                            break
+                        await asyncio.sleep(1)
                     except Exception as exc:
                         if attempt == retries - 1:
                             raise RuntimeError(
@@ -546,8 +563,8 @@ class JobManager:
         with ChapterWavWriter(wav, sample_rate) as writer:
             writer.add_silence(500)  # courte respiration avant le début du chapitre
             for seg, path in zip(segments, paths):
-                pcm = trim_silence(decode_to_pcm(path, sample_rate), sample_rate)
-                writer.add_audio(pcm)
+                if path.exists():  # absent = passage ignoré
+                    writer.add_audio(trim_silence(decode_to_pcm(path, sample_rate), sample_rate))
                 writer.add_silence(seg.pause_ms)
             duration = writer.duration
             gain = writer.gain_db(config.LOUDNESS_TARGET)
@@ -572,10 +589,13 @@ class JobManager:
             try:
                 joiner.add_silence(500)  # courte respiration avant le début du chapitre
                 for seg, path in zip(segments, paths):
-                    joiner.add_segment(path.read_bytes())
+                    if path.exists():  # absent = passage ignoré
+                        joiner.add_segment(path.read_bytes())
                     joiner.add_silence(seg.pause_ms)
             finally:
                 joiner.close()
+            if joiner.fmt is None:
+                raise NotJoinable("aucun segment audio dans ce chapitre")
             duration = joiner.duration
             if mp3:
                 finalize_mp3(raw, mp3, meta, cover)

@@ -12,6 +12,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
+class NothingToSay(Exception):
+    """Le moteur ne produit aucun son pour ce texte (symboles seuls, etc.).
+
+    Ce n'est pas une panne : le passage est ignoré et la conversion continue.
+    """
+
+
 @dataclass
 class VoiceInfo:
     id: str

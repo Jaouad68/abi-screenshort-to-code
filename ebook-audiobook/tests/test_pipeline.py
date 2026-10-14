@@ -277,3 +277,35 @@ def test_origin_quality_falls_back_for_wav_engines(data_dir, sample_docx):
     job = asyncio.run(scenario())
     assert job.status == "done", job.error
     assert "128 kb/s" in _probe(data_dir / "jobs" / job.id / "output" / job.chapters[0].mp3)
+
+
+def test_unspeakable_passage_is_skipped_not_fatal(data_dir, sample_docx):
+    """Un passage que le moteur ne sait pas lire est ignoré, le livre est créé."""
+    from app.tts import NothingToSay
+
+    book = library.import_book(shutil.copy(sample_docx, data_dir / "in.docx"), "roman.docx")
+
+    class PickyEngine(FakeEngine):
+        async def synthesize(self, text, settings, out_path):
+            if "Bonjour" in text:  # simule « No audio was received »
+                raise NothingToSay("No audio was received.")
+            await super().synthesize(text, settings, out_path)
+
+    async def scenario():
+        manager = JobManager({"fake": PickyEngine()}, config.JOBS_DIR)
+        await manager.start()
+        job = manager.create(book.id, {**SETTINGS, "formats": ["mp3"]})
+        await _run_until_finished(manager, job.id, timeout=60)
+        await manager.stop()
+        return manager.get(job.id)
+
+    job = asyncio.run(scenario())
+    assert job.status == "done", job.error
+    assert job.skipped == 2  # « — Bonjour ! dit-il. » et « — Bonjour, répondit-elle. »
+    assert "ignoré" in job.message
+
+
+def test_math_letters_are_readable():
+    from app.normalize import normalize_for_speech
+
+    assert normalize_for_speech("Soit 𝑓(𝑥) = 2𝑥 sur ℝ.") == "Soit f(x) = 2x sur R."
