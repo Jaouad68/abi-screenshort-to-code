@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Retrouvez les dessins animés diffusés à la télévision française de 1975 à 1987 et leurs génériques, depuis des sources légales." />
+  <meta name="theme-color" content="#14112b" />
+  <meta name="color-scheme" content="dark" />
+  <title>Mercredi 75-87</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="top">
+    <a class="logo" href="#/" aria-label="Mercredi 75-87, accueil">
+      <span class="logo-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="logo-text">Mercredi<small>75·87</small></span>
+    </a>
+    <p class="tagline">Les dessins animés de la télé française, de 1975 à 1987</p>
+    <nav class="tabs" aria-label="Navigation principale">
+      <a href="#/" data-route="catalogue">Catalogue</a>
+      <a href="#/juke-box" data-route="juke-box">Juke-box</a>
+      <a href="#/favoris" data-route="favoris">Favoris <span class="badge" id="favCount">0</span></a>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <!-- Catalogue et favoris -->
+    <section id="vueCatalogue" class="vue" aria-labelledby="titreCatalogue">
+      <h1 id="titreCatalogue" class="visually-hidden">Catalogue</h1>
+      <form class="filtres" id="filtres" role="search" onsubmit="return false">
+        <label class="champ champ-recherche">
+          <span class="visually-hidden">Rechercher par titre</span>
+          <input type="search" id="recherche" placeholder="Rechercher un titre…" autocomplete="off" />
+        </label>
+        <label class="champ"><span>Année</span><select id="fAnnee"></select></label>
+        <label class="champ"><span>Chaîne</span><select id="fChaine"></select></label>
+        <label class="champ"><span>Émission</span><select id="fEmission"></select></label>
+        <label class="champ"><span>Pays</span><select id="fPays"></select></label>
+        <button type="button" class="btn btn-ghost" id="reinit">Réinitialiser</button>
+      </form>
+      <p class="compteur" id="compteur" aria-live="polite"></p>
+      <div class="grille" id="grille"></div>
+    </section>
+
+    <!-- Juke-box -->
+    <section id="vueJukebox" class="vue" hidden aria-labelledby="titreJukebox">
+      <div class="jukebox">
+        <div class="jukebox-tv">
+          <h1 id="titreJukebox" class="titre-vue">Juke-box des génériques</h1>
+          <div class="tv">
+            <div class="tv-ecran" id="jbEcran">
+              <div id="jbPlayer"></div>
+              <div class="mire" id="jbMire"><span>Appuyez sur lecture</span></div>
+            </div>
+            <div class="tv-socle" aria-hidden="true"><i></i><i></i><i></i></div>
+          </div>
+          <p class="jb-titre" id="jbEnCours" aria-live="polite">Aucun générique en cours</p>
+          <div class="jb-commandes">
+            <button class="btn btn-rond" id="jbPrec" aria-label="Générique précédent">⏮</button>
+            <button class="btn btn-rond btn-play" id="jbPlay" aria-label="Lecture">▶</button>
+            <button class="btn btn-rond" id="jbSuiv" aria-label="Générique suivant">⏭</button>
+            <button class="btn btn-rond" id="jbMelange" aria-pressed="false" aria-label="Lecture aléatoire">🔀</button>
+          </div>
+          <div class="jb-source" role="radiogroup" aria-label="Génériques à jouer">
+            <label><input type="radio" name="jbSource" value="tous" checked /> Tous</label>
+            <label><input type="radio" name="jbSource" value="favoris" /> Mes favoris</label>
+          </div>
+        </div>
+        <div class="jukebox-liste">
+          <h2>File d'attente</h2>
+          <ol id="jbFile" class="jb-file"></ol>
+          <div id="jbVide" class="encart" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <p>Aucun fichier audio ou vidéo n'est hébergé ici : les lecteurs sont intégrés depuis YouTube, Dailymotion ou l'INA, uniquement lorsqu'une source légale est connue. Les visuels sont générés, les œuvres appartiennent à leurs ayants droit.</p>
+    <p id="maj"></p>
+  </footer>
+
+  <!-- Fiche détaillée -->
+  <dialog id="fiche" class="fiche" aria-labelledby="ficheTitre">
+    <div class="fiche-contenu" id="ficheContenu"></div>
+  </dialog>
+
+  <noscript><p class="encart">Cette application a besoin de JavaScript.</p></noscript>
+  <script src="app.js"></script>
+</body>
+</html>
