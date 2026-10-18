@@ -1,694 +1,1525 @@
 {
   "version": 1,
   "miseAJour": "2026-10-18",
-  "avertissement": "Les dates de première diffusion en France viennent de sources secondaires (fiches encyclopédiques, bases de séries, presse). Les champs listés dans « aVerifier » n'ont pas pu être confirmés ou les sources se contredisent. Aucun lien vidéo n'est renseigné tant qu'une source légale (chaîne officielle d'un ayant droit, INA) n'a pas été vérifiée.",
+  "avertissement": "Les dates de première diffusion viennent de sources secondaires ; les champs listés dans « aVerifier » ne sont pas confirmés. Les génériques sont des vidéos YouTube mises en ligne par des particuliers (generique.officiel = false), choisies à la demande du propriétaire du catalogue : elles peuvent être retirées à tout moment.",
   "dessinsAnimes": [
     {
       "id": "goldorak",
       "titre": "Goldorak",
       "titreOriginal": "UFO Robo Grendizer (UFOロボ グレンダイザー)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Toei Animation",
-      "premiereDiffusion": { "date": "1978-07-03", "annee": 1978, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1978-07-03",
+        "annee": 1978,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Actarus, prince de la planète Euphor réfugié sur Terre, pilote le robot géant Goldorak pour repousser les envahisseurs de Véga. Première série japonaise à triompher en France, elle a lancé la « goldorakmania » de la fin des années 1970.",
       "image": "",
-      "couleurs": ["#1d3fa8", "#e8262b"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#1d3fa8",
+        "#e8262b"
+      ],
+      "generique": {
+        "youtube": "VjeiWeM9eLI",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "« Accours vers nous », chanté par Enriqué (1978)"
+      },
       "extraits": [
-        { "titre": "Des enfants devant Goldorak, émission « C'est la vie » (21 décembre 1978)", "source": "ina", "url": "https://www.ina.fr/ina-eclaire-actu/video/cab7801904601/goldorak" }
+        {
+          "titre": "Des enfants devant Goldorak, émission « C'est la vie » (21 décembre 1978)",
+          "source": "ina",
+          "url": "https://www.ina.fr/ina-eclaire-actu/video/cab7801904601/goldorak"
+        }
       ],
       "episodes": [],
       "aVerifier": [],
       "notes": "Premier générique français chanté par Enriqué (« Accours vers nous… »).",
-      "sources": ["https://www.enssib.fr/bibliotheque-numerique/documents/67857-diffusion-et-reception-du-manga-en-france-l-exemple-de-goldorak-de-1978-a-nos-jours.pdf"]
+      "sources": [
+        "https://www.enssib.fr/bibliotheque-numerique/documents/67857-diffusion-et-reception-du-manga-en-france-l-exemple-de-goldorak-de-1978-a-nos-jours.pdf"
+      ]
     },
     {
       "id": "candy",
       "titre": "Candy",
       "titreOriginal": "Candy Candy (キャンディ・キャンディ)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Toei Animation",
-      "premiereDiffusion": { "date": "1978-09-18", "annee": 1978, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1978-09-18",
+        "annee": 1978,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Orpheline élevée à la maison Pony, Candy traverse les épreuves avec un optimisme à toute épreuve, des États-Unis jusqu'à un pensionnat anglais. Adaptée du manga de Kyōko Mizuki et Yumiko Igarashi, la série a fait pleurer toute une génération.",
       "image": "",
-      "couleurs": ["#f28bb5", "#ffd84d"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#f28bb5",
+        "#ffd84d"
+      ],
+      "generique": {
+        "youtube": "Jh-7D3ms6PY",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Générique TV"
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "",
-      "sources": ["https://myanimelist.net/stacks/70196"]
+      "sources": [
+        "https://myanimelist.net/stacks/70196"
+      ]
     },
     {
       "id": "albator",
       "titre": "Albator, le corsaire de l'espace",
       "titreOriginal": "Uchū Kaizoku Captain Harlock (宇宙海賊キャプテンハーロック)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Toei Animation",
-      "premiereDiffusion": { "date": "1980-01-07", "annee": 1980, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1980-01-07",
+        "annee": 1980,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "À bord de l'Arcadia, le capitaine Albator et son équipage de hors-la-loi défendent une Terre devenue apathique contre les Sylvidres. Une œuvre sombre et mélancolique signée Leiji Matsumoto.",
       "image": "",
-      "couleurs": ["#20232f", "#b31b2c"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#20232f",
+        "#b31b2c"
+      ],
+      "generique": {
+        "youtube": "AMIrFNHAGyE",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Éric Charden"
+      },
       "extraits": [
-        { "titre": "Leiji Matsumoto, légende du manga et père du capitaine Albator (INA l'éclaire)", "source": "ina", "url": "https://www.ina.fr/ina-eclaire-actu/albator-leiji-matsumoto-manga-dessin-anime-1980" }
+        {
+          "titre": "Leiji Matsumoto, légende du manga et père du capitaine Albator (INA l'éclaire)",
+          "source": "ina",
+          "url": "https://www.ina.fr/ina-eclaire-actu/albator-leiji-matsumoto-manga-dessin-anime-1980"
+        }
       ],
       "episodes": [],
       "aVerifier": [],
       "notes": "Générique français chanté par Éric Charden.",
-      "sources": ["https://myanimelist.net/stacks/70196", "https://www.ina.fr/ina-eclaire-actu/albator-leiji-matsumoto-manga-dessin-anime-1980"]
+      "sources": [
+        "https://myanimelist.net/stacks/70196",
+        "https://www.ina.fr/ina-eclaire-actu/albator-leiji-matsumoto-manga-dessin-anime-1980"
+      ]
     },
     {
       "id": "albator-84",
       "titre": "Albator 84",
       "titreOriginal": "Waga Seishun no Arcadia: Mugen Kidō SSX (わが青春のアルカディア 無限軌道SSX)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Toei Animation",
-      "premiereDiffusion": { "date": "1984-01-12", "annee": 1984, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1984-01-12",
+        "annee": 1984,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Suite des aventures du corsaire, qui lutte cette fois contre l'occupation de la Terre par l'empire Illumidas. Plus politique que la première série, elle prolonge l'univers de Leiji Matsumoto.",
       "image": "",
-      "couleurs": ["#2b1d3a", "#7fb4d9"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#2b1d3a",
+        "#7fb4d9"
+      ],
+      "generique": {
+        "youtube": "J9RV1RR59GU",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Franck Olivier"
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "",
-      "sources": ["https://myanimelist.net/stacks/70196"]
+      "sources": [
+        "https://myanimelist.net/stacks/70196"
+      ]
     },
     {
       "id": "capitaine-flam",
       "titre": "Capitaine Flam",
       "titreOriginal": "Captain Future (キャプテンフューチャー)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Toei Animation",
-      "premiereDiffusion": { "date": "1981", "annee": 1981, "chaine": "TF1", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1981",
+        "annee": 1981,
+        "chaine": "TF1",
+        "emission": ""
+      },
       "description": "Le savant justicier Curtis Newton, alias Capitaine Flam, sillonne le système solaire à bord du Cyberlab avec le robot Crag, l'androïde Mala et le cerveau Simon. Adapté des romans de l'Américain Edmond Hamilton.",
       "image": "",
-      "couleurs": ["#0f6e74", "#f2a33a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#0f6e74",
+        "#f2a33a"
+      ],
+      "generique": {
+        "youtube": "V335vPkMeVs",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Jean-Jacques Debout, chanté par Richard Simon"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["chaine", "emission"],
+      "aVerifier": [
+        "chaine",
+        "emission"
+      ],
       "notes": "La plupart des sources donnent TF1 en 1981 ; une autre indique Antenne 2 en 1980. La série figure dans la liste des dessins animés de Croque-Vacances, sans certitude que ce soit sa première diffusion.",
-      "sources": ["https://www.techno-science.net/fr/definitions/capitaine-flam", "https://fr.vikidia.org/wiki/Croque_Vacances"]
+      "sources": [
+        "https://www.techno-science.net/fr/definitions/capitaine-flam",
+        "https://fr.vikidia.org/wiki/Croque_Vacances"
+      ]
     },
     {
       "id": "ulysse-31",
       "titre": "Ulysse 31",
       "titreOriginal": "Uchū Densetsu Ulysses 31 (宇宙伝説ユリシーズ31)",
-      "pays": ["France", "Japon"],
+      "pays": [
+        "France",
+        "Japon"
+      ],
       "studio": "DIC Audiovisuel / Tokyo Movie Shinsha",
-      "premiereDiffusion": { "date": "1981-10-03", "annee": 1981, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1981-10-03",
+        "annee": 1981,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "L'Odyssée d'Homère transposée au XXXIe siècle : pour avoir défié les dieux de l'Olympe, Ulysse erre dans l'univers à bord de l'Odysseus avec son fils Télémaque, Yumi et le petit robot Nono. Une coproduction franco-japonaise à l'esthétique très soignée.",
       "image": "",
-      "couleurs": ["#151b54", "#d63b3b"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#151b54",
+        "#d63b3b"
+      ],
+      "generique": {
+        "youtube": "1OmDm6AGb9w",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Lionel Leroy"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
+      "aVerifier": [
+        "emission"
+      ],
       "notes": "Une source donne le 5 octobre 1981 au lieu du 3.",
-      "sources": ["https://www.cinefil.com/serie/ulysse-31", "https://www.a-suivre.org/annuseries/encyclopedie/series.php?series=427"]
+      "sources": [
+        "https://www.cinefil.com/serie/ulysse-31",
+        "https://www.a-suivre.org/annuseries/encyclopedie/series.php?series=427"
+      ]
     },
     {
       "id": "cites-d-or",
       "titre": "Les Mystérieuses Cités d'or",
       "titreOriginal": "Taiyō no Ko Esteban (太陽の子エステバン)",
-      "pays": ["France", "Japon"],
+      "pays": [
+        "France",
+        "Japon"
+      ],
       "studio": "DIC Audiovisuel / Studio Pierrot",
-      "premiereDiffusion": { "date": "1983-09-28", "annee": 1983, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1983-09-28",
+        "annee": 1983,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "En 1532, le jeune Esteban part vers le Nouveau Monde avec Zia et Tao à la recherche des légendaires cités d'or et de son père. Chaque épisode se terminait par un court documentaire sur les civilisations précolombiennes.",
       "image": "",
-      "couleurs": ["#c98a12", "#1f6b5c"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#c98a12",
+        "#1f6b5c"
+      ],
+      "generique": {
+        "youtube": "uRgyvYXLDx4",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Groupe Apollo"
+      },
       "extraits": [
-        { "titre": "« Les Mystérieuses cités d'or », une série culte qui est entrée au musée (INA l'éclaire)", "source": "ina", "url": "https://www.ina.fr/ina-eclaire-actu/les-mysterieuses-cites-d-or-serie-d-animation-exposition-paris" },
-        { "titre": "Spectacles : Les cités d'or (archive INA)", "source": "ina", "url": "https://www.ina.fr/ina-eclaire-actu/video/7908430_001_025/spectacles-les-cites-d-or" }
+        {
+          "titre": "« Les Mystérieuses cités d'or », une série culte qui est entrée au musée (INA l'éclaire)",
+          "source": "ina",
+          "url": "https://www.ina.fr/ina-eclaire-actu/les-mysterieuses-cites-d-or-serie-d-animation-exposition-paris"
+        },
+        {
+          "titre": "Spectacles : Les cités d'or (archive INA)",
+          "source": "ina",
+          "url": "https://www.ina.fr/ina-eclaire-actu/video/7908430_001_025/spectacles-les-cites-d-or"
+        }
       ],
       "episodes": [],
       "aVerifier": [],
       "notes": "Voix des documentaires : Jean Topart.",
-      "sources": ["https://www.ina.fr/ina-eclaire-actu/les-mysterieuses-cites-d-or-serie-d-animation-exposition-paris"]
+      "sources": [
+        "https://www.ina.fr/ina-eclaire-actu/les-mysterieuses-cites-d-or-serie-d-animation-exposition-paris"
+      ]
     },
     {
       "id": "inspecteur-gadget",
       "titre": "Inspecteur Gadget",
       "titreOriginal": "Inspector Gadget",
-      "pays": ["France", "Canada", "États-Unis"],
+      "pays": [
+        "France",
+        "Canada",
+        "États-Unis"
+      ],
       "studio": "DIC Audiovisuel",
-      "premiereDiffusion": { "date": "1983-10-22", "annee": 1983, "chaine": "FR3", "emission": "FR3 Jeunesse" },
+      "premiereDiffusion": {
+        "date": "1983-10-22",
+        "annee": 1983,
+        "chaine": "FR3",
+        "emission": "FR3 Jeunesse"
+      },
       "description": "Policier bardé de gadgets mais parfaitement maladroit, l'inspecteur Gadget affronte le Docteur Gang et son organisation MAD. C'est en réalité sa nièce Sophie et son chien Finot qui résolvent chaque enquête.",
       "image": "",
-      "couleurs": ["#3a4a8c", "#e2c044"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#3a4a8c",
+        "#e2c044"
+      ],
+      "generique": {
+        "youtube": "VHneKZ9AmwM",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Jacques Cardona (saison 1)"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
+      "aVerifier": [
+        "emission"
+      ],
       "notes": "D'abord diffusé en épisodes courts quotidiens, puis en épisodes de 26 minutes dans FR3 Jeunesse à partir du 1er juillet 1984 (selon AlloCiné). Vikidia donne le 24 octobre 1983.",
-      "sources": ["https://www.allocine.fr/article/fichearticle_gen_carticle=1000023287.html", "https://fr.vikidia.org/wiki/Inspecteur_Gadget"]
+      "sources": [
+        "https://www.allocine.fr/article/fichearticle_gen_carticle=1000023287.html",
+        "https://fr.vikidia.org/wiki/Inspecteur_Gadget"
+      ]
     },
     {
       "id": "lucky-luke",
       "titre": "Lucky Luke",
       "titreOriginal": "Lucky Luke",
-      "pays": ["France", "États-Unis"],
+      "pays": [
+        "France",
+        "États-Unis"
+      ],
       "studio": "Hanna-Barbera / Gaumont",
-      "premiereDiffusion": { "date": "1984-10-15", "annee": 1984, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1984-10-15",
+        "annee": 1984,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "Le cow-boy qui tire plus vite que son ombre, flanqué de Jolly Jumper et de Rantanplan, poursuit les Dalton à travers le Far West. Première adaptation en série télévisée de la bande dessinée de Morris.",
       "image": "",
-      "couleurs": ["#e0b33a", "#a8331f"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#e0b33a",
+        "#a8331f"
+      ],
+      "generique": {
+        "youtube": "gFQ-cGmBjcc",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "« Bang Bang Lucky Luke », chanté par Jacques Cardona"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
+      "aVerifier": [
+        "emission"
+      ],
       "notes": "Coproduction Hanna-Barbera, Gaumont et FR3, 26 épisodes.",
-      "sources": ["https://en.wikipedia.org/wiki/Lucky_Luke_(1984_TV_series)"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Lucky_Luke_(1984_TV_series)"
+      ]
     },
     {
       "id": "il-etait-une-fois-l-homme",
       "titre": "Il était une fois… l'Homme",
       "titreOriginal": "Il était une fois… l'Homme",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "Procidis",
-      "premiereDiffusion": { "date": "1978-09-30", "annee": 1978, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1978-09-30",
+        "annee": 1978,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "L'histoire de l'humanité, de l'apparition de la vie jusqu'à la fin du XXe siècle, racontée à travers une même famille de personnages qui traverse les époques sous l'œil de Maestro. Première série de la collection créée par Albert Barillé.",
       "image": "",
-      "couleurs": ["#7a4b2a", "#f0d27a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#7a4b2a",
+        "#f0d27a"
+      ],
+      "generique": {
+        "youtube": "igSecV-wUj4",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Générique instrumental"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
-      "notes": "26 épisodes, diffusés jusqu'au 14 avril 1979.",
-      "sources": ["https://en.wikipedia.org/wiki/Once_Upon_a_Time..._Man"]
+      "aVerifier": [
+        "emission"
+      ],
+      "notes": "26 épisodes, diffusés jusqu'au 14 avril 1979. Vidéo probablement publiée par la chaîne officielle « Il était une fois… (Hello Maestro) », à confirmer.",
+      "sources": [
+        "https://en.wikipedia.org/wiki/Once_Upon_a_Time..._Man"
+      ]
     },
     {
       "id": "il-etait-une-fois-l-espace",
       "titre": "Il était une fois… l'Espace",
       "titreOriginal": "Il était une fois… l'Espace",
-      "pays": ["France", "Japon"],
+      "pays": [
+        "France",
+        "Japon"
+      ],
       "studio": "Procidis / Eiken",
-      "premiereDiffusion": { "date": "1982-10-02", "annee": 1982, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1982-10-02",
+        "annee": 1982,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "Dans un futur lointain, les agents de la Confédération d'Oméga affrontent la menace de l'empire de Cassiopée. Seul volet de la collection bâti sur une fiction de science-fiction plutôt qu'un thème éducatif.",
       "image": "",
-      "couleurs": ["#0b1d3d", "#57c7e3"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#0b1d3d",
+        "#57c7e3"
+      ],
+      "generique": {
+        "youtube": "f-7gRm3zPbc",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Jean-Pierre Savelli, musique de Michel Legrand"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
-      "notes": "Certaines sources donnent le 9 octobre 1982. Musique de Michel Legrand.",
-      "sources": ["https://en.wikipedia.org/wiki/Once_Upon_a_Time..._Space"]
+      "aVerifier": [
+        "emission"
+      ],
+      "notes": "Certaines sources donnent le 9 octobre 1982. Musique de Michel Legrand. Vidéo probablement publiée par la chaîne officielle « Il était une fois… (Hello Maestro) », à confirmer.",
+      "sources": [
+        "https://en.wikipedia.org/wiki/Once_Upon_a_Time..._Space"
+      ]
     },
     {
       "id": "il-etait-une-fois-la-vie",
       "titre": "Il était une fois… la Vie",
       "titreOriginal": "Il était une fois… la Vie",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "Procidis",
-      "premiereDiffusion": { "date": "1987", "annee": 1987, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1987",
+        "annee": 1987,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "Un voyage à l'intérieur du corps humain, où globules rouges, globules blancs et anticorps affrontent virus et bactéries. La série a suscité de nombreuses vocations médicales.",
       "image": "",
-      "couleurs": ["#c8283c", "#f5e9d0"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#c8283c",
+        "#f5e9d0"
+      ],
+      "generique": {
+        "youtube": "qAxfZutD5jI",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "« Hymne à la vie », chanté par Sandra Kim (version restaurée)"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "chaine", "emission"],
-      "notes": "Sources contradictoires : 13 septembre 1987 (SensCritique), FR3 dès 1986 (Europe 1), et plusieurs sources indiquent une première diffusion sur Canal+ avant FR3.",
-      "sources": ["https://www.tvmaze.com/shows/12587", "https://www.ozap.com/actu/-il-etait-une-fois-aux-sources-d-une-success-story-francaise/606828"]
+      "aVerifier": [
+        "date",
+        "chaine",
+        "emission"
+      ],
+      "notes": "Sources contradictoires : 13 septembre 1987 (SensCritique), FR3 dès 1986 (Europe 1), et plusieurs sources indiquent une première diffusion sur Canal+ avant FR3. Vidéo probablement publiée par la chaîne officielle « Il était une fois… (Hello Maestro) », à confirmer.",
+      "sources": [
+        "https://www.tvmaze.com/shows/12587",
+        "https://www.ozap.com/actu/-il-etait-une-fois-aux-sources-d-une-success-story-francaise/606828"
+      ]
     },
     {
       "id": "mondes-engloutis",
       "titre": "Les Mondes engloutis",
       "titreOriginal": "Les Mondes engloutis",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "France Animation",
-      "premiereDiffusion": { "date": "1985-10", "annee": 1985, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1985-10",
+        "annee": 1985,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Dans le monde souterrain d'Arkadia, dont le soleil s'éteint, Spartakus et ses amis Bic et Bac partent en quête d'une source d'énergie avec l'aide du Shagma. Une création française ambitieuse, première production du studio France Animation.",
       "image": "",
-      "couleurs": ["#123b4f", "#ef7d33"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#123b4f",
+        "#ef7d33"
+      ],
+      "generique": {
+        "youtube": "myt2Wws7pTQ",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Musique de Vladimir Cosma, chanté par Mini-Star"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date"],
+      "aVerifier": [
+        "date"
+      ],
       "notes": "Le plus ancien épisode recensé est daté du 1er octobre 1985 ; la date exacte de lancement n'est pas confirmée.",
-      "sources": ["https://www.francetvpro.fr/contenu-de-presse/44212019"]
+      "sources": [
+        "https://www.francetvpro.fr/contenu-de-presse/44212019"
+      ]
     },
     {
       "id": "clementine",
       "titre": "Clémentine",
       "titreOriginal": "Clémentine",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "IDDH",
-      "premiereDiffusion": { "date": "1985", "annee": 1985, "chaine": "Antenne 2", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1985",
+        "annee": 1985,
+        "chaine": "Antenne 2",
+        "emission": ""
+      },
       "description": "Clouée dans un fauteuil roulant après un accident d'avion, la petite Clémentine s'évade en rêve dans des aventures merveilleuses, guidée par la fée Héméra et menacée par le démon Malmoth. Une série française tendre créée par Bruno-René Huchez.",
       "image": "",
-      "couleurs": ["#ef8a7c", "#6b4fa0"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#ef8a7c",
+        "#6b4fa0"
+      ],
+      "generique": {
+        "youtube": "U5S0ttJQX3w",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Marie Dauphin"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "emission"],
+      "aVerifier": [
+        "date",
+        "emission"
+      ],
       "notes": "Septembre ou 2 octobre 1985 selon les sources. Coproduction avec le Japon dont les studios ne sont pas identifiés.",
-      "sources": ["https://en.wikipedia.org/wiki/Cl%C3%A9mentine"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Cl%C3%A9mentine"
+      ]
     },
     {
       "id": "bibifoc",
       "titre": "Bibifoc",
       "titreOriginal": "Bibifoc",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "BZZ Films",
-      "premiereDiffusion": { "date": "1985-10-03", "annee": 1985, "chaine": "Antenne 2", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1985-10-03",
+        "annee": 1985,
+        "chaine": "Antenne 2",
+        "emission": ""
+      },
       "description": "Bébé phoque du Grand Nord, Bibifoc vit des aventures sur la banquise avec ses amis inuits. La série est née d'un projet de sensibilisation contre la chasse aux bébés phoques.",
       "image": "",
-      "couleurs": ["#bfe3f2", "#1e5aa8"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#bfe3f2",
+        "#1e5aa8"
+      ],
+      "generique": {
+        "youtube": "_T2EwrB5NqY",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Marie Dauphin"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
+      "aVerifier": [
+        "emission"
+      ],
       "notes": "26 épisodes. Exportée aux États-Unis sous le titre Seabert.",
-      "sources": ["https://en.wikipedia.org/wiki/Seabert"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Seabert"
+      ]
     },
     {
       "id": "lady-oscar",
       "titre": "Lady Oscar",
       "titreOriginal": "Berusaiyu no Bara (ベルサイユのばら)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Tokyo Movie Shinsha",
-      "premiereDiffusion": { "date": "1986-09-08", "annee": 1986, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1986-09-08",
+        "annee": 1986,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Élevée comme un garçon, Oscar François de Jarjayes devient capitaine de la garde de Marie-Antoinette à la veille de la Révolution française. Adaptée du manga de Riyoko Ikeda, une fresque romanesque et historique.",
       "image": "",
-      "couleurs": ["#f4e1c1", "#8c1c3b"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#f4e1c1",
+        "#8c1c3b"
+      ],
+      "generique": {
+        "youtube": "-Fk1QUev-Gs",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Marie Dauphin"
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "",
-      "sources": ["https://www.senscritique.com/groupe/Lady_Oscar/3560", "https://dailygeekshow.com/lady-oscar-rose-versailles/"]
+      "sources": [
+        "https://www.senscritique.com/groupe/Lady_Oscar/3560",
+        "https://dailygeekshow.com/lady-oscar-rose-versailles/"
+      ]
     },
     {
       "id": "remi-sans-famille",
       "titre": "Rémi sans famille",
       "titreOriginal": "Ie Naki Ko (家なき子)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Tokyo Movie Shinsha",
-      "premiereDiffusion": { "date": "1982-02-17", "annee": 1982, "chaine": "TF1", "emission": "Mer-cre-dis-moi-tout" },
+      "premiereDiffusion": {
+        "date": "1982-02-17",
+        "annee": 1982,
+        "chaine": "TF1",
+        "emission": "Mer-cre-dis-moi-tout"
+      },
       "description": "Arraché à sa mère adoptive, le jeune Rémi parcourt la France aux côtés du musicien ambulant Vitalis et de ses animaux, dont le chien Capi et le singe Joli-Cœur. Une adaptation bouleversante du roman d'Hector Malot.",
       "image": "",
-      "couleurs": ["#5d7d3a", "#e7c88a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#5d7d3a",
+        "#e7c88a"
+      ],
+      "generique": {
+        "youtube": "HNLxduS2Ld0",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "« Rémi, on m'appelle sans famille », chanté par Cyrille"
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "Diffusé d'abord sous le titre « Rémi », rediffusé en 1986 dans Croque-Vacances.",
-      "sources": ["https://3dvf.com/actualite-15425-nostalgie-integrale-remi-sans-famille-disponible-gratuitement-en-hd-et-vf-html/"]
+      "sources": [
+        "https://3dvf.com/actualite-15425-nostalgie-integrale-remi-sans-famille-disponible-gratuitement-en-hd-et-vf-html/"
+      ]
     },
     {
       "id": "cobra",
       "titre": "Cobra",
       "titreOriginal": "Space Adventure Cobra (スペースアドベンチャー コブラ)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Tokyo Movie Shinsha",
-      "premiereDiffusion": { "date": "1985-02-20", "annee": 1985, "chaine": "Canal+", "emission": "Cabou Cadin" },
+      "premiereDiffusion": {
+        "date": "1985-02-20",
+        "annee": 1985,
+        "chaine": "Canal+",
+        "emission": "Cabou Cadin"
+      },
       "description": "Aventurier de l'espace au bras armé d'un rayon psychique, Cobra court la galaxie aux côtés de l'androïde Armanoïde et affronte la Guilde des pirates. Adapté du manga de Buichi Terasawa.",
       "image": "",
-      "couleurs": ["#1a1a1a", "#d9254a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#1a1a1a",
+        "#d9254a"
+      ],
+      "generique": {
+        "youtube": "TJgKBmW1XWs",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Olivier Constantin"
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "Rediffusé ensuite sur Antenne 2.",
-      "sources": ["https://www.avcesar.com/le-manga-culte-cobra-bientot-de-retour-sur-les-ecrans-44990"]
+      "sources": [
+        "https://www.avcesar.com/le-manga-culte-cobra-bientot-de-retour-sur-les-ecrans-44990"
+      ]
     },
     {
       "id": "signe-cats-eyes",
       "titre": "Signé Cat's Eyes",
       "titreOriginal": "Cat's♥Eye (キャッツ♥アイ)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Tokyo Movie Shinsha",
-      "premiereDiffusion": { "date": "1986", "annee": 1986, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1986",
+        "annee": 1986,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "Le jour, trois sœurs tiennent un café ; la nuit, elles cambriolent des œuvres d'art pour retrouver la trace de leur père disparu. L'inspecteur chargé de les arrêter n'est autre que le fiancé de l'une d'elles.",
       "image": "",
-      "couleurs": ["#2a1745", "#ff5fa2"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#2a1745",
+        "#ff5fa2"
+      ],
+      "generique": {
+        "youtube": "qVV1RJz-eT0",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Isabelle Guiard"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
+      "aVerifier": [
+        "emission"
+      ],
       "notes": "Reprise ensuite dans le Club Dorothée au début des années 1990.",
-      "sources": ["https://leclaireur.fnac.com/article/548130-cats-eyes-tf1-pourquoi-cet-anime-des-annees-1980-est-il-devenu-si-culte/"]
+      "sources": [
+        "https://leclaireur.fnac.com/article/548130-cats-eyes-tf1-pourquoi-cet-anime-des-annees-1980-est-il-devenu-si-culte/"
+      ]
     },
     {
       "id": "princesse-sarah",
       "titre": "Princesse Sarah",
       "titreOriginal": "Shōkōjo Sēra (小公女セーラ)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Nippon Animation",
-      "premiereDiffusion": { "date": "1987-03-01", "annee": 1987, "chaine": "La Cinq", "emission": "Youpi ! L'école est finie" },
+      "premiereDiffusion": {
+        "date": "1987-03-01",
+        "annee": 1987,
+        "chaine": "La Cinq",
+        "emission": "Youpi ! L'école est finie"
+      },
       "description": "Riche pensionnaire d'une école londonienne, Sarah Crewe perd tout à la mort de son père et devient la servante de la cruelle Mlle Minchin. Adaptée du roman de Frances Hodgson Burnett.",
       "image": "",
-      "couleurs": ["#5b3a6e", "#f2c6d4"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#5b3a6e",
+        "#f2c6d4"
+      ],
+      "generique": {
+        "youtube": "s4QULO1mSyM",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Cristina D'Avena"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date"],
+      "aVerifier": [
+        "date"
+      ],
       "notes": "1er mars ou 2 mai 1987 selon les sources.",
-      "sources": ["https://a-suivre.org/annuseries/encyclopedie/series.php?series=624"]
+      "sources": [
+        "https://a-suivre.org/annuseries/encyclopedie/series.php?series=624"
+      ]
     },
     {
       "id": "maitres-de-l-univers",
       "titre": "Les Maîtres de l'univers",
       "titreOriginal": "He-Man and the Masters of the Universe",
-      "pays": ["États-Unis"],
+      "pays": [
+        "États-Unis"
+      ],
       "studio": "Filmation",
-      "premiereDiffusion": { "date": "1984-01", "annee": 1984, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1984-01",
+        "annee": 1984,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Grâce à son épée magique, le prince Adam se transforme en Musclor pour protéger le château des Ombres contre Skeletor. Une série née des figurines Mattel.",
       "image": "",
-      "couleurs": ["#7a3fa0", "#e8b52c"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#7a3fa0",
+        "#e8b52c"
+      ],
+      "generique": {
+        "youtube": "ilBJqHE2wCs",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date"],
+      "aVerifier": [
+        "date"
+      ],
       "notes": "Janvier 1984 selon une seule source spécialisée.",
-      "sources": ["https://vl-media.fr/culte-on-vous-raconte-le-jour-ou-fut-cree-les-maitres-de-lunivers/"]
+      "sources": [
+        "https://vl-media.fr/culte-on-vous-raconte-le-jour-ou-fut-cree-les-maitres-de-lunivers/"
+      ]
     },
     {
       "id": "jayce",
       "titre": "Jayce et les Conquérants de la lumière",
       "titreOriginal": "Jayce and the Wheeled Warriors",
-      "pays": ["France", "États-Unis"],
+      "pays": [
+        "France",
+        "États-Unis"
+      ],
       "studio": "DIC",
-      "premiereDiffusion": { "date": "1985-09-09", "annee": 1985, "chaine": "TF1", "emission": "Salut les petits loups" },
+      "premiereDiffusion": {
+        "date": "1985-09-09",
+        "annee": 1985,
+        "chaine": "TF1",
+        "emission": "Salut les petits loups"
+      },
       "description": "Jayce recherche son père, le savant Audric, seul capable d'arrêter les Monstroplantes de Saw Boss. Avec les Conquérants de la lumière et leurs véhicules transformables, il parcourt la galaxie.",
       "image": "",
-      "couleurs": ["#1f5e2f", "#f2d43a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#1f5e2f",
+        "#f2d43a"
+      ],
+      "generique": {
+        "youtube": "o_1JQ16vS-0",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Nick Carr"
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "",
-      "sources": ["https://en.wikipedia.org/wiki/Jayce_and_the_Wheeled_Warriors"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Jayce_and_the_Wheeled_Warriors"
+      ]
     },
     {
       "id": "vicky-le-viking",
       "titre": "Vicky le Viking",
       "titreOriginal": "Chiisana Baikingu Bikke (小さなバイキングビッケ)",
-      "pays": ["Japon", "Allemagne"],
+      "pays": [
+        "Japon",
+        "Allemagne"
+      ],
       "studio": "Zuiyo Eizo",
-      "premiereDiffusion": { "date": "1979-07-09", "annee": 1979, "chaine": "TF1", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1979-07-09",
+        "annee": 1979,
+        "chaine": "TF1",
+        "emission": ""
+      },
       "description": "Fils du chef viking Halvar, le petit Vicky n'a pas la force des guerriers mais déjoue tous les dangers grâce à son intelligence. Adapté des romans du Suédois Runer Jonsson.",
       "image": "",
-      "couleurs": ["#d8682a", "#2e6f9e"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#d8682a",
+        "#2e6f9e"
+      ],
+      "generique": {
+        "youtube": "fLa3UiRKsvs",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Michel Barouille"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "chaine", "emission"],
+      "aVerifier": [
+        "date",
+        "chaine",
+        "emission"
+      ],
       "notes": "Date et chaîne confirmées par une seule source secondaire.",
-      "sources": ["https://anniversaire-celebrite.com/vic-le-viking-c8554"]
+      "sources": [
+        "https://anniversaire-celebrite.com/vic-le-viking-c8554"
+      ]
     },
     {
       "id": "maya-l-abeille",
       "titre": "Maya l'abeille",
       "titreOriginal": "Mitsubachi Māya no Bōken (みつばちマーヤの冒険)",
-      "pays": ["Japon", "Allemagne"],
+      "pays": [
+        "Japon",
+        "Allemagne"
+      ],
       "studio": "Zuiyo Eizo / Nippon Animation",
-      "premiereDiffusion": { "date": "1978", "annee": 1978, "chaine": "", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1978",
+        "annee": 1978,
+        "chaine": "",
+        "emission": ""
+      },
       "description": "Curieuse et intrépide, la petite abeille Maya quitte la ruche pour découvrir le monde des prés, accompagnée de son ami Willy. Adapté du roman de l'Allemand Waldemar Bonsels.",
       "image": "",
-      "couleurs": ["#f5c518", "#2b2b2b"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#f5c518",
+        "#2b2b2b"
+      ],
+      "generique": {
+        "youtube": "fA7yCJ3ok8g",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Nadine Delanoë et Brigitte Winstel"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["chaine", "emission"],
+      "aVerifier": [
+        "chaine",
+        "emission"
+      ],
       "notes": "L'année 1978 est attestée ; la chaîne de première diffusion n'a pas pu être confirmée.",
-      "sources": ["https://www.unidivers.fr/grande-aventure-maya-abeille/"]
+      "sources": [
+        "https://www.unidivers.fr/grande-aventure-maya-abeille/"
+      ]
     },
     {
       "id": "barbapapa",
       "titre": "Barbapapa",
       "titreOriginal": "Barbapapa",
-      "pays": ["Pays-Bas"],
+      "pays": [
+        "Pays-Bas"
+      ],
       "studio": "Polyscope",
-      "premiereDiffusion": { "date": "1974-10-02", "annee": 1974, "chaine": "ORTF", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1974-10-02",
+        "annee": 1974,
+        "chaine": "ORTF",
+        "emission": ""
+      },
       "description": "Barbapapa, Barbamama et leurs sept enfants changent de forme à volonté pour se tirer de toutes les situations. Une série en épisodes de cinq minutes tirée des albums d'Annette Tison et Talus Taylor.",
       "image": "",
-      "couleurs": ["#f497b9", "#4bb0e0"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#f497b9",
+        "#4bb0e0"
+      ],
+      "generique": {
+        "youtube": "9Q4qFnn7_VI",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "« La famille des Barbapapa », Ricet Barrier"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["studio", "emission"],
+      "aVerifier": [
+        "studio",
+        "emission"
+      ],
       "notes": "Première diffusion juste avant la période couverte, mais épisodes diffusés de 1974 à 1977 sur l'ORTF, TF1 et Antenne 2.",
-      "sources": ["https://www.cnc.fr/series-tv/actualites/limage-de-la-semaine--les-45-ans-de-barbapapa_1058614"]
+      "sources": [
+        "https://www.cnc.fr/series-tv/actualites/limage-de-la-semaine--les-45-ans-de-barbapapa_1058614"
+      ]
     },
     {
       "id": "wattoo-wattoo",
       "titre": "Wattoo Wattoo Super Bird",
       "titreOriginal": "Wattoo Wattoo Super Bird",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "Plateforme 2000 / Star Productions",
-      "premiereDiffusion": { "date": "1978-07-06", "annee": 1978, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1978-07-06",
+        "annee": 1978,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Wattoo Wattoo, oiseau venu d'une autre planète, observe les habitants d'un monde voisin et leurs travers, que l'on reconnaît comme les nôtres. De courts épisodes à l'humour écologique créés par René Borg et Hubert Ballay.",
       "image": "",
-      "couleurs": ["#ff7a1a", "#3cb44b"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#ff7a1a",
+        "#3cb44b"
+      ],
+      "generique": {
+        "youtube": "BgD00sOfId4",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Hubert Ballay, chanté par Sébastien et les enfants d'Asnières"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date"],
+      "aVerifier": [
+        "date"
+      ],
       "notes": "Autres dates citées : 2 mai 1978 ou octobre 1978.",
-      "sources": ["https://en.wikipedia.org/wiki/Wattoo_Wattoo_Super_Bird"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Wattoo_Wattoo_Super_Bird"
+      ]
     },
     {
       "id": "minipouss",
       "titre": "Les Minipouss",
       "titreOriginal": "The Littles",
-      "pays": ["France", "États-Unis"],
+      "pays": [
+        "France",
+        "États-Unis"
+      ],
       "studio": "DIC Audiovisuel",
-      "premiereDiffusion": { "date": "1984-11-07", "annee": 1984, "chaine": "Canal+", "emission": "Cabou Cadin" },
+      "premiereDiffusion": {
+        "date": "1984-11-07",
+        "annee": 1984,
+        "chaine": "Canal+",
+        "emission": "Cabou Cadin"
+      },
       "description": "Une famille de minuscules humanoïdes à queue vit cachée dans les murs d'une maison, avec la complicité du jeune Henri. Ensemble, ils échappent au savant qui rêve de prouver leur existence.",
       "image": "",
-      "couleurs": ["#8fc93a", "#7a4a2a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#8fc93a",
+        "#7a4a2a"
+      ],
+      "generique": {
+        "youtube": "sl2G4LflBWU",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false
+      },
       "extraits": [],
       "episodes": [],
       "aVerifier": [],
       "notes": "Rediffusion et inédits sur TF1 à partir du 11 septembre 1985 (Vitamine, Croque-Vacances).",
-      "sources": ["https://anniversaire-celebrite.com/les-minipouss-c9905"]
+      "sources": [
+        "https://anniversaire-celebrite.com/les-minipouss-c9905"
+      ]
     },
     {
       "id": "bisounours",
       "titre": "Les Bisounours",
       "titreOriginal": "The Care Bears",
-      "pays": ["États-Unis", "Canada"],
+      "pays": [
+        "États-Unis",
+        "Canada"
+      ],
       "studio": "DIC puis Nelvana",
-      "premiereDiffusion": { "date": "1985", "annee": 1985, "chaine": "TF1", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1985",
+        "annee": 1985,
+        "chaine": "TF1",
+        "emission": ""
+      },
       "description": "Depuis leur royaume dans les nuages, les Bisounours, chacun porteur d'un symbole sur le ventre, viennent en aide aux enfants tristes grâce au « regard d'amour ». Les personnages étaient nés sur des cartes de vœux.",
       "image": "",
-      "couleurs": ["#9fd4f5", "#f58bb8"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#9fd4f5",
+        "#f58bb8"
+      ],
+      "generique": {
+        "youtube": "Gq37mH6B3VE",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Bernard Minet"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "emission"],
+      "aVerifier": [
+        "date",
+        "emission"
+      ],
       "notes": "Septembre ou octobre 1985 selon les sources.",
-      "sources": ["https://www.ozap.com/actu/bisounours-retour/434388"]
+      "sources": [
+        "https://www.ozap.com/actu/bisounours-retour/434388"
+      ]
     },
     {
       "id": "astro",
       "titre": "Astro, le petit robot",
       "titreOriginal": "Tetsuwan Atom (鉄腕アトム, version 1980)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Tezuka Productions",
-      "premiereDiffusion": { "date": "1986-01", "annee": 1986, "chaine": "TF1", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1986-01",
+        "annee": 1986,
+        "chaine": "TF1",
+        "emission": ""
+      },
       "description": "Créé par un savant pour remplacer son fils disparu, le robot Astro met ses super-pouvoirs au service de la paix entre humains et robots. Remake en couleurs de l'œuvre fondatrice d'Osamu Tezuka.",
       "image": "",
-      "couleurs": ["#1e88e5", "#e53935"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#1e88e5",
+        "#e53935"
+      ],
+      "generique": {
+        "youtube": "8uEpmDR1Gz4",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Franck Olivier"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
-      "notes": "Une source cite le Club Dorothée, ce qui est impossible en janvier 1986 (l'émission démarre en septembre 1987).",
-      "sources": ["https://vl-media.fr/tu-te-souviens-du-dessin-anime-astro-boy/"]
+      "aVerifier": [
+        "chaine",
+        "emission"
+      ],
+      "notes": "Une source cite le Club Dorothée, ce qui est impossible en janvier 1986 (l'émission démarre en septembre 1987). Une autre fiche indique FR3 comme chaîne française.",
+      "sources": [
+        "https://vl-media.fr/tu-te-souviens-du-dessin-anime-astro-boy/"
+      ]
     },
     {
       "id": "rahan",
       "titre": "Rahan, fils des âges farouches",
       "titreOriginal": "Rahan",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "",
-      "premiereDiffusion": { "date": "1987-11-29", "annee": 1987, "chaine": "", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1987-11-29",
+        "annee": 1987,
+        "chaine": "",
+        "emission": ""
+      },
       "description": "À l'époque préhistorique, Rahan parcourt le monde avec son coutelas d'ivoire, guidé par la sagesse de son père Craô. Adaptation animée de la bande dessinée de Roger Lécureux et André Chéret.",
       "image": "",
-      "couleurs": ["#c8a04a", "#5a3a1f"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#c8a04a",
+        "#5a3a1f"
+      ],
+      "generique": {
+        "youtube": "x541A-1WjNo",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Michel Endersen, musique de Vladimir Cosma"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["studio", "chaine", "emission"],
+      "aVerifier": [
+        "studio",
+        "chaine",
+        "emission"
+      ],
       "notes": "Studio et chaîne contradictoires selon les sources (RMC Audiovisuel ou France Animation ; TF1 cité par un produit dérivé).",
-      "sources": ["https://thetvdb.com/series/240591-show"]
+      "sources": [
+        "https://thetvdb.com/series/240591-show"
+      ]
     },
     {
       "id": "tao-tao",
       "titre": "Tao Tao",
       "titreOriginal": "Tao Tao Ehonkan Sekai Dōbutsu Banashi (タオタオ絵本館 世界のどうぶつ話)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "",
-      "premiereDiffusion": { "date": "1987", "annee": 1987, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1987",
+        "annee": 1987,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "Le petit panda Tao Tao écoute les contes que lui raconte sa mère, inspirés de fables animalières du monde entier. Une série douce destinée aux plus jeunes.",
       "image": "",
-      "couleurs": ["#f2f2f2", "#3a9d5d"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#f2f2f2",
+        "#3a9d5d"
+      ],
+      "generique": {
+        "youtube": "fHvM1tnT2Rc",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["studio", "date", "emission"],
+      "aVerifier": [
+        "studio",
+        "date",
+        "emission"
+      ],
       "notes": "Seule l'année 1987 sur FR3 est indiquée par Anime News Network.",
-      "sources": ["https://www.animenewsnetwork.com/encyclopedia/anime.php?id=4919"]
+      "sources": [
+        "https://www.animenewsnetwork.com/encyclopedia/anime.php?id=4919"
+      ]
     },
     {
       "id": "judo-boy",
       "titre": "Judo Boy",
       "titreOriginal": "Kurenai Sanshirō (紅三四郎)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Tatsunoko Production",
-      "premiereDiffusion": { "date": "1985", "annee": 1985, "chaine": "Antenne 2", "emission": "Récré A2" },
+      "premiereDiffusion": {
+        "date": "1985-01-30",
+        "annee": 1985,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Le jeune judoka Sanshirō parcourt le monde à la recherche de l'homme borgne qui a tué son père. Une série d'arts martiaux de la fin des années 1960.",
       "image": "",
-      "couleurs": ["#f4f4f4", "#c62828"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#f4f4f4",
+        "#c62828"
+      ],
+      "generique": {
+        "youtube": "keZp9evjT-w",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date"],
-      "notes": "Présence dans Récré A2 confirmée ; l'année 1985 ne repose que sur un article de blog.",
-      "sources": ["https://en.wikipedia.org/wiki/R%C3%A9cr%C3%A9_A2", "https://vl-media.fr/tag/judo-boy-recre-a2/"]
+      "aVerifier": [
+        "date"
+      ],
+      "notes": "Présence dans Récré A2 confirmée ; la date du 30 janvier 1985 vient de descriptions de vidéos, non recoupées.",
+      "sources": [
+        "https://en.wikipedia.org/wiki/R%C3%A9cr%C3%A9_A2",
+        "https://vl-media.fr/tag/judo-boy-recre-a2/"
+      ]
     },
     {
       "id": "tom-sawyer",
       "titre": "Les Aventures de Tom Sawyer",
       "titreOriginal": "Tom Sawyer no Bōken (トム・ソーヤーの冒険)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Nippon Animation",
-      "premiereDiffusion": { "date": "1982-12-13", "annee": 1982, "chaine": "Antenne 2", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1982-12-13",
+        "annee": 1982,
+        "chaine": "Antenne 2",
+        "emission": ""
+      },
       "description": "Sur les rives du Mississippi, le malicieux Tom Sawyer et son ami Huckleberry Finn multiplient les bêtises et les aventures. Adapté du roman de Mark Twain dans la collection World Masterpiece Theater.",
       "image": "",
-      "couleurs": ["#4f8a3c", "#f0c27a"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#4f8a3c",
+        "#f0c27a"
+      ],
+      "generique": {
+        "youtube": "dBsm4EljAxE",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Elfie"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["chaine", "emission"],
+      "aVerifier": [
+        "chaine",
+        "emission"
+      ],
       "notes": "Chaîne indiquée par Anime News Network uniquement.",
-      "sources": ["https://www.animenewsnetwork.com/encyclopedia/anime.php?id=439"]
+      "sources": [
+        "https://www.animenewsnetwork.com/encyclopedia/anime.php?id=439"
+      ]
     },
     {
       "id": "snorky",
       "titre": "Les Snorky",
       "titreOriginal": "Snorks",
-      "pays": ["États-Unis", "Belgique"],
+      "pays": [
+        "États-Unis",
+        "Belgique"
+      ],
       "studio": "Hanna-Barbera / SEPP",
-      "premiereDiffusion": { "date": "1986-09-10", "annee": 1986, "chaine": "TF1", "emission": "Vitamine" },
+      "premiereDiffusion": {
+        "date": "1986-09-10",
+        "annee": 1986,
+        "chaine": "TF1",
+        "emission": "Vitamine"
+      },
       "description": "Sous l'océan, les Snorky, petits êtres colorés dotés d'un tuba sur la tête, vivent mille aventures dans la cité de Snorkland. Une série dans la veine des Schtroumpfs.",
       "image": "",
-      "couleurs": ["#1aa6b7", "#ffd23f"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#1aa6b7",
+        "#ffd23f"
+      ],
+      "generique": {
+        "youtube": "8j_KKeLucbg",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Claude Lombard"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date"],
+      "aVerifier": [
+        "date"
+      ],
       "notes": "Date confirmée par une seule source secondaire.",
-      "sources": ["https://anniversaire-celebrite.com/les-snorky-c9346"]
+      "sources": [
+        "https://anniversaire-celebrite.com/les-snorky-c9346"
+      ]
     },
     {
       "id": "bouba",
       "titre": "Bouba",
       "titreOriginal": "Seton Dōbutsuki Kuma no Ko Jacky (シートン動物記 くまの子ジャッキー)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Nippon Animation",
-      "premiereDiffusion": { "date": "1981", "annee": 1981, "chaine": "FR3", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1981",
+        "annee": 1981,
+        "chaine": "FR3",
+        "emission": ""
+      },
       "description": "Orphelin, le petit ourson Bouba grandit dans les montagnes de Californie, entre amitiés et menaces venues du monde des hommes. Adapté des récits animaliers d'Ernest Thompson Seton.",
       "image": "",
-      "couleurs": ["#8a5a32", "#a8d08d"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#8a5a32",
+        "#a8d08d"
+      ],
+      "generique": {
+        "youtube": "-Uft0kUpoRc",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Chantal Goya"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["emission"],
+      "aVerifier": [
+        "emission"
+      ],
       "notes": "Générique français chanté par Chantal Goya ; Jean-Jacques Debout a rebaptisé le personnage « Bouba ».",
-      "sources": ["https://fr.vikidia.org/wiki/Bouba_le_petit_ourson"]
+      "sources": [
+        "https://fr.vikidia.org/wiki/Bouba_le_petit_ourson"
+      ]
     },
     {
       "id": "mimi-cracra",
       "titre": "Mimi Cracra",
       "titreOriginal": "Mimi Cracra",
-      "pays": ["France"],
+      "pays": [
+        "France"
+      ],
       "studio": "",
-      "premiereDiffusion": { "date": "1986", "annee": 1986, "chaine": "Antenne 2", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1986",
+        "annee": 1986,
+        "chaine": "Antenne 2",
+        "emission": ""
+      },
       "description": "Mimi Cracra, petite fille espiègle et pleine d'imagination, vit de petites aventures du quotidien. D'après les albums d'Agnès Rosenstiehl.",
       "image": "",
-      "couleurs": ["#ffcf3f", "#e5533d"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#ffcf3f",
+        "#e5533d"
+      ],
+      "generique": {
+        "youtube": "RB0in6YoCw0",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Amélie Morin"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["studio", "emission"],
+      "aVerifier": [
+        "studio",
+        "emission"
+      ],
       "notes": "52 épisodes diffusés en 1986.",
-      "sources": ["https://www.tvmaze.com/shows/70065"]
+      "sources": [
+        "https://www.tvmaze.com/shows/70065"
+      ]
     },
     {
       "id": "archibald",
       "titre": "Archibald le Magi-chien",
       "titreOriginal": "Archibald le Magi-chien",
-      "pays": ["France", "Belgique"],
+      "pays": [
+        "France",
+        "Belgique"
+      ],
       "studio": "DIC Audiovisuel",
-      "premiereDiffusion": { "date": "1980", "annee": 1980, "chaine": "TF1", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1980",
+        "annee": 1980,
+        "chaine": "TF1",
+        "emission": ""
+      },
       "description": "Archibald, chien magicien, use de ses tours pour se sortir de situations loufoques. Créée par Jean Chalopin, c'est l'une des toutes premières productions du studio DIC.",
       "image": "",
-      "couleurs": ["#6a4c9c", "#f2b134"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#6a4c9c",
+        "#f2b134"
+      ],
+      "generique": {
+        "youtube": "pYoYzqd5lpU",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "emission"],
+      "aVerifier": [
+        "date",
+        "emission"
+      ],
       "notes": "46 épisodes de 5 minutes, diffusés en 1980-1981.",
-      "sources": ["https://en.wikipedia.org/wiki/Archibald_le_Magi-chien"]
+      "sources": [
+        "https://en.wikipedia.org/wiki/Archibald_le_Magi-chien"
+      ]
     },
     {
       "id": "gigi",
       "titre": "Gigi",
       "titreOriginal": "Mahō no Princess Minky Momo (魔法のプリンセス ミンキーモモ)",
-      "pays": ["Japon"],
+      "pays": [
+        "Japon"
+      ],
       "studio": "Ashi Productions",
-      "premiereDiffusion": { "date": "", "annee": null, "chaine": "TF1", "emission": "" },
+      "premiereDiffusion": {
+        "date": "",
+        "annee": null,
+        "chaine": "TF1",
+        "emission": ""
+      },
       "description": "Princesse d'un royaume céleste, Gigi descend sur Terre et se transforme en adulte grâce à la magie pour aider les humains à retrouver leurs rêves. Une série phare du genre « magical girl ».",
       "image": "",
-      "couleurs": ["#ff9ac2", "#6ec6ff"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#ff9ac2",
+        "#6ec6ff"
+      ],
+      "generique": {
+        "youtube": "Ml9MCeAWdZQ",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Marilyn Lahcène"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "emission"],
+      "aVerifier": [
+        "date",
+        "emission"
+      ],
       "notes": "Diffusée sur TF1 ; l'année exacte (milieu des années 1980) n'a pas pu être confirmée.",
-      "sources": ["https://lostmediawiki.com/The_Magical_World_of_Gigi_(Harmony_Gold_English_Dub;_1984)"]
+      "sources": [
+        "https://lostmediawiki.com/The_Magical_World_of_Gigi_(Harmony_Gold_English_Dub;_1984)"
+      ]
     },
     {
       "id": "schtroumpfs",
       "titre": "Les Schtroumpfs",
       "titreOriginal": "The Smurfs",
-      "pays": ["États-Unis", "Belgique"],
+      "pays": [
+        "États-Unis",
+        "Belgique"
+      ],
       "studio": "Hanna-Barbera",
-      "premiereDiffusion": { "date": "", "annee": null, "chaine": "", "emission": "" },
+      "premiereDiffusion": {
+        "date": "1983",
+        "annee": 1983,
+        "chaine": "Antenne 2",
+        "emission": "Récré A2"
+      },
       "description": "Dans leur village de champignons, les petits lutins bleus créés par Peyo déjouent les plans du sorcier Gargamel et de son chat Azraël. La série américaine de 1981 a fait connaître les Schtroumpfs dans le monde entier.",
       "image": "",
-      "couleurs": ["#3a8de0", "#ffffff"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#3a8de0",
+        "#ffffff"
+      ],
+      "generique": {
+        "youtube": "JaqQc0azLAw",
+        "dailymotion": "",
+        "ina": "",
+        "officiel": false,
+        "titre": "Chanté par Dorothée"
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "chaine", "emission"],
-      "notes": "Série incontournable des années 1980, mais aucune source consultée n'indique sa première chaîne et sa date en France.",
-      "sources": ["https://www.scifi-universe.com/oeuvres/10317/les-schtroumpfs/series"]
+      "aVerifier": [
+        "date",
+        "chaine",
+        "emission"
+      ],
+      "notes": "D'après des descriptions de vidéos : premier générique chanté par Dorothée, diffusé dans Récré A2 vers 1983. Non confirmé par une source de référence.",
+      "sources": [
+        "https://www.scifi-universe.com/oeuvres/10317/les-schtroumpfs/series"
+      ]
     },
     {
       "id": "charlotte-aux-fraises",
       "titre": "Charlotte aux Fraises",
       "titreOriginal": "Strawberry Shortcake",
-      "pays": ["États-Unis"],
+      "pays": [
+        "États-Unis"
+      ],
       "studio": "Murakami-Wolf-Swenson",
-      "premiereDiffusion": { "date": "", "annee": null, "chaine": "TF1", "emission": "Croque-Vacances" },
+      "premiereDiffusion": {
+        "date": "",
+        "annee": null,
+        "chaine": "TF1",
+        "emission": "Croque-Vacances"
+      },
       "description": "Charlotte aux Fraises et ses amies, qui portent chacune le nom d'une gourmandise, vivent dans un monde sucré où elles déjouent les ruses d'un pâtissier malveillant. Une série de téléfilms animés tirée d'une ligne de cartes de vœux et de poupées.",
       "image": "",
-      "couleurs": ["#e8344e", "#7cc576"],
-      "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+      "couleurs": [
+        "#e8344e",
+        "#7cc576"
+      ],
+      "generique": {
+        "youtube": "",
+        "dailymotion": "",
+        "ina": ""
+      },
       "extraits": [],
       "episodes": [],
-      "aVerifier": ["date", "studio"],
+      "aVerifier": [
+        "date",
+        "studio"
+      ],
       "notes": "Citée parmi les dessins animés de Croque-Vacances (1980-1987) ; année de première diffusion non confirmée.",
-      "sources": ["https://fr.vikidia.org/wiki/Croque_Vacances"]
+      "sources": [
+        "https://fr.vikidia.org/wiki/Croque_Vacances"
+      ]
     }
   ]
 }

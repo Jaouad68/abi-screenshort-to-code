@@ -14,13 +14,17 @@ Canal+, La Cinq, et des émissions comme Récré A2, Croque-Vacances ou Cabou Ca
 - Favoris enregistrés dans le navigateur (`localStorage`)
 - Responsive, utilisable au doigt sur mobile
 
-## Contrainte légale
+## Sources des vidéos
 
-Aucun fichier audio ou vidéo n'est hébergé. L'application n'affiche que des intégrations
-YouTube, Dailymotion ou INA renseignées dans le JSON, et « Non disponible » sinon.
-N'ajoutez une vidéo que si elle est publiée par un ayant droit (chaîne officielle du
-studio, du distributeur, de la chaîne de télévision, ou l'INA). Les mises en ligne
-d'amateurs ne sont pas des sources légales.
+Aucun fichier audio ou vidéo n'est hébergé : l'application intègre des vidéos YouTube,
+Dailymotion ou INA référencées dans le JSON, et affiche « Non disponible » sinon.
+
+Faute de génériques publiés par les ayants droit, les vidéos actuelles sont des mises en
+ligne de particuliers, choisies à la demande du propriétaire du catalogue. Elles sont
+marquées `"officiel": false` et signalées « non officiel » dans les fiches. Elles peuvent
+être retirées à tout moment : le juke-box passe alors au générique suivant. Dès qu'une
+version officielle existe (chaîne du studio, du distributeur ou de l'INA), il vaut mieux
+la préférer et passer `officiel` à `true`.
 
 ## Lancer en local
 
@@ -43,9 +47,10 @@ citées dans chaque fiche. Quand une information n'a pas pu être confirmée ou 
 sources se contredisent, le champ est listé dans `aVerifier` et l'application affiche
 un badge « à vérifier ». Rien n'a été comblé par supposition : un champ inconnu reste vide.
 
-Aucun générique n'est encore renseigné : je n'ai trouvé, pour ces séries, que des mises en
-ligne d'amateurs sur YouTube et Dailymotion. Trois fiches renvoient vers des archives
-officielles de l'INA (Goldorak, Albator, Les Mystérieuses Cités d'or).
+39 fiches sur 40 ont un générique (vidéo YouTube non officielle). Charlotte aux Fraises
+n'en a pas : les vidéos trouvées semblent correspondre à la série de 2003. Trois fiches
+renvoient aussi vers des archives officielles de l'INA (Goldorak, Albator, Les Mystérieuses
+Cités d'or).
 
 ---
 
@@ -65,7 +70,7 @@ officielles de l'INA (Goldorak, Albator, Les Mystérieuses Cités d'or).
   "description": "Deux ou trois phrases.",
   "image": "",
   "couleurs": ["#1d3fa8", "#e8262b"],
-  "generique": { "youtube": "", "dailymotion": "", "ina": "" },
+  "generique": { "youtube": "", "dailymotion": "", "ina": "", "officiel": false, "titre": "Chanté par …" },
   "extraits": [],
   "episodes": [],
   "aVerifier": [],
@@ -87,6 +92,8 @@ officielles de l'INA (Goldorak, Albator, Les Mystérieuses Cités d'or).
 | `couleurs` | Deux couleurs de la vignette générée |
 | `generique.youtube` | L'identifiant de 11 caractères (ce qui suit `v=` dans l'adresse) |
 | `generique.dailymotion` | L'identifiant de la vidéo (par exemple `x10okq0`) |
+| `generique.officiel` | `true` si la vidéo est publiée par un ayant droit, `false` sinon (badge « non officiel ») |
+| `generique.titre` | Facultatif : titre ou interprète du générique |
 | `generique.ina` | Une page `https://www.ina.fr/…` (lien) ou un lecteur `https://player.ina.fr/…` (intégré) |
 | `extraits` | `{ "titre": "…", "source": "youtube" \| "dailymotion" \| "ina", "id": "…" }` ou avec `"url"` |
 | `episodes` | `{ "titre": "Intégrale", "plateforme": "France TV", "url": "https://…" }`, seulement sur des plateformes légales |

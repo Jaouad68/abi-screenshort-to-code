@@ -3,6 +3,8 @@
 "use strict";
 
 const DATA_URL = "data/dessins-animes.json";
+// true quand l'hébergeur interdit les lecteurs intégrés : les génériques s'ouvrent alors dans YouTube.
+const LIENS_SEULEMENT = false;
 const CLE_FAVORIS = "mercredi.favoris";
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const LIBELLES_CHAMPS = { date: "date", chaine: "chaîne", emission: "émission", studio: "studio", pays: "pays" };
@@ -267,14 +269,18 @@ function ficheHTML(d) {
     <section aria-label="Générique">
       <div class="tv">
         <div class="tv-ecran" id="ficheEcran">
-          <div class="mire"><span>${integrables.length ? "Choisissez un lecteur" : "Générique non disponible"}</span></div>
+          <div class="mire"><span>${!integrables.length ? "Générique non disponible" : LIENS_SEULEMENT ? "Ouvrez le générique dans YouTube" : "Choisissez un lecteur"}</span></div>
         </div>
         <div class="tv-socle" aria-hidden="true"><i></i><i></i><i></i></div>
       </div>
       <h3>Générique</h3>
       ${integrables.length
-        ? `<div class="lecteurs">${integrables.map((m, i) => `<button class="btn btn-ghost" type="button" data-lecteur="g${i}" aria-pressed="false">▶ Regarder sur ${esc(m.titre)}</button>`).join("")}
-           ${integrables.some((m) => m.youtubeId) ? `<a class="btn btn-jaune" href="#/juke-box" data-ecouter="${esc(d.id)}">♪ Écouter dans le juke-box</a>` : ""}</div>`
+        ? `${d.generique?.titre ? `<p class="generique-titre">${esc(d.generique.titre)}</p>` : ""}
+           <div class="lecteurs">${integrables.map((m, i) => LIENS_SEULEMENT
+             ? `<a class="btn btn-jaune" href="${esc(m.lien)}" target="_blank" rel="noopener">▶ Écouter sur ${esc(m.titre)} ↗</a>`
+             : `<button class="btn btn-ghost" type="button" data-lecteur="g${i}" aria-pressed="false">▶ Regarder sur ${esc(m.titre)}</button>`).join("")}
+           ${!LIENS_SEULEMENT && integrables.some((m) => m.youtubeId) ? `<a class="btn btn-jaune" href="#/juke-box" data-ecouter="${esc(d.id)}">♪ Écouter dans le juke-box</a>` : ""}</div>
+           ${d.generique?.officiel === false ? `<p class="contribuer"><span class="a-verifier">non officiel</span> Vidéo mise en ligne par un particulier, elle peut disparaître.${LIENS_SEULEMENT ? "" : ` <a href="${esc(integrables[0].lien)}" target="_blank" rel="noopener">Ouvrir sur YouTube ↗</a>`}</p>` : ""}`
         : `<p class="non-dispo">Non disponible</p>`}
       ${liens.length ? `<ul class="liste-medias">${liens.map((m) => `<li><span><span class="src">${esc(m.source)}</span> Générique</span><a href="${esc(m.lien)}" target="_blank" rel="noopener">Voir sur ina.fr ↗</a></li>`).join("")}</ul>` : ""}
 
@@ -388,19 +394,29 @@ const jukebox = {
     const ol = $("#jbFile");
     const vide = $("#jbVide");
     const aucun = !this.file.length;
-    ["#jbPrec", "#jbPlay", "#jbSuiv", "#jbMelange"].forEach((s) => ($(s).disabled = aucun));
+    ["#jbPrec", "#jbPlay", "#jbSuiv", "#jbMelange"].forEach((s) => ($(s).disabled = aucun || LIENS_SEULEMENT));
+    if (LIENS_SEULEMENT) {
+      $("#jbMire").innerHTML = "<span>Touchez un titre pour l'écouter sur YouTube</span>";
+      $(".jb-commandes").hidden = true;
+      $("#jbEnCours").hidden = true;
+    }
     vide.hidden = !aucun;
     if (aucun) {
       ol.innerHTML = "";
       vide.innerHTML = this.source() === "favoris"
         ? `<strong>Aucun générique jouable dans vos favoris.</strong><br />Ajoutez en favori des dessins animés dont le générique est disponible (pastille « ♪ générique »).`
-        : `<strong>Aucun générique intégrable pour l'instant.</strong><br />Le catalogue ne référence que des sources légales vérifiées. Pour en ajouter une, renseignez l'identifiant YouTube d'une vidéo publiée par un ayant droit dans <code>data/dessins-animes.json</code> (voir la notice).`;
+        : `<strong>Aucun générique disponible.</strong><br />Pour en ajouter un, renseignez l'identifiant YouTube de la vidéo dans <code>data/dessins-animes.json</code> (voir la notice).`;
       return;
     }
     ol.innerHTML = this.ordre.map((i, pos) => {
       const p = this.file[i];
       const c1 = couleurValide(p.d.couleurs?.[0], "#3a2a8c");
       const c2 = couleurValide(p.d.couleurs?.[1], "#ff4f9a");
+      if (LIENS_SEULEMENT) {
+        return `<li><a class="jb-lien" href="https://www.youtube.com/watch?v=${esc(p.youtubeId)}" target="_blank" rel="noopener">
+          <span class="pastille" style="--c1:${c1};--c2:${c2}"></span>${esc(p.titre)}
+          <small>${esc(p.d.premiereDiffusion?.annee || "")} ↗</small></a></li>`;
+      }
       return `<li><button type="button" data-pos="${pos}" ${pos === this.index ? 'aria-current="true"' : ""}>
           <span class="pastille" style="--c1:${c1};--c2:${c2}"></span>${esc(p.titre)}
           <small>${esc(p.d.premiereDiffusion?.annee || "")}</small></button></li>`;
@@ -434,7 +450,7 @@ const jukebox = {
       await this.chargerApi();
     } catch {
       $("#jbMire").hidden = false;
-      $("#jbMire").innerHTML = "<span>YouTube est injoignable</span>";
+      $("#jbMire").innerHTML = `<span>Lecteur bloqué : <a href="https://www.youtube.com/watch?v=${esc(piste.youtubeId)}" target="_blank" rel="noopener">écouter sur YouTube ↗</a></span>`;
       return;
     }
     if (this.lecteur) {

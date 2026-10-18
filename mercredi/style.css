@@ -282,11 +282,16 @@ code { font-family: var(--font-ecran); font-size: 1.15em; color: var(--cyan); }
 .jukebox-liste { background: var(--panel); border-radius: var(--radius); padding: 16px; box-shadow: 0 6px 0 #0c0a1c; }
 .jukebox-liste h2 { font-family: var(--font-ecran); font-weight: 400; font-size: 26px; color: var(--yellow); margin: 0 0 10px; text-transform: uppercase; }
 .jb-file { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 60vh; overflow: auto; counter-reset: piste; }
+.generique-titre { margin: 0 0 4px; font-size: 15px; color: var(--muted); }
+.mire a { color: var(--yellow); }
+.jb-file .jb-lien,
 .jb-file button {
   all: unset; box-sizing: border-box; cursor: pointer; width: 100%; min-height: 44px;
   display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; counter-increment: piste;
 }
+.jb-file .jb-lien::before,
 .jb-file button::before { content: counter(piste, decimal-leading-zero); font-family: var(--font-ecran); font-size: 20px; color: var(--muted); width: 26px; }
+.jb-file .jb-lien:hover, .jb-file .jb-lien:focus-visible,
 .jb-file button:hover, .jb-file button:focus-visible { background: var(--panel-2); }
 .jb-file button[aria-current="true"] { background: var(--pink); }
 .jb-file button[aria-current="true"]::before { color: #fff; }
