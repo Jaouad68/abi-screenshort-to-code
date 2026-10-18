@@ -523,7 +523,7 @@
         <div class="tiny muted" style="margin-bottom:8px">${rv.date}</div>
         <div style="font-size:13.5px;color:var(--text)">${rv.text}</div>
         <div class="mini-card" style="margin-top:11px;background:var(--surface);border:1px solid var(--line-2);padding:12px;border-radius:11px">
-          <div class="tiny" style="font-weight:700;color:var(--accent-deep);margin-bottom:5px"><i class="fas fa-robot"></i> Réponse générée par l'IA</div>
+          <div class="tiny" style="font-weight:700;color:var(--accent-deep);margin-bottom:5px"><i class="fas fa-robot"></i> Réponse générée par l'IA · simulée (démonstration)</div>
           <div style="font-size:13px;color:var(--text-2)" id="reply-${i}">${rv.reply}</div>
           <button class="btn btn-primary btn-sm" style="margin-top:10px" data-toast="Réponse publiée sur ${rv.source}"><i class="fas fa-paper-plane"></i> Publier la réponse</button>
         </div>
@@ -596,6 +596,7 @@
     return `
       <div class="card card-pad-lg">
         <div class="chat-shell">
+          <div class="demo-note" role="note"><i class="fas fa-circle-info"></i> Démonstration, réponses simulées : l'assistant renvoie des réponses écrites à l'avance, aucun modèle d'IA n'est interrogé.</div>
           <div class="chat-stream" id="chatStream"></div>
           <div class="suggestions" id="suggestions">${sugg}</div>
           <div class="composer">
