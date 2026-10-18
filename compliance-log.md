@@ -53,13 +53,15 @@ aucun appel à un modèle ou à une API d'IA, aucune dépendance de machine lear
     (démonstration) ».
 - **Vérification :** `index.html` : bandeau, note et les 3 libellés présents,
   sans erreur JS ni débordement horizontal, sur bureau et sur mobile.
-  `resto-pilot.html` : bandeau présent ; la note et les libellés sont dans le
-  code, mais pas affichés à cause d'un bug JS antérieur (voir remarques).
+  `resto-pilot.html` : mêmes contrôles, tous réussis après correction du bug JS
+  antérieur (voir remarques).
 - **Statut :** à revoir (corrigé et vérifié manuellement ; à confirmer par un
   scan Reguardian.eu)
 
 ## Remarques hors AI Act
 
-- `resto-pilot.html` lève l'erreur `Identifier '$' has already been declared` au
-  chargement, ce qui bloque la navigation entre les pages. Ce bug existait avant
-  cet audit et n'a pas été corrigé ici.
+- 2026-10-18 : `resto-pilot.html` levait l'erreur `Identifier '$' has already
+  been declared` au chargement, ce qui bloquait la navigation entre les pages.
+  Cause : les `$$` du script avaient été remplacés par `$` lors de la copie de
+  `assets/js/app.js`. Les 5 `$$` ont été rétablis ; le script est de nouveau
+  identique à `assets/js/app.js`. Statut : corrigé.
