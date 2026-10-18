@@ -939,7 +939,7 @@ window.RP = {
 (function () {
   const D = window.RP;
   const $ = (s, r = document) => r.querySelector(s);
-  const $ = (s, r = document) => [...r.querySelectorAll(s)];
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const eur = (n) => n.toLocaleString("fr-FR");
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
@@ -1117,8 +1117,8 @@ window.RP = {
 
   function mountDashboard() {
     drawCaChart("week");
-    $("#caRange") && $("#caRange button").forEach(b => b.onclick = () => {
-      $("#caRange button").forEach(x => x.classList.remove("active"));
+    $("#caRange") && $$("#caRange button").forEach(b => b.onclick = () => {
+      $$("#caRange button").forEach(x => x.classList.remove("active"));
       b.classList.add("active"); drawCaChart(b.dataset.range);
     });
   }
@@ -1572,7 +1572,7 @@ window.RP = {
     const handler = () => { const v = input.value.trim(); if (!v) return; input.value = ""; ask(v); };
     send.onclick = handler;
     input.onkeydown = e => { if (e.key === "Enter") handler(); };
-    $("#suggestions .chip-suggest").forEach(c => c.onclick = () => ask(c.dataset.q));
+    $$("#suggestions .chip-suggest").forEach(c => c.onclick = () => ask(c.dataset.q));
     setTimeout(() => input.focus(), 100);
   }
 
@@ -1595,7 +1595,7 @@ window.RP = {
     $("#pageSub").textContent = p.sub;
     $("#content").innerHTML = p.render();
     if (p.mount) p.mount();
-    $(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.nav === key));
+    $$(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.nav === key));
     window.scrollTo({ top: 0, behavior: "smooth" });
     closeSidebar();
     location.hash = key;
