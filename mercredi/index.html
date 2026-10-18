@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="description" content="Retrouvez les dessins animés diffusés à la télévision française de 1975 à 1987 et leurs génériques, depuis des sources légales." />
-  <meta name="theme-color" content="#14112b" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#f4f5f9" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#11121c" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
   <title>Mercredi 75-87</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&family=VT323&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -18,7 +19,7 @@
 
   <header class="top">
     <a class="logo" href="#/" aria-label="Mercredi 75-87, accueil">
-      <span class="logo-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="logo-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
       <span class="logo-text">Mercredi<small>75·87</small></span>
     </a>
     <p class="tagline">Les dessins animés de la télé française, de 1975 à 1987</p>
@@ -65,7 +66,7 @@
             <button class="btn btn-rond" id="jbPrec" aria-label="Générique précédent">⏮</button>
             <button class="btn btn-rond btn-play" id="jbPlay" aria-label="Lecture">▶</button>
             <button class="btn btn-rond" id="jbSuiv" aria-label="Générique suivant">⏭</button>
-            <button class="btn btn-rond" id="jbMelange" aria-pressed="false" aria-label="Lecture aléatoire">🔀</button>
+            <button class="btn btn-rond" id="jbMelange" aria-pressed="false" aria-label="Lecture aléatoire">⇄</button>
           </div>
           <div class="jb-source" role="radiogroup" aria-label="Génériques à jouer">
             <label><input type="radio" name="jbSource" value="tous" checked /> Tous</label>

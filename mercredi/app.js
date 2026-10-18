@@ -185,9 +185,18 @@ function resultats() {
 }
 
 /* ---------- Catalogue ---------- */
+// Luminance relative approximative d'une couleur #rrggbb (0 = noir, 1 = blanc).
+function luminance(hex) {
+  const h = hex.length === 4 ? hex.replace(/^#(.)(.)(.)$/, "#$1$1$2$2$3$3") : hex;
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function vignetteHTML(d) {
-  const c1 = couleurValide(d.couleurs?.[0], "#3a2a8c");
-  const c2 = couleurValide(d.couleurs?.[1], "#ff4f9a");
+  let c1 = couleurValide(d.couleurs?.[0], "#3a2a8c");
+  let c2 = couleurValide(d.couleurs?.[1], "#ff4f9a");
+  // Le titre est blanc : la couleur la plus sombre sert de fond.
+  if (luminance(c1) > luminance(c2)) [c1, c2] = [c2, c1];
   const img = urlHttps(d.image) || (d.image && !/^[a-z]+:/i.test(d.image) ? d.image : "");
   const annee = d.premiereDiffusion?.annee;
   return `<div class="vignette" style="--c1:${c1};--c2:${c2}">
@@ -199,7 +208,6 @@ function vignetteHTML(d) {
 
 function carteHTML(d) {
   const p = d.premiereDiffusion || {};
-  const aUnGenerique = lecteursGenerique(d).some((m) => m.embed);
   return `<article class="carte">
       <button class="coeur" type="button" data-id="${esc(d.id)}" data-titre="${esc(d.titre)}"></button>
       <a class="carte-lien" href="#/dessin-anime/${encodeURIComponent(d.id)}">
@@ -210,7 +218,6 @@ function carteHTML(d) {
           <div class="puces">
             ${p.chaine ? `<span class="puce puce-chaine">${esc(p.chaine)}</span>` : ""}
             ${p.emission ? `<span class="puce">${esc(p.emission)}</span>` : ""}
-            ${aUnGenerique ? `<span class="puce puce-son">♪ générique</span>` : ""}
           </div>
         </div>
       </a>
@@ -404,7 +411,7 @@ const jukebox = {
     if (aucun) {
       ol.innerHTML = "";
       vide.innerHTML = this.source() === "favoris"
-        ? `<strong>Aucun générique jouable dans vos favoris.</strong><br />Ajoutez en favori des dessins animés dont le générique est disponible (pastille « ♪ générique »).`
+        ? `<strong>Aucun générique jouable dans vos favoris.</strong><br />Ajoutez en favori des dessins animés dont le générique est disponible.`
         : `<strong>Aucun générique disponible.</strong><br />Pour en ajouter un, renseignez l'identifiant YouTube de la vidéo dans <code>data/dessins-animes.json</code> (voir la notice).`;
       return;
     }
