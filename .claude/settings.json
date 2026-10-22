@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "oh-my-claude": {
+      "source": {
+        "source": "github",
+        "repo": "TechDufus/oh-my-claude"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "oh-my-claude@oh-my-claude": true
+  }
+}
