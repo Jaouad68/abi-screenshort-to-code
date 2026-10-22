@@ -1,7 +1,7 @@
 {
   "version": 1,
   "historyId": "ea76f99d-bea2-49b2-ab4f-5df2baaab33e",
-  "currentRevision": "c95d2e48-e9b6-4327-aba1-b2432a758bfc",
+  "currentRevision": "b95a44cd-26e5-4302-9fa0-c897dff29f20",
   "pendingChanges": false,
   "files": {
     "AGENTS.md": {
@@ -77,8 +77,8 @@
       "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/53/53dbce1e19aa713cbb12ee0bc4d206143b45ab15e6ffbfcaa8f69572d4d24d50"
     },
     "index.html": {
-      "hash": "5b435a8635791f8e3b1d5b55884272692c98b2b9c9c5076b795d5833d1deb78e",
-      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/5b/5b435a8635791f8e3b1d5b55884272692c98b2b9c9c5076b795d5833d1deb78e"
+      "hash": "9a49fe646259c8805b32fdcca0d19feab98f298c4caec42a1a334bb4963cca82",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/9a/9a49fe646259c8805b32fdcca0d19feab98f298c4caec42a1a334bb4963cca82"
     },
     "meta.json": {
       "hash": "8970c77259a59e694770f1d078850aedfe12e06437e42ed31c332136cbedffef",
@@ -91,6 +91,34 @@
     "assets/js/gsap.min.js": {
       "hash": "c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280",
       "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/c1/c174bfce53a729418d57a8ad8625e7247c793a22fef8e2851e3cfa3de9cd8280"
+    },
+    "assets/sfx/click.mp3": {
+      "hash": "075e17bdac5c13662a1c9530050e0046f81d4138e00eb3bf30427a7b4404103d",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/07/075e17bdac5c13662a1c9530050e0046f81d4138e00eb3bf30427a7b4404103d"
+    },
+    "assets/sfx/CREDITS.md": {
+      "hash": "79590c7738b0427b10f362f76b02cfd2643158a40e1d5fd787f9ac6b33bcf4ce",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/79/79590c7738b0427b10f362f76b02cfd2643158a40e1d5fd787f9ac6b33bcf4ce"
+    },
+    "assets/sfx/impact-bass-1.mp3": {
+      "hash": "634d5eda5eb7b501aca98393a64f3815eccf24157cd1d95df55aaec1b5000bd7",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/63/634d5eda5eb7b501aca98393a64f3815eccf24157cd1d95df55aaec1b5000bd7"
+    },
+    "assets/sfx/key-press.mp3": {
+      "hash": "bcc892df0898bf466162f14233c3e92a8c1ea351f6affd8a3a7e56c9a760bb72",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/bc/bcc892df0898bf466162f14233c3e92a8c1ea351f6affd8a3a7e56c9a760bb72"
+    },
+    "assets/sfx/notification.mp3": {
+      "hash": "b1559967dedb7994a82371f10cec9f7f3992e6b147b4cd88d62112bcdc3f9ba3",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/b1/b1559967dedb7994a82371f10cec9f7f3992e6b147b4cd88d62112bcdc3f9ba3"
+    },
+    "assets/sfx/pop.mp3": {
+      "hash": "19ab7193f626ff57fdeef60b45543bac416fcbcec803cfb417abe4b271c1b352",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/19/19ab7193f626ff57fdeef60b45543bac416fcbcec803cfb417abe4b271c1b352"
+    },
+    "assets/sfx/whoosh.mp3": {
+      "hash": "c2efd9d902a59bf9ec5019035d7deadd17762136896b6e3cb6dd99ea50997a30",
+      "content": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/c2/c2efd9d902a59bf9ec5019035d7deadd17762136896b6e3cb6dd99ea50997a30"
     }
   },
   "revisions": {
@@ -154,12 +182,55 @@
           "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/11/11ce765beb40a18943346c84eca7371cd2e191e866e59599205f7007849ffc2d"
         }
       }
+    },
+    "b95a44cd-26e5-4302-9fa0-c897dff29f20": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792708626539,
+      "endedAt": 1792708626873,
+      "files": {
+        "assets/sfx/click.mp3": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/07/075e17bdac5c13662a1c9530050e0046f81d4138e00eb3bf30427a7b4404103d"
+        },
+        "assets/sfx/CREDITS.md": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/79/79590c7738b0427b10f362f76b02cfd2643158a40e1d5fd787f9ac6b33bcf4ce"
+        },
+        "assets/sfx/impact-bass-1.mp3": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/63/634d5eda5eb7b501aca98393a64f3815eccf24157cd1d95df55aaec1b5000bd7"
+        },
+        "assets/sfx/key-press.mp3": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/bc/bcc892df0898bf466162f14233c3e92a8c1ea351f6affd8a3a7e56c9a760bb72"
+        },
+        "assets/sfx/notification.mp3": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/b1/b1559967dedb7994a82371f10cec9f7f3992e6b147b4cd88d62112bcdc3f9ba3"
+        },
+        "assets/sfx/pop.mp3": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/19/19ab7193f626ff57fdeef60b45543bac416fcbcec803cfb417abe4b271c1b352"
+        },
+        "assets/sfx/whoosh.mp3": {
+          "before": null,
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/c2/c2efd9d902a59bf9ec5019035d7deadd17762136896b6e3cb6dd99ea50997a30"
+        },
+        "index.html": {
+          "before": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/5b/5b435a8635791f8e3b1d5b55884272692c98b2b9c9c5076b795d5833d1deb78e",
+          "after": "/root/.cache/hyperframes/history/ea76f99d-bea2-49b2-ab4f-5df2baaab33e/blobs/9a/9a49fe646259c8805b32fdcca0d19feab98f298c4caec42a1a334bb4963cca82"
+        }
+      }
     }
   },
   "checks": {
     "latest": {
-      "revision": "c95d2e48-e9b6-4327-aba1-b2432a758bfc",
-      "id": "ccdc0bd5-335d-49f9-b9ec-5b9ddc8cdaa6"
+      "revision": "b95a44cd-26e5-4302-9fa0-c897dff29f20",
+      "id": "960a1b0b-5927-4e9c-a4b6-3aefd2019992"
     },
     "revisions": {
       "17bb60f1-36d1-4530-b354-c3762e960ae2": [
@@ -217,6 +288,35 @@
           "contentHash": "88a8a209ace137dedc413325df06590f0dd1c640b07b5d1fce0e888f4e8a9b54",
           "revision": "c95d2e48-e9b6-4327-aba1-b2432a758bfc",
           "inputFingerprint": "bb9f1ff5458ab22838920474a62b98cc60c564bcff740faae2f80565736235a6",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ],
+      "b95a44cd-26e5-4302-9fa0-c897dff29f20": [
+        {
+          "id": "960a1b0b-5927-4e9c-a4b6-3aefd2019992",
+          "scope": "project",
+          "report": "/home/user/abi-screenshort-to-code/videos/resto-pilot-rupture/film/.hyperframes/artifacts/checks/960a1b0b-5927-4e9c-a4b6-3aefd2019992.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 3000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1792708635206,
+          "contentHash": "1faaaa1722ebe1d3a4c7bac6aebb68507c9a0c600181ee02c1945d55a861970e",
+          "revision": "b95a44cd-26e5-4302-9fa0-c897dff29f20",
+          "inputFingerprint": "56ecc59bfe6da52c1a76b3af95c33256d34509d1ea4b847cadefc075a22ee506",
           "inputScope": "local-project-files",
           "attribution": "recorded-revision"
         }
@@ -806,13 +906,14 @@
   },
   "renders": {
     "latest": {
-      "id": "e13e87da-3139-492f-87d0-c317c532563c",
-      "completedAt": 1792708325200,
-      "output": "/home/user/abi-screenshort-to-code/videos/resto-pilot-rupture/film/renders/brouillon-sans-son.mp4",
+      "id": "e259b27f-cd14-4a79-bad3-e63d1245c2ab",
+      "completedAt": 1792708708938,
+      "output": "/home/user/abi-screenshort-to-code/videos/resto-pilot-rupture/film/renders/resto-pilot-rupture-bruitages-1920x1080.mp4",
       "status": "completed",
-      "revision": "c95d2e48-e9b6-4327-aba1-b2432a758bfc"
+      "revision": "b95a44cd-26e5-4302-9fa0-c897dff29f20"
     },
     "retainedRevisions": [
+      "b95a44cd-26e5-4302-9fa0-c897dff29f20",
       "c95d2e48-e9b6-4327-aba1-b2432a758bfc"
     ]
   },
