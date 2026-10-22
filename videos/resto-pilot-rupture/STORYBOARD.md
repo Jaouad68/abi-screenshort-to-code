@@ -19,7 +19,7 @@ Theme: 012 Thermal Receipt (« Ticket de cuisine ») · Format: 1920x1080 · Len
 | 5 | 0:14 | 5.5 | proof | technical | feed-stall | focal-iris | power4.out | hold | paper+red | slow-push-in | ticket-strip, saumon-line | | silence | surprise: the feed freezes for one full bar on SAUMON FRAIS 2,1 KG printed in red, music cuts to silence |
 | 6 | 0:19.5 | 5.0 | proof | technical | needle-swing | match-cut-shape | power3.out | radial | ink+paper+red | macro | kitchen-scale-gauge | balance-jauge | needle-tick | the iris opens from the red « 2,1 KG » onto a kitchen scale; the needle settles short of the band « VEN. SOIR +24 % » |
 | 7 | 0:24.5 | 5.0 | proof | trustworthy | marker-draw | object-carry | power1.inOut | clockwise | paper+red+ink | locked | ticket-strip, marker-loop | | marker-squeak | the red arc of the gauge becomes the marker loop around the saumon block; surprise: hard stop, the ticket tears off along its zig-zag edge |
-| 8 | 0:29.5 | 5.0 | proof | trustworthy | pin-drop | cursor-carry | back.out(1.4) | from-right | paper+ink+green | top-down | ticket-rail, prep-line | rail-a-bons | rail-clip | the torn ticket is clipped onto the kitchen rail next to the prep list; only « SAUMON FRAIS · 9 KG À COMMANDER » stays lit |
+| 8 | 0:29.5 | 5.0 | proof | trustworthy | pin-drop | cursor-carry | back.out(1.4) | from-left | paper+ink+green | top-down | ticket-rail, prep-line | rail-a-bons | rail-clip | the torn ticket is clipped onto the kitchen rail next to the prep list; only « SAUMON FRAIS · 9 KG À COMMANDER » stays lit |
 | 9 | 0:34.5 | 4.5 | proof | trustworthy | cursor-press | time-lapse-tick | power2.out | center | green+orange+paper | locked | commander-button, toast | | confirm-ding | the human decides: the cursor presses « Commander → », toast « Action « Commander » lancée » |
 | 10 | 0:39 | 4.0 | cta | warm | motif:chalk-write | graphic-match-color | sine.inOut | left-to-right | slate+chalk | slow-push-in | ardoise | | room-tone | surprise: the clock ticks to « Vendredi, 21 h » and the same ardoise is back, « Pavé de saumon » unbroken |
 | 11 | 0:43 | 7.0 | cta | warm | type-set | | power3.inOut | center | green+chalk+orange | locked | brand-mark, lockup | | warm-chord | lockup: mark + « Resto Pilot » + « Le copilote IA de votre restaurant. » + « Données de démonstration » |
@@ -81,7 +81,7 @@ Theme: 012 Thermal Receipt (« Ticket de cuisine ») · Format: 1920x1080 · Len
 ### Plan 8 · Le rail à bons (0:29.5, 5 s)
 - key visual : vue de dessus du rail de la cuisine ; le ticket arraché est pincé à côté de la liste de préparation ; seule la ligne « SAUMON FRAIS · 9 KG À COMMANDER · RUPTURE PRÉVUE » reste allumée.
 - new component : **rail-à-bons**, la liste de préparation réelle présentée comme des bons pincés au rail.
-- moves first : le ticket qui glisse depuis la droite et se pince.
+- moves first : le ticket qui glisse depuis la gauche (il continue le mouvement du plan 7) et se pince.
 
 ### Plan 9 · Le gérant décide (0:34.5, 4,5 s)
 - key visual : le bouton orange « Commander → » de l'alerte, le curseur appuie, le message « Action « Commander » lancée » apparaît.

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/js/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #16241f;
+        --ink: #18211f;
+        --chalk: #ede6d8;
+        --red: #d94a3d;
+        --accent: #d9743f;
+        --amber: #e8a53d;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+      }
+      #ground {
+        position: absolute;
+        inset: 0;
+        background: var(--ground);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="50"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="ground"></div>
+      <div id="ardoise" data-composition-id="ardoise" data-composition-src="compositions/ardoise.html"
+        data-start="0" data-duration="3.5" data-track-index="1" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 1"></div>
+      <div id="imprimante" data-composition-id="imprimante" data-composition-src="compositions/imprimante.html"
+        data-start="3.5" data-duration="16.5" data-track-index="2" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 2"></div>
+      <div id="balance" data-composition-id="balance" data-composition-src="compositions/balance.html"
+        data-start="19.5" data-duration="5" data-track-index="3" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 3"></div>
+      <div id="feutre" data-composition-id="feutre" data-composition-src="compositions/feutre.html"
+        data-start="24.5" data-duration="5" data-track-index="4" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 4"></div>
+      <div id="rail" data-composition-id="rail" data-composition-src="compositions/rail.html"
+        data-start="29.5" data-duration="5" data-track-index="5" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 5"></div>
+      <div id="commande" data-composition-id="commande" data-composition-src="compositions/commande.html"
+        data-start="34.5" data-duration="5.3" data-track-index="6" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 6"></div>
+      <div id="vendredi" data-composition-id="vendredi" data-composition-src="compositions/vendredi.html"
+        data-start="39" data-duration="4" data-track-index="7" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 7"></div>
+      <div id="signature" data-composition-id="signature" data-composition-src="compositions/signature.html"
+        data-start="43" data-duration="7" data-track-index="8" data-track-kind="graphics"
+        data-width="1920" data-height="1080" style="z-index: 8"></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #f4f1ec; overflow: hidden; font-family: "Inter", sans-serif; }
+    /* the real alert card from the dashboard, at 2.4x its size */
+    #cmd-card { position: absolute; left: 150px; top: 330px; width: 1620px; padding: 34px; display: flex; gap: 31px; border-radius: 24px;
+      background: #fbfaf7; border: 2px solid #eeeae2; border-left: 10px solid #d94a3d; box-shadow: 0 18px 40px rgba(24, 33, 31, 0.18); }
+    #cmd-ico { width: 86px; height: 86px; border-radius: 24px; background: #fbe1de; display: grid; place-items: center; flex-shrink: 0; }
+    #cmd-ico svg { width: 40px; height: 40px; fill: #b3362b; }
+    #cmd-main { flex: 1; min-width: 0; }
+    #cmd-title { font-size: 34px; font-weight: 600; color: #18211f; }
+    #cmd-text { font-size: 30px; color: #5c6b68; margin-top: 6px; line-height: 1.4; }
+    #cmd-time { font-size: 28px; color: #6f7c78; margin-top: 12px; }
+    #cmd-action { font-size: 32px; font-weight: 600; color: #b85a2c; align-self: center; white-space: nowrap; padding: 10px 6px; }
+    #cmd-toast { position: absolute; left: 50%; bottom: 120px; margin-left: -330px; width: 660px; height: 96px; border-radius: 30px; background: #18211f;
+      color: #fbfaf7; display: flex; align-items: center; justify-content: center; gap: 22px; font-size: 32px; font-weight: 500;
+      box-shadow: 0 18px 50px rgba(24, 33, 31, 0.14); }
+    #cmd-toast svg { width: 36px; height: 36px; fill: #2e9e6b; }
+    #cmd-cursor { position: absolute; left: 0; top: 0; width: 40px; height: 64px; }
+    #cmd-demo { position: absolute; left: 150px; bottom: 50px; font-size: 28px; color: #5c6b68; }
+  </style>
+  <div id="root" data-composition-id="commande" data-width="1920" data-height="1080">
+    <div id="cmd-card">
+      <div id="cmd-ico"><svg viewBox="0 0 512 512"><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg></div>
+      <div id="cmd-main">
+        <div id="cmd-title">Rupture imminente — Saumon frais</div>
+        <div id="cmd-text">Stock à 2,1 kg. Vendredi soir prévu à +24 % d'affluence. Commande conseillée avant 16 h.</div>
+        <div id="cmd-time">Il y a 12 min</div>
+      </div>
+      <div id="cmd-action">Commander →</div>
+    </div>
+    <div id="cmd-toast"><svg viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>Action « Commander » lancée</div>
+    <div id="cmd-demo">Données de démonstration</div>
+    <svg id="cmd-cursor" viewBox="0 0 320 512"><path d="M0 55.2V426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320H297.9c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z" fill="#18211f" stroke="#fbfaf7" stroke-width="22"/></svg>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // the card arrives slightly large and settles, as after a click into a new screen
+      tl.fromTo("#cmd-card", { scale: 1.04, filter: "blur(6px)" }, { scale: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out" }, 0);
+      // the cursor, carried from the rail, glides to « Commander → »
+      tl.fromTo("#cmd-cursor", { x: 1560, y: 760 }, { x: 1640, y: 512, duration: 0.9, ease: "power2.inOut" }, 0.1);
+      // the human decides: press
+      tl.fromTo("#cmd-action", { scale: 1 }, { scale: 0.96, duration: 0.1, ease: "power2.in" }, 1.1);
+      tl.to("#cmd-action", { scale: 1, duration: 0.2, ease: "power2.out" }, 1.2);
+      tl.fromTo("#cmd-cursor", { scale: 1 }, { scale: 0.92, duration: 0.1, ease: "power2.in", immediateRender: false }, 1.1);
+      tl.to("#cmd-cursor", { scale: 1, duration: 0.2, ease: "power2.out" }, 1.2);
+      // the app's own toast
+      tl.fromTo("#cmd-toast", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.4, ease: "expo.out" }, 1.2);
+      window.__timelines["commande"] = tl;
+    })();
+  </script>
+</template>

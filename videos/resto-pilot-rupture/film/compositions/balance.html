@@ -1,0 +1,54 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #bal-world { position: absolute; inset: 0; background: #e9e3d7; }
+    #bal-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    .bal-mono { font-family: "JetBrains Mono", monospace; font-weight: 700; }
+  </style>
+  <div id="root" data-composition-id="balance" data-width="1920" data-height="1080">
+    <div id="bal-world">
+      <svg id="bal-svg" viewBox="0 0 1920 1080">
+        <!-- the scale's body and plate -->
+        <rect x="560" y="900" width="800" height="120" rx="28" fill="#cfc6b6" />
+        <circle cx="960" cy="560" r="430" fill="#d9d1c2" />
+        <circle cx="960" cy="560" r="400" fill="#fbf7ef" stroke="#18211f" stroke-width="10" />
+        <g id="bal-ticks" stroke="#18211f" stroke-linecap="round"></g>
+        <path id="bal-band" d="M1238.5 365 A340 340 0 0 1 1288.4 648" fill="none" stroke="#d94a3d" stroke-width="28" stroke-linecap="round" opacity="0.85" />
+        <text x="1418" y="470" class="bal-mono" font-size="38" fill="#d94a3d">VEN. SOIR</text>
+        <text x="1418" y="520" class="bal-mono" font-size="38" fill="#d94a3d">+24 %</text>
+        <text x="960" y="430" text-anchor="middle" class="bal-mono" font-size="36" fill="#7d7466">SAUMON FRAIS</text>
+        <g id="bal-needle">
+          <line x1="960" y1="560" x2="960" y2="250" stroke="#18211f" stroke-width="12" stroke-linecap="round" />
+        </g>
+        <circle cx="960" cy="560" r="26" fill="#18211f" />
+        <text id="bal-readout" x="960" y="790" text-anchor="middle" class="bal-mono" font-size="84" fill="#18211f">2,1 kg</text>
+      </svg>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // static dial ticks, every 10° from -120° to +120° (no scale numbers: the app gives none)
+      const g = document.getElementById("bal-ticks");
+      for (let a = -120; a <= 120; a += 10) {
+        const r = (a * Math.PI) / 180, major = a % 40 === 0;
+        const r1 = major ? 330 : 350, r2 = 380;
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        l.setAttribute("x1", 960 + r1 * Math.sin(r)); l.setAttribute("y1", 560 - r1 * Math.cos(r));
+        l.setAttribute("x2", 960 + r2 * Math.sin(r)); l.setAttribute("y2", 560 - r2 * Math.cos(r));
+        l.setAttribute("stroke-width", major ? 8 : 4);
+        g.appendChild(l);
+      }
+      const tl = gsap.timeline({ paused: true });
+      // focal iris: the world opens from the red « 2,1 KG » of the ticket
+      tl.fromTo("#bal-world", { clipPath: "circle(0px at 1545px 660px)" }, { clipPath: "circle(2400px at 1545px 660px)", duration: 0.5, ease: "power2.inOut" }, 0);
+      // the needle swings from empty and settles at 2,1 kg, far from the Friday band
+      tl.fromTo("#bal-needle", { rotation: -120, svgOrigin: "960 560" }, { rotation: -86, duration: 0.95, ease: "power3.out" }, 0.6);
+      tl.to("#bal-needle", { rotation: -98, duration: 0.35, ease: "sine.inOut" }, 1.55);
+      tl.to("#bal-needle", { rotation: -95, duration: 0.3, ease: "sine.inOut" }, 1.9);
+      tl.fromTo("#bal-readout", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 2.2);
+      // the band brightens: its arc becomes the marker loop of the next shot
+      tl.fromTo("#bal-band", { attr: { "stroke-width": 28 }, opacity: 0.85 }, { attr: { "stroke-width": 44 }, opacity: 1, duration: 0.6, ease: "power2.inOut" }, 4.2);
+      window.__timelines["balance"] = tl;
+    })();
+  </script>
+</template>

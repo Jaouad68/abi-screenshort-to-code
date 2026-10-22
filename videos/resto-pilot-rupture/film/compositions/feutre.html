@@ -1,0 +1,51 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #16241f; overflow: hidden; font-family: "JetBrains Mono", monospace; }
+    #feu-piece { position: absolute; left: 260px; top: 60px; width: 1400px; height: 840px; }
+    #feu-paper { position: absolute; inset: 0; background: #fbf7ef; box-shadow: 0 30px 60px rgba(8, 14, 12, 0.45); padding: 70px 90px 0; }
+    #feu-tear { position: absolute; left: 0; bottom: -22px; width: 1400px; height: 24px; }
+    .fl { height: 96px; display: flex; align-items: center; white-space: nowrap; font-weight: 700; font-size: 56px; color: #18211f; }
+    .fl .l { flex: 0 0 auto; }
+    .fl .d { flex: 1 1 auto; overflow: hidden; color: #c3b8a5; font-weight: 500; }
+    .fl .d::before { content: "......................................................"; }
+    #feu-l0 { opacity: 0.35; color: #b97f1e; }
+    #feu-l0 .l { color: #18211f; }
+    #feu-l1 { color: #d94a3d; font-size: 72px; height: 120px; }
+    #feu-l1 .d { color: rgba(217, 74, 61, 0.5); }
+    .fn { color: #d94a3d; font-weight: 700; font-size: 50px; height: 84px; display: flex; align-items: center; padding-left: 60px; }
+    #feu-l4 { margin-top: 30px; border-top: 4px dashed #c9bfae; height: 0; }
+    #feu-loop { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #feu-printer { position: absolute; left: 160px; top: 900px; width: 1600px; height: 220px; border-radius: 40px 40px 0 0; background: #222a27; }
+    #feu-mouth { position: absolute; left: 230px; top: 900px; width: 1460px; height: 18px; border-radius: 9px; background: #0d1311; }
+  </style>
+  <div id="root" data-composition-id="feutre" data-width="1920" data-height="1080">
+    <div id="feu-piece">
+      <div id="feu-paper">
+        <div id="feu-l0" class="fl"><span class="l">CRÈME FRAÎCHE</span><span class="d"></span><span>1,8 KG !</span></div>
+        <div id="feu-l1" class="fl"><span class="l">SAUMON FRAIS</span><span class="d"></span><span>2,1 KG</span></div>
+        <div id="feu-l2" class="fn">VEN. SOIR : +24 % D'AFFLUENCE</div>
+        <div id="feu-l3" class="fn">COMMANDER AVANT 16 H</div>
+        <div id="feu-l4"></div>
+      </div>
+      <svg id="feu-tear" viewBox="0 0 1400 24" preserveAspectRatio="none"><path d="M0 0 L1400 0 L1400 4 L1380 22 L1360 4 L1340 22 L1320 4 L1300 22 L1280 4 L1260 22 L1240 4 L1220 22 L1200 4 L1180 22 L1160 4 L1140 22 L1120 4 L1100 22 L1080 4 L1060 22 L1040 4 L1020 22 L1000 4 L980 22 L960 4 L940 22 L920 4 L900 22 L880 4 L860 22 L840 4 L820 22 L800 4 L780 22 L760 4 L740 22 L720 4 L700 22 L680 4 L660 22 L640 4 L620 22 L600 4 L580 22 L560 4 L540 22 L520 4 L500 22 L480 4 L460 22 L440 4 L420 22 L400 4 L380 22 L360 4 L340 22 L320 4 L300 22 L280 4 L260 22 L240 4 L220 22 L200 4 L180 22 L160 4 L140 22 L120 4 L100 22 L80 4 L60 22 L40 4 L20 22 L0 4 Z" fill="#fbf7ef"/></svg>
+      <svg id="feu-loop" viewBox="0 0 1400 840" style="width:1400px;height:840px">
+        <path id="feu-loop-path" d="M1230 150 C 1380 190, 1410 470, 1180 560 C 900 640, 300 640, 110 540 C -40 450, 40 210, 300 160 C 560 112, 980 112, 1230 150 C 1300 162, 1340 190, 1350 220"
+          fill="none" stroke="#d94a3d" stroke-width="16" stroke-linecap="round" stroke-dasharray="3600" stroke-dashoffset="3600" />
+      </svg>
+    </div>
+    <div id="feu-printer"></div>
+    <div id="feu-mouth"></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // the band's arc carries on as the marker loop, drawn clockwise around the salmon block
+      tl.fromTo("#feu-loop-path", { attr: { "stroke-dashoffset": 3600 } }, { attr: { "stroke-dashoffset": 0 }, duration: 1.0, ease: "power1.inOut" }, 0.1);
+      // hard stop, then the ticket tears off along its zig-zag edge
+      tl.fromTo("#feu-piece", { y: 0, rotation: 0, transformOrigin: "0% 100%" }, { y: -26, rotation: -4, duration: 0.4, ease: "power3.out" }, 2.5);
+      // carry: the torn ticket leaves to the right, toward the kitchen rail
+      tl.fromTo("#feu-piece", { x: 0, scale: 1, filter: "blur(0px)" }, { x: 1500, scale: 0.6, filter: "blur(10px)", duration: 1.0, ease: "power3.in", immediateRender: false }, 4.0);
+      window.__timelines["feutre"] = tl;
+    })();
+  </script>
+</template>

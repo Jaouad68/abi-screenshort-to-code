@@ -1,0 +1,69 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #3b4642; overflow: hidden; font-family: "JetBrains Mono", monospace; }
+    #rail-bar { position: absolute; left: 0; top: 110px; width: 1920px; height: 52px; background: #aeb6b2; box-shadow: 0 10px 20px rgba(8, 14, 12, 0.35); }
+    #rail-bar-hi { position: absolute; left: 0; top: 116px; width: 1920px; height: 4px; background: #d6dcd9; }
+    .rail-clip { position: absolute; top: 96px; width: 90px; height: 84px; border-radius: 10px; background: #6d7672; box-shadow: 0 6px 12px rgba(8, 14, 12, 0.3); }
+    /* the torn ticket from the previous shot, carried in at 0.6x */
+    #rail-piece { position: absolute; left: 60px; top: 150px; width: 1400px; height: 840px; }
+    #rail-piece-paper { position: absolute; inset: 0; background: #fbf7ef; box-shadow: 0 30px 60px rgba(8, 14, 12, 0.45); padding: 70px 90px 0; }
+    .rl { height: 96px; display: flex; align-items: center; white-space: nowrap; font-weight: 700; font-size: 56px; color: #18211f; }
+    .rl .d { flex: 1 1 auto; overflow: hidden; color: #c3b8a5; font-weight: 500; }
+    .rl .d::before { content: "......................................................"; }
+    .rn { color: #d94a3d; font-weight: 700; font-size: 50px; height: 84px; display: flex; align-items: center; padding-left: 60px; }
+    /* the prep list, already on the rail */
+    #rail-prep { position: absolute; left: 960px; top: 150px; width: 880px; height: 820px; background: #fbf7ef; padding: 64px 44px 0;
+      box-shadow: 0 30px 60px rgba(8, 14, 12, 0.45); }
+    #rail-prep-h { font-size: 34px; font-weight: 700; letter-spacing: 0.04em; text-align: center; color: #18211f; height: 70px; }
+    #rail-prep-r { border-top: 4px dashed #c9bfae; margin: 6px 0 24px; }
+    .pl { display: flex; justify-content: space-between; font-size: 32px; font-weight: 700; color: #18211f; height: 92px; align-items: center; white-space: nowrap; }
+    .pl .q { color: #5c6b68; }
+    #rail-p5 { color: #d94a3d; }
+    #rail-p5 .q { color: #d94a3d; }
+    #rail-p6 { color: #d94a3d; font-size: 28px; font-weight: 500; height: 50px; }
+    #rail-cursor { position: absolute; left: 0; top: 0; width: 40px; height: 64px; }
+  </style>
+  <div id="root" data-composition-id="rail" data-width="1920" data-height="1080">
+    <div id="rail-bar"></div>
+    <div id="rail-bar-hi"></div>
+    <div id="rail-prep">
+      <div id="rail-prep-h">QUANTITÉS À PRÉPARER</div>
+      <div id="rail-prep-r"></div>
+      <div id="rail-p1" class="pl"><span>MAGRET DE CANARD</span><span class="q">32 PORTIONS</span></div>
+      <div id="rail-p2" class="pl"><span>PÂTE À BURGER (STEAKS)</span><span class="q">26 PIÈCES</span></div>
+      <div id="rail-p3" class="pl"><span>BASE RISOTTO / CÈPES</span><span class="q">18 PORTIONS</span></div>
+      <div id="rail-p4" class="pl"><span>PÂTE À TARTE (DESSERT)</span><span class="q">3 PLAQUES</span></div>
+      <div id="rail-p5" class="pl"><span>SAUMON FRAIS</span><span class="q">9 KG À COMMANDER</span></div>
+      <div id="rail-p6" class="pl"><span>RUPTURE PRÉVUE</span></div>
+    </div>
+    <div class="rail-clip" style="left: 1355px"></div>
+    <div id="rail-piece">
+      <div id="rail-piece-paper">
+        <div class="rl" style="opacity: 0.35"><span>CRÈME FRAÎCHE</span><span class="d"></span><span style="color: #b97f1e">1,8 KG !</span></div>
+        <div class="rl" style="color: #d94a3d; font-size: 72px; height: 120px"><span>SAUMON FRAIS</span><span class="d" style="color: rgba(217, 74, 61, 0.5)"></span><span>2,1 KG</span></div>
+        <div class="rn">VEN. SOIR : +24 % D'AFFLUENCE</div>
+        <div class="rn">COMMANDER AVANT 16 H</div>
+      </div>
+      <svg viewBox="0 0 1400 840" style="position: absolute; left: 0; top: 0; width: 1400px; height: 840px; overflow: visible">
+        <path d="M1230 150 C 1380 190, 1410 470, 1180 560 C 900 640, 300 640, 110 540 C -40 450, 40 210, 300 160 C 560 112, 980 112, 1230 150 C 1300 162, 1340 190, 1350 220"
+          fill="none" stroke="#d94a3d" stroke-width="16" stroke-linecap="round" />
+      </svg>
+    </div>
+    <div id="rail-clip-a" class="rail-clip" style="left: 440px"></div>
+    <svg id="rail-cursor" viewBox="0 0 320 512"><path d="M0 55.2V426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320H297.9c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z" fill="#18211f" stroke="#fbfaf7" stroke-width="22"/></svg>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // the carried ticket keeps travelling right and is clipped onto the rail
+      tl.fromTo("#rail-piece", { x: -1100, scale: 0.6, transformOrigin: "0px 0px", filter: "blur(10px)" },
+        { x: 0, filter: "blur(0px)", duration: 0.6, ease: "back.out(1.4)" }, 0);
+      tl.fromTo("#rail-clip-a", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.15, ease: "power4.out" }, 0.55);
+      // the prep list dims to the one line that matters
+      tl.fromTo(["#rail-p1", "#rail-p2", "#rail-p3", "#rail-p4"], { opacity: 1 }, { opacity: 0.3, duration: 0.6, ease: "power2.inOut", stagger: 0.06 }, 1.0);
+      // cursor carry: the cursor arrives on « 9 KG À COMMANDER »
+      tl.fromTo("#rail-cursor", { x: 1960, y: 1120 }, { x: 1560, y: 760, duration: 1.0, ease: "power2.inOut" }, 3.5);
+      window.__timelines["rail"] = tl;
+    })();
+  </script>
+</template>

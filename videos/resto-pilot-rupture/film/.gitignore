@@ -1,0 +1,4 @@
+# HyperFrames working files: snapshots, caches and draft renders
+.hyperframes/artifacts/
+.hyperframes/cache/
+renders/brouillon-*.mp4
