@@ -4,7 +4,7 @@ format: 1920x1080
 duration: 50s
 audio: music
 loop: false
-theme: ""                      # chosen at stage 3
+theme: "012 Thermal Receipt"   # adapté : « Ticket de cuisine »
 ---
 
 # Resto Pilot , le saumon ne manquera pas
