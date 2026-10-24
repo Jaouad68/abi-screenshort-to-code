@@ -373,6 +373,9 @@
   const audio = $("#audio");
   const player = { item: null, queue: [], index: -1, hls: null, triedAlt: false, state: "idle", sleepAt: 0, sleepTimer: null };
   audio.volume = store.get().volume ?? 1;
+  // iPhone : une appli installée sur l'écran d'accueil est muette en mode silencieux,
+  // sauf en session « playback », celle des lecteurs de musique (iOS 17 et plus).
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch { /* ignore */ }
 
   function attach(media, url, isHls, onFatal) {
     const native = media.canPlayType("application/vnd.apple.mpegurl");
