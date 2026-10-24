@@ -390,7 +390,13 @@
     return null;
   }
 
+  // Certains flux ne répondent jamais sans déclencher d'erreur : au-delà de ce délai,
+  // on passe au flux de secours plutôt que de rester sur « Connexion… ».
+  const STALL_MS = 15000;
+  let audioWatch;
+
   function stopAudio() {
+    clearTimeout(audioWatch);
     player.hls?.destroy();
     player.hls = null;
     audio.pause();
@@ -424,7 +430,12 @@
 
   function load(url, isHls) {
     player.hls = attach(audio, url, isHls, onAudioError);
-    audio.play().catch((e) => { if (e.name === "NotAllowedError") setState("paused"); });
+    clearTimeout(audioWatch);
+    audioWatch = setTimeout(() => { if (player.state === "loading") onAudioError(); }, STALL_MS);
+    audio.play().catch((e) => {
+      if (e.name === "NotAllowedError") { clearTimeout(audioWatch); setState("paused"); }
+      else if (e.name !== "AbortError") onAudioError();
+    });
   }
 
   function onAudioError() {
@@ -435,6 +446,7 @@
       load(player.item.alt, /\.m3u8/i.test(player.item.alt));
       return;
     }
+    stopAudio();
     setState("error");
     toast(`${player.item.name} ne répond pas pour le moment. Essaie une autre station.`);
   }
@@ -453,7 +465,7 @@
     playRadio(player.queue[i]);
   }
 
-  audio.addEventListener("playing", () => setState("playing"));
+  audio.addEventListener("playing", () => { clearTimeout(audioWatch); setState("playing"); });
   audio.addEventListener("waiting", () => setState("loading"));
   audio.addEventListener("pause", () => { if (player.state !== "error") setState("paused"); });
   audio.addEventListener("error", () => { if (audio.getAttribute("src")) onAudioError(); });
@@ -624,7 +636,9 @@
     loadTV();
   }
 
+  let tvWatch;
   function stopVideo() {
+    clearTimeout(tvWatch);
     tv.hls?.destroy();
     tv.hls = null;
     video.pause();
@@ -638,7 +652,8 @@
     $("#screen-msg").hidden = true;
     $("#screen-load").hidden = false;
     tv.hls = attach(video, url, /\.m3u8(\?|$)/i.test(url) || !/\.(mp4|webm)(\?|$)/i.test(url), onTVError);
-    video.play().catch(() => {});
+    tvWatch = setTimeout(() => { if (!$("#screen-load").hidden) onTVError(); }, STALL_MS + 5000);
+    video.play().catch((e) => { if (e.name !== "NotAllowedError" && e.name !== "AbortError") onTVError(); });
   }
 
   function onTVError() {
@@ -654,7 +669,7 @@
     msg.hidden = false;
   }
 
-  video.addEventListener("playing", () => { $("#screen-load").hidden = true; });
+  video.addEventListener("playing", () => { clearTimeout(tvWatch); $("#screen-load").hidden = true; });
   video.addEventListener("waiting", () => { $("#screen-load").hidden = false; });
   video.addEventListener("error", () => { if (video.getAttribute("src")) onTVError(); });
 
