@@ -44,6 +44,8 @@
   };
 
   const regionNames = new Intl.DisplayNames(["fr"], { type: "region" });
+  const langNames = new Intl.DisplayNames(["fr"], { type: "language" });
+  const langName = (l) => { try { const n = langNames.of(l); return n && n !== l ? n[0].toUpperCase() + n.slice(1) : l; } catch { return l; } };
   const countryName = (cc) => { try { return regionNames.of(cc) || cc; } catch { return cc; } };
   const flag = (cc) => (cc && cc.length === 2 ? String.fromCodePoint(...[...cc.toUpperCase()].map((c) => 0x1f1a5 + c.charCodeAt(0))) : "🌐");
   const COUNTRIES = ISO.map((code) => ({ code, name: countryName(code) })).sort((a, b) => a.name.localeCompare(b.name, "fr"));
@@ -239,6 +241,25 @@
     "so:premiumfree th:v2hcdn tr:gem,onetv uk:bbc,distro,pluto,rakuten,samsung,sportstribal " +
     "us:30a,3abn,abcnews,afrolandtv,amagi,canelatv,cbsn,cineversetv,distro,firetv,frequency,glewedtv,klowdtv,local,malimartv,pbs,plex,pluto," +
     "roku,samsung,sofast,ssh101,stirr,tcl,tubi,uplynk,vegasplus,vizio,wcetv,wfmz,wowza,xumo za:freevisiontv").split(" ").map((p) => { const [cc, list] = p.split(":"); return [cc, list.split(",")]; }));
+  // Langues de chaque pays (base iptv-org), limitées à celles qui ont une liste de chaînes.
+  const LANGS = Object.fromEntries(("AF:pus,prd,tuk AX:swe AL:sqi DZ:ara,fra AS:eng,smo AD:cat AO:por AI:eng AQ:eng AG:eng AR:grn,spa AM:hye AW:nld,pap AU:eng AT:deu " +
+    "AZ:aze,rus BS:eng BH:ara BD:ben BB:eng BY:bel,rus BE:deu,fra,nld BZ:eng,spa BJ:fra BM:eng BO:aym,grn,que,spa BQ:eng,nld,pap " +
+    "BA:bos,hrv,srp BW:eng BV:nor BR:por IO:eng VG:eng BN:msa BG:bul BF:fra BI:fra,run KH:khm CM:eng,fra CA:eng,fra CV:por KY:eng " +
+    "CF:fra TD:ara,fra CL:spa CN:zho CX:eng CC:eng CO:spa KM:ara,fra CK:eng CR:spa HR:hrv CU:spa CW:eng,nld,pap CY:ell,tur CZ:ces,slk " +
+    "CD:fra,kon,lin,lua,swa DK:dan DJ:ara,fra DM:eng DO:spa TL:por EC:spa EG:ara SV:spa GQ:fra,por,spa ER:ara,eng,tir EE:est ET:amh " +
+    "FK:eng FO:dan FJ:eng FI:fin,swe FR:fra GF:fra PF:fra TF:fra GA:fra GM:eng GE:kat DE:deu GH:eng GI:eng GR:ell GD:eng GP:fra " +
+    "GU:eng,spa GT:spa GG:eng,fra GN:fra GW:por GY:eng HT:fra,hat HM:eng HN:spa HK:eng,zho HU:hun IS:isl IN:eng,hin,tam ID:ind IR:fas " +
+    "IQ:ara IE:eng,gle IM:eng IL:ara,heb IT:ita CI:fra JM:eng JP:jpn JE:eng,fra JO:ara KZ:kaz,rus KE:eng,swa KI:eng XK:sqi,srp KW:ara " +
+    "KG:kir,rus LA:lao LV:lav LB:ara,fra LS:eng LR:eng LY:ara LI:deu LT:lit LU:deu,fra,ltz MO:por,zho MG:fra MW:eng MY:eng,msa MV:div " +
+    "ML:fra MT:eng,mlt MH:eng MQ:fra MR:ara,fra MU:eng,fra YT:fra MX:spa FM:eng MD:ron MC:fra MN:mon ME:cnr,srp,bos,sqi,hrv MS:eng " +
+    "MA:ara,fra MZ:por MM:mya NA:afr,deu,eng,her NR:eng NP:nep NL:nld NC:fra NZ:eng,mri NI:spa NE:fra NG:eng NU:eng NF:eng KP:kor " +
+    "MK:mkd MP:eng NO:nor OM:ara PK:eng,urd PW:eng PS:ara PA:spa PG:eng,hmo,tpi PY:grn,spa PE:aym,que,spa PH:eng,fil PN:eng PL:pol " +
+    "PT:por PR:eng,spa QA:ara CG:fra,kon,lin RO:ron RU:rus RW:eng,fra,kin RE:fra BL:fra SH:eng KN:eng LC:eng MF:fra PM:fra VC:eng " +
+    "WS:eng,smo SM:ita SA:ara SN:fra RS:srp SC:eng,fra SL:eng SG:eng,msa,zho,tam SX:eng,fra,nld SK:slk,ces SI:slv SB:eng SO:ara,som " +
+    "ZA:afr,eng,nbl,ssw,tso,ven,xho,zul GS:eng KR:kor SS:eng ES:spa,cat,eus,glg LK:sin,tam SD:ara,eng SR:nld SJ:nor SZ:eng,ssw SE:swe " +
+    "CH:deu,fra,ita SY:ara ST:por TW:zho TJ:rus,tgk TZ:eng,swa TH:tha TG:fra TK:eng,smo TO:eng TT:eng TN:ara,fra TR:tur TM:rus,tuk " +
+    "TC:eng TV:eng UM:eng VI:eng UG:eng,swa UA:ukr AE:ara UK:eng US:eng,spa UY:spa UZ:rus,uzb VU:eng,fra VA:ita,lat VE:spa VN:vie " +
+    "WF:fra EH:spa YE:ara ZM:eng ZW:eng,tso,ven,xho").split(" ").map((p) => { const [cc, list] = p.split(":"); return [cc, list.split(",")]; }));
   const NOT_PLAYABLE = /^https?:\/\/([\w-]+\.)*(youtube\.com|youtu\.be|twitch\.tv|dailymotion\.com|facebook\.com)\//i;
   // Catégorie devinée d'après le nom pour les chaînes que l'annuaire ne classe pas.
   const GUESS = [
@@ -330,6 +351,10 @@
       let sources;
       if (kind === "all") {
         sources = [m3u(`${IPTV}/index.m3u`), freeTV()];
+      } else if (kind === "languages") {
+        sources = [m3u(`${IPTV}/languages/${code}.m3u`)];
+      } else if (kind === "int") {
+        sources = [m3u(`${IPTV}/countries/int.m3u`)];
       } else {
         const file = code === "GB" ? "uk" : code.toLowerCase(); // iptv-org nomme le Royaume-Uni « uk »
         sources = [
@@ -837,30 +862,44 @@
   }
 
   let tvCat = "all";
+  let tvScope = "country"; // "country", "int" ou un code de langue
+  const TV_PAGE = 120;
   function viewTV() {
     const grid = h("div", {}, skeletonGrid());
     const chips = h("div", { class: "chips", style: "margin-bottom:18px" });
+    const langs = LANGS[country] || [];
+    if (tvScope !== "country" && tvScope !== "int" && !langs.includes(tvScope)) tvScope = "country";
+    const scopes = [["country", `${flag(country)} ${countryName(country)}`], ...langs.map((l) => [l, `En ${langName(l).toLowerCase()}`]), ["int", "🌍 Internationales"]];
+    const scopeChips = h("div", { class: "chips", style: "margin-bottom:10px" }, scopes.map(([k, label]) =>
+      h("button", { type: "button", class: "chip", "aria-pressed": String(tvScope === k), onclick: () => { tvScope = k; tvCat = "all"; render(); } }, label)));
 
-    const draw = (list) => {
+    const draw = (list, limit = TV_PAGE) => {
       const counts = new Map();
       for (const c of list) counts.set(c.group, (counts.get(c.group) || 0) + 1);
       const cats = [...counts.keys()].sort((a, b) => counts.get(b) - counts.get(a));
       if (tvCat !== "all" && !counts.has(tvCat)) tvCat = "all";
       chips.replaceChildren(
         h("button", { type: "button", class: "chip", "aria-pressed": String(tvCat === "all"), onclick: () => { tvCat = "all"; draw(list); } }, `Toutes · ${list.length}`),
-        ...cats.map((c) => h("button", { type: "button", class: "chip", "aria-pressed": String(tvCat === c), onclick: () => { tvCat = c; draw(list); } }, TV_CATS[c] || c)));
+        ...cats.map((c) => h("button", { type: "button", class: "chip", "aria-pressed": String(tvCat === c), onclick: () => { tvCat = c; draw(list); } }, `${TV_CATS[c] || c} · ${counts.get(c)}`)));
       const shown = tvCat === "all" ? list : list.filter((c) => c.group === tvCat);
-      grid.replaceChildren(shown.length
-        ? h("div", { class: "tv-grid" }, shown.map((c) => tvCard(c, shown)))
-        : h("p", { class: "empty" }, h("strong", {}, "Aucune chaîne disponible"), "Aucune chaîne gratuite en accès libre n'est répertoriée pour ce pays. Essaie un pays voisin."));
+      // Les grandes listes s'affichent par pages pour rester fluides sur mobile.
+      const more = shown.length > limit
+        ? h("button", { type: "button", class: "more-btn", onclick: () => draw(list, limit + TV_PAGE) }, `Afficher plus · ${shown.length - limit} restantes`)
+        : null;
+      grid.replaceChildren(...(shown.length
+        ? [h("div", { class: "tv-grid" }, shown.slice(0, limit).map((c) => tvCard(c, shown))), more]
+        : [h("p", { class: "empty" }, h("strong", {}, "Aucune chaîne disponible"), langs.length
+          ? `Aucune chaîne gratuite en accès libre n'est répertoriée pour ce pays. Essaie « En ${langName(langs[0]).toLowerCase()} » ou « Internationales ».`
+          : "Aucune chaîne gratuite en accès libre n'est répertoriée pour ce pays. Essaie « Internationales ».")]).filter(Boolean));
     };
 
-    tvList("countries", country).then(draw, () => grid.replaceChildren(errorBox(render)));
+    const load = tvScope === "country" ? tvList("countries", country) : tvScope === "int" ? tvList("int", "int") : tvList("languages", tvScope);
+    load.then((l) => draw(l), () => grid.replaceChildren(errorBox(render)));
 
     return h("div", {},
       h("div", { class: "head" }, h("div", {}, h("h1", {}, "Télévision"), h("p", {}, "Les chaînes gratuites en direct, pays par pays.")), countryChip()),
       recentsSection("tv"),
-      h("div", { class: "section" }, chips, grid));
+      h("div", { class: "section" }, scopeChips, chips, grid));
   }
 
   let searchQ = "";

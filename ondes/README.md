@@ -10,7 +10,9 @@ télévisions gratuites du monde entier, en direct.
 - **Télévision** : chaînes gratuites en accès libre, par pays et par catégorie. Trois annuaires
   sont fusionnés : la liste par pays d'iptv-org, ses fichiers sources (chaînes pas encore
   classées, plateformes Pluto TV, Samsung TV Plus, Rakuten TV…) et la liste Free-TV. Les doublons
-  sont regroupés et leurs flux servent de secours, lecteur HLS, zapping précédente / suivante, incrustation et plein écran
+  sont regroupés et leurs flux servent de secours. Pour chaque pays, des onglets ajoutent les
+  chaînes du monde entier dans ses langues (« En arabe », « En français »…) et les chaînes
+  internationales, avec affichage par pages pour les grandes listes, lecteur HLS, zapping précédente / suivante, incrustation et plein écran
 - **Recherche** de radios et de chaînes, par nom ou par pays
 - **Favoris** et historique récent, gardés sur l'appareil
 - **Lecteur** : mini-lecteur, lecteur plein écran, minuteur de sommeil, volume, partage,
