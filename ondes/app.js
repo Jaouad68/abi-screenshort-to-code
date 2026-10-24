@@ -14,7 +14,7 @@
   const PAGE = 40;
   const HTTPS_ONLY = location.protocol === "https:";
 
-  const ISO = ("AD AE AF AG AL AM AO AR AT AU AW AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CW CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FO FR GA GB GD GE GF GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MK ML MM MN MO MQ MR MT MU MV MW MX MY MZ NA NC NE NG NI NL NO NP NZ OM PA PE PF PG PH PK PL PR PS PT PY QA RE RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW").split(" ");
+  const ISO = ("AD AE AF AG AL AM AO AR AT AU AW AZ BA BB BD BE BF BG BH BI BJ BM BN BO BQ BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CW CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FM FO FR GA GB GD GE GF GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MK ML MM MN MO MQ MR MT MU MV MW MX MY MZ NA NC NE NG NI NL NO NP NZ OM PA PE PF PG PH PK PL PR PS PT PY QA RE RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SX SY SZ TD TG TH TJ TL TM TN TO TR TT TW TZ UA UG US UY UZ VA VC VE VG VI VN VU WS XK YE YT ZA ZM ZW").split(" ");
 
   const GENRES = [
     { tag: "news", label: "Actualités", emoji: "📰", h: 210 },
@@ -331,9 +331,9 @@
       if (kind === "all") {
         sources = [m3u(`${IPTV}/index.m3u`), freeTV()];
       } else {
-        const file = code === "GB" ? "uk" : code.toLowerCase();
+        const file = code === "GB" ? "uk" : code.toLowerCase(); // iptv-org nomme le Royaume-Uni « uk »
         sources = [
-          m3u(`${IPTV}/countries/${code.toLowerCase()}.m3u`, code),
+          m3u(`${IPTV}/countries/${file}.m3u`, code),
           m3u(`${IPTV_RAW}/${file}.m3u`, code),
           ...(PLATFORMS[file] || []).map((p) => m3u(`${IPTV_RAW}/${file}_${p}.m3u`, code)),
           freeTV().then((l) => l.filter((c) => c.country === code)),
