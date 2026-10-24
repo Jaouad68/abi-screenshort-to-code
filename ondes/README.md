@@ -7,8 +7,10 @@ télévisions gratuites du monde entier, en direct.
 
 - **Radio** : plus de 40 000 stations (annuaire libre Radio Browser), populaires par pays,
   16 genres, tendances mondiales, tous les pays avec leur nombre de stations
-- **Télévision** : chaînes gratuites en accès libre (listes publiques iptv-org), par pays et
-  par catégorie, lecteur HLS, zapping précédente / suivante, incrustation et plein écran
+- **Télévision** : chaînes gratuites en accès libre, par pays et par catégorie. Trois annuaires
+  sont fusionnés : la liste par pays d'iptv-org, ses fichiers sources (chaînes pas encore
+  classées, plateformes Pluto TV, Samsung TV Plus, Rakuten TV…) et la liste Free-TV. Les doublons
+  sont regroupés et leurs flux servent de secours, lecteur HLS, zapping précédente / suivante, incrustation et plein écran
 - **Recherche** de radios et de chaînes, par nom ou par pays
 - **Favoris** et historique récent, gardés sur l'appareil
 - **Lecteur** : mini-lecteur, lecteur plein écran, minuteur de sommeil, volume, partage,
@@ -36,5 +38,5 @@ flux HTTP sur une page sécurisée.
 
 - Les flux appartiennent aux diffuseurs : certains sont hors ligne, d'autres réservés à
   leur pays. L'application passe alors au flux suivant ou affiche un message.
-- iptv-org ne répertorie que des chaînes diffusées gratuitement et légalement en ligne :
+- iptv-org et Free-TV ne répertorient que des chaînes diffusées gratuitement et légalement en ligne :
   les chaînes payantes n'y figurent pas.

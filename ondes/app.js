@@ -1,6 +1,6 @@
 /* Ondes : radios et télévisions du monde entier.
  * Radios : API publique Radio Browser (https://www.radio-browser.info).
- * Télévisions : listes publiques iptv-org (https://github.com/iptv-org/iptv).
+ * Télévisions : listes publiques iptv-org (https://github.com/iptv-org/iptv) et Free-TV (https://github.com/Free-TV/IPTV).
  * Favoris, récents et réglages restent dans le navigateur (localStorage). */
 (() => {
   "use strict";
@@ -8,6 +8,8 @@
   // ---------- Constantes ----------
   const RB_FALLBACK = ["https://de1.api.radio-browser.info", "https://fi1.api.radio-browser.info", "https://de2.api.radio-browser.info"];
   const IPTV = "https://iptv-org.github.io/iptv";
+  const IPTV_RAW = "https://raw.githubusercontent.com/iptv-org/iptv/master/streams";
+  const FREETV = "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8";
   const STORE_KEY = "ondes:v1";
   const PAGE = 40;
   const HTTPS_ONLY = location.protocol === "https:";
@@ -223,11 +225,38 @@
 
   const registerClick = (id) => servers().then((l) => fetch(`${l[0]}/json/url/${id}`).catch(() => {}));
 
-  // ---------- Télévision (iptv-org) ----------
+  // ---------- Télévision (iptv-org + Free-TV) ----------
+  // Trois annuaires fusionnés pour un maximum de chaînes : la liste par pays d'iptv-org,
+  // ses fichiers sources (chaînes pas encore classées, plateformes Pluto, Samsung TV Plus…)
+  // et la liste Free-TV. Les doublons sont regroupés : leurs flux servent de secours.
   const tvCache = new Map();
+  const PLATFORMS = Object.fromEntries(("at:pluto,samsung au:samsung ba:morescreens be:samsung br:pluto,samsung bz:nexgen ca:pluto,samsung,stingray " +
+    "ch:pluto,samsung cn:112114,cctv,cgtn,yeslivetv de:pluto,rakuten,samsung dk:pluto,samsung es:pluto,rakuten,samsung,yowi fi:rakuten,samsung " +
+    "fr:bfm,fashiontv,groupecanalplus,groupem6,persiana,pluto,rakuten,samsung,traceplus gt:streamhispanatv id:denstv ie:samsung " +
+    "in:distro,doordarshan,pishow,samsung ir:telewebion,wnslive it:pluto,rakuten,samsung kh:happywatch99 lu:samsung mn:skygo mt:smashplus " +
+    "mx:amagi,multimedios,pluto,samsung nl:samsung no:pluto,samsung nz:samsung pe:opencaster ph:comclark pl:mediateka,rakuten pt:samsung " +
+    "ru:15plusmg,bonustv,catcast,mylifeisgood,ntv,rt,smotrim,televizor24,tvbricks,tvteleport,zabava se:pluto,samsung si:xploretv sk:antik " +
+    "so:premiumfree th:v2hcdn tr:gem,onetv uk:bbc,distro,pluto,rakuten,samsung,sportstribal " +
+    "us:30a,3abn,abcnews,afrolandtv,amagi,canelatv,cbsn,cineversetv,distro,firetv,frequency,glewedtv,klowdtv,local,malimartv,pbs,plex,pluto," +
+    "roku,samsung,sofast,ssh101,stirr,tcl,tubi,uplynk,vegasplus,vizio,wcetv,wfmz,wowza,xumo za:freevisiontv").split(" ").map((p) => { const [cc, list] = p.split(":"); return [cc, list.split(",")]; }));
+  const NOT_PLAYABLE = /^https?:\/\/([\w-]+\.)*(youtube\.com|youtu\.be|twitch\.tv|dailymotion\.com|facebook\.com)\//i;
+  // Catégorie devinée d'après le nom pour les chaînes que l'annuaire ne classe pas.
+  const GUESS = [
+    ["news", /news|info|actu|noticias|nachrichten|journal|24\/7|أخبار|اخبار/i], ["sports", /sport|foot|golf|racing|fight|deporte|رياض/i],
+    ["kids", /kids|junior|enfant|cartoon|toon|niños|anime|baby|أطفال/i], ["music", /music|musique|hits|radio|mtv|trace|clubbing|قناة الموسيق/i],
+    ["religious", /quran|coran|islam|church|gospel|god|catholic|bible|قرآن|القرآن|السنة/i], ["movies", /movie|film|cin[eé]|sine|افلام|أفلام/i],
+    ["documentary", /docu|history|histoire|nature|discovery|geo\b/i], ["cooking", /cook|cuisine|food|chef|kitchen/i], ["series", /series|séries|novela|drama/i],
+  ];
+  const ccFix = (cc) => (cc === "UK" ? "GB" : cc);
+
+  function tvGroup(raw, name) {
+    const g = (raw || "").toLowerCase().replace(/\s*\(.*\)$/, "").trim();
+    if (g && g !== "undefined" && TV_CATS[g]) return g;
+    return GUESS.find(([, re]) => re.test(name))?.[0] || "undefined";
+  }
 
   function parseM3U(text, cc) {
-    const byKey = new Map();
+    const out = [];
     let cur = null;
     for (const raw of text.split(/\r?\n/)) {
       const line = raw.trim();
@@ -238,33 +267,79 @@
         cur = { attrs, title };
       } else if (line && !line.startsWith("#") && cur) {
         const url = safeUrl(line);
-        if (url) {
-          const name = cur.title.replace(/\s*\(\d+p\)/gi, "").replace(/\s*\[[^\]]*\]/g, "").trim() || cur.title;
-          const id = (cur.attrs["tvg-id"] || name).split("@")[0].toLowerCase();
-          const groups = (cur.attrs["group-title"] || "Undefined").split(";").map((g) => g.trim().toLowerCase());
-          const ch = byKey.get(id) || { type: "tv", id, name, logo: cur.attrs["tvg-logo"], group: groups[0], urls: [], country: cc || (cur.attrs["tvg-id"] || "").split("@")[0].split(".").pop()?.toUpperCase().slice(0, 2) };
-          ch.urls.push(url);
-          if (!ch.logo) ch.logo = cur.attrs["tvg-logo"];
-          byKey.set(id, ch);
+        if (url && !NOT_PLAYABLE.test(url) && !/^vod/i.test(cur.attrs["group-title"] || "")) {
+          const name = cur.title.replace(/\s*\(\d+p\)/gi, "").replace(/\s*\[[^\]]*\]/g, "").replace(/\s*[Ⓐ-ⓩ]/g, "").trim() || cur.title;
+          const tvgId = cur.attrs["tvg-id"] || "";
+          const fromId = tvgId.split("@")[0].split(".").pop();
+          const country = cc || ccFix((cur.attrs["tvg-country"] || (tvgId.includes(".") ? fromId : "")).toUpperCase().slice(0, 2));
+          const groups = (cur.attrs["group-title"] || "").split(";");
+          out.push({ type: "tv", id: (tvgId || name).split("@")[0].toLowerCase(), name, logo: cur.attrs["tvg-logo"] || undefined, group: tvGroup(groups[0], name), urls: [url], country });
         }
         cur = null;
       }
     }
-    const channels = [...byKey.values()];
-    for (const ch of channels) ch.urls.sort((a, b) => (b.startsWith("https:") ? 1 : 0) - (a.startsWith("https:") ? 1 : 0));
-    // Les chaînes en https d'abord : seules lisibles depuis une page sécurisée.
-    return channels
+    return out;
+  }
+
+  // Regroupe les chaînes identiques (même identifiant ou même nom) et additionne leurs flux.
+  function mergeTV(lists) {
+    const byId = new Map();
+    const byName = new Map();
+    const all = [];
+    const nameKey = (n) => norm(n).replace(/[^\p{L}\p{N}]/gu, "");
+    for (const ch of lists.flat()) {
+      const k = nameKey(ch.name) + "|" + ch.country;
+      const hit = byId.get(ch.id) || byName.get(k);
+      if (hit) {
+        for (const u of ch.urls) if (!hit.urls.includes(u)) hit.urls.push(u);
+        if (!hit.logo) hit.logo = ch.logo;
+        if (hit.group === "undefined") hit.group = ch.group;
+        if (!hit.country) hit.country = ch.country;
+      } else {
+        const copy = { ...ch, urls: [...ch.urls] };
+        all.push(copy);
+        byId.set(ch.id, copy);
+        byName.set(k, copy);
+      }
+    }
+    // Les flux en https d'abord : seuls lisibles depuis une page sécurisée.
+    for (const ch of all) ch.urls.sort((a, b) => (b.startsWith("https:") ? 1 : 0) - (a.startsWith("https:") ? 1 : 0));
+    return all
       .filter((c) => !HTTPS_ONLY || c.urls.some((u) => u.startsWith("https:")))
       .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  }
+
+  function m3u(url, cc) {
+    return fetchText(url, 30000).then((t) => parseM3U(t, cc), (e) => { if (e.status === 404) return []; throw e; });
+  }
+
+  let freeTVAll = null;
+  const freeTV = () => (freeTVAll ||= m3u(FREETV).catch((e) => { freeTVAll = null; throw e; }));
+
+  // Une source en panne n'empêche pas d'afficher les autres ; échec seulement si toutes tombent.
+  async function gather(promises) {
+    const res = await Promise.allSettled(promises);
+    const ok = res.filter((r) => r.status === "fulfilled").map((r) => r.value);
+    if (!ok.length) throw res[0].reason;
+    return mergeTV(ok);
   }
 
   function tvList(kind, code) {
     const key = `${kind}:${code}`;
     if (!tvCache.has(key)) {
-      const url = kind === "all" ? `${IPTV}/index.m3u` : `${IPTV}/${kind}/${code.toLowerCase()}.m3u`;
-      tvCache.set(key, fetchText(url, 30000)
-        .then((t) => parseM3U(t, kind === "countries" ? code : null))
-        .catch((e) => { tvCache.delete(key); if (e.status === 404) return []; throw e; }));
+      let sources;
+      if (kind === "all") {
+        sources = [m3u(`${IPTV}/index.m3u`), freeTV()];
+      } else {
+        const file = code === "GB" ? "uk" : code.toLowerCase();
+        sources = [
+          m3u(`${IPTV}/countries/${code.toLowerCase()}.m3u`, code),
+          m3u(`${IPTV_RAW}/${file}.m3u`, code),
+          ...(PLATFORMS[file] || []).map((p) => m3u(`${IPTV_RAW}/${file}_${p}.m3u`, code)),
+          freeTV().then((l) => l.filter((c) => c.country === code)),
+        ];
+      }
+      tvCache.set(key, gather(sources).catch((e) => { tvCache.delete(key); throw e; }));
     }
     return tvCache.get(key);
   }
