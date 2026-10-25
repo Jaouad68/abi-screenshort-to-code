@@ -46,7 +46,7 @@ Priorité MoSCoW : **M** = indispensable, **S** = important, **C** = si le temps
 ### US01 (M) : Comprendre que l'appli n'est pas officielle
 En tant qu'usager, je veux savoir dès l'ouverture que l'application est privée,
 afin de ne pas la confondre avec un service de l'État.
-- Étant donné un premier lancement, quand l'onboarding s'affiche, alors l'écran 2 sur 3 affiche « Service privé, non affilié à l'administration » et le bouton « J'ai compris » enregistre `profiles.disclaimer_accepted_at`.
+- Étant donné un premier lancement, quand l'onboarding s'affiche, alors le dernier écran (3 sur 3) affiche « Service privé, non affilié à l'administration » et le bouton « J'ai compris » enregistre `profiles.disclaimer_accepted_at`. Le choix de la taille du texte vient en premier, pour que la suite soit lisible.
 - Étant donné un usager connecté, quand il ouvre n'importe quel parcours, alors un bandeau persistant rappelle la non-affiliation et le lien vers le site officiel (RG01).
 - Étant donné `disclaimer_accepted_at` vide, quand l'usager tente d'ouvrir un parcours, alors il est renvoyé à l'onboarding.
 
@@ -225,7 +225,7 @@ Puis chaque entrée de `pieces_conditionnelles` dont le `when` correspond est ap
 
 | ID | Écran | Contenu principal | Actions | États vides / erreurs |
 |---|---|---|---|---|
-| E01 | Onboarding (3 écrans) | Promesse ; avertissement de non-affiliation ; choix de la taille de texte | « J'ai compris », choix de la taille | Impossible de passer l'écran 2 sans accepter |
+| E01 | Onboarding (3 écrans) | Choix de la taille de texte et de la lecture vocale ; promesse ; avertissement de non-affiliation | Choix de la taille, « J'ai compris » | Impossible d'entrer dans l'appli sans accepter |
 | E02 | Connexion | E-mail + code, Apple, Google | Recevoir un code, se connecter | Code faux ou expiré : message + renvoi |
 | E03 | Accueil | Démarches en cours, 4 tuiles, micro, prochains rappels | Ouvrir une tuile, parler | Aucune démarche : « Par quoi commençons-nous ? » |
 | E04 | Question de diagnostic | Une question, 2 à 4 grandes réponses, progression | Répondre, revenir | n/a |

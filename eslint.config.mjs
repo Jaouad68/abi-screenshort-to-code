@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Appli Expo autonome, avec sa propre config.
+    "demarches-copilote/**",
   ]),
 ]);
 

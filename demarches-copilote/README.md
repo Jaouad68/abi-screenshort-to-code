@@ -16,6 +16,7 @@ Stack prévue : Expo (React Native) + Supabase (région UE).
 | [`supabase/tests/0001_init_test.sql`](supabase/tests/0001_init_test.sql) | Tests SQL de la migration (isolation entre usagers, limites gratuites, rappels) |
 | [`content/cni-passeport.v1.json`](content/cni-passeport.v1.json) | Contenu du parcours « Carte d'identité / passeport » (format du catalogue) |
 | [`prompts/decodeur-courrier.md`](prompts/decodeur-courrier.md) | Prompt système et format de sortie du décodeur de courrier |
+| [`app/`](app/README.md) | Appli Expo : écrans E01 à E05 et réglages d'affichage |
 
 ## Hypothèses retenues
 

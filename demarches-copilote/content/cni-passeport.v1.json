@@ -2,7 +2,7 @@
   "_meta": {
     "slug": "cni-passeport",
     "version": 1,
-    "title": "Carte d'identité / passeport",
+    "title": "Carte d’identité / passeport",
     "official_url": "https://ants.gouv.fr",
     "source_url": "https://www.service-public.gouv.fr/particuliers/vosdroits/N358",
     "source_updated_at": "2026-10-01",
@@ -15,7 +15,7 @@
       "choices": [
         {
           "value": "cni",
-          "label": "Carte d'identité"
+          "label": "Carte d’identité"
         },
         {
           "value": "passeport",
@@ -25,7 +25,7 @@
     },
     {
       "id": "pour_qui",
-      "label": "C'est pour qui ?",
+      "label": "C’est pour qui ?",
       "choices": [
         {
           "value": "moi",
@@ -39,7 +39,7 @@
     },
     {
       "id": "age_mineur",
-      "label": "Quel âge a l'enfant ?",
+      "label": "Quel âge a l’enfant ?",
       "show_if": {
         "pour_qui": "mineur"
       },
@@ -60,7 +60,7 @@
       "choices": [
         {
           "value": "premiere",
-          "label": "C'est une première demande"
+          "label": "C’est une première demande"
         },
         {
           "value": "renouvellement",
@@ -68,7 +68,7 @@
         },
         {
           "value": "perte_vol",
-          "label": "Je l'ai perdu ou on me l'a volé"
+          "label": "Je l’ai perdu ou on me l’a volé"
         }
       ]
     },
@@ -81,11 +81,11 @@
       "choices": [
         {
           "value": "perte",
-          "label": "Je l'ai perdu"
+          "label": "Je l’ai perdu"
         },
         {
           "value": "vol",
-          "label": "On me l'a volé"
+          "label": "On me l’a volé"
         }
       ]
     }
@@ -230,14 +230,14 @@
   ],
   "pieces": {
     "photo_identite": {
-      "label": "Photo d'identité de moins de 6 mois",
+      "label": "Photo d’identité de moins de 6 mois",
       "aide": "Prenez-la dans une cabine ou chez un photographe agréé « ePhoto » : vous recevrez un code à 22 caractères à donner en mairie, plus besoin de photo papier.",
       "max_age_months": 6,
       "category": "identite"
     },
     "justificatif_domicile": {
-      "label": "Justificatif de domicile de moins d'un an",
-      "aide": "Facture d'électricité, de gaz, d'eau, d'internet ou avis d'imposition. Si vous êtes hébergé : attestation de l'hébergeur, sa pièce d'identité et son justificatif.",
+      "label": "Justificatif de domicile de moins d’un an",
+      "aide": "Facture d’électricité, de gaz, d’eau, d’internet ou avis d’imposition. Si vous êtes hébergé : attestation de l’hébergeur, sa pièce d’identité et son justificatif.",
       "max_age_months": 12,
       "category": "domicile"
     },
@@ -258,8 +258,8 @@
       "category": "identite"
     },
     "identite_parent": {
-      "label": "Pièce d'identité du parent qui fait la demande",
-      "aide": "Le parent (ou tuteur) doit être présent au dépôt, avec l'enfant.",
+      "label": "Pièce d’identité du parent qui fait la demande",
+      "aide": "Le parent (ou tuteur) doit être présent au dépôt, avec l’enfant.",
       "category": "identite"
     }
   },
@@ -267,11 +267,11 @@
     "pre_demande": {
       "label": "Remplir la pré-demande en ligne",
       "url": "https://ants.gouv.fr",
-      "aide": "Comptez 10 minutes. À la fin, notez le numéro de pré-demande ou gardez le QR code : nous l'enregistrons pour vous.",
+      "aide": "Comptez 10 minutes. À la fin, notez le numéro de pré-demande ou gardez le QR code : nous l’enregistrons pour vous.",
       "champs": [
         {
           "label": "Connexion",
-          "aide": "Connectez-vous vous-même avec FranceConnect. L'application ne voit jamais vos identifiants."
+          "aide": "Connectez-vous vous-même avec FranceConnect. L’application ne voit jamais vos identifiants."
         },
         {
           "label": "État civil",
@@ -279,7 +279,7 @@
         },
         {
           "label": "Adresse",
-          "aide": "L'adresse de votre justificatif de domicile.",
+          "aide": "L’adresse de votre justificatif de domicile.",
           "copiable": "adresse"
         },
         {
@@ -291,11 +291,11 @@
     "rendez_vous": {
       "label": "Prendre rendez-vous en mairie",
       "url": "https://rendezvouspasseport.ants.gouv.fr",
-      "aide": "Vous pouvez aller dans n'importe quelle mairie équipée, pas forcément la vôtre. Les créneaux se libèrent souvent le matin."
+      "aide": "Vous pouvez aller dans n’importe quelle mairie équipée, pas forcément la vôtre. Les créneaux se libèrent souvent le matin."
     },
     "depot": {
       "label": "Aller au rendez-vous",
-      "aide": "Venez avec toutes les pièces cochées ci-dessus. Vos empreintes seront prises sur place (sauf enfant de moins de 12 ans)."
+      "aide": "Venez avec tous les papiers de la liste « Les papiers à préparer ». Vos empreintes seront prises sur place (sauf enfant de moins de 12 ans)."
     },
     "retrait": {
       "label": "Récupérer votre titre",
