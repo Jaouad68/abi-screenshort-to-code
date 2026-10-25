@@ -1,0 +1,317 @@
+{
+  "_meta": {
+    "slug": "cni-passeport",
+    "version": 1,
+    "title": "Carte d'identité / passeport",
+    "official_url": "https://ants.gouv.fr",
+    "source_url": "https://www.service-public.gouv.fr/particuliers/vosdroits/N358",
+    "source_updated_at": "2026-10-01",
+    "a_verifier": "Tarifs, durées et pièces sont des valeurs initiales : les vérifier sur la fiche source avant de publier (RG02)."
+  },
+  "questions": [
+    {
+      "id": "titre",
+      "label": "Quel document voulez-vous faire ?",
+      "choices": [
+        {
+          "value": "cni",
+          "label": "Carte d'identité"
+        },
+        {
+          "value": "passeport",
+          "label": "Passeport"
+        }
+      ]
+    },
+    {
+      "id": "pour_qui",
+      "label": "C'est pour qui ?",
+      "choices": [
+        {
+          "value": "moi",
+          "label": "Pour moi (majeur)"
+        },
+        {
+          "value": "mineur",
+          "label": "Pour un enfant mineur"
+        }
+      ]
+    },
+    {
+      "id": "age_mineur",
+      "label": "Quel âge a l'enfant ?",
+      "show_if": {
+        "pour_qui": "mineur"
+      },
+      "choices": [
+        {
+          "value": "moins_15",
+          "label": "Moins de 15 ans"
+        },
+        {
+          "value": "15_17",
+          "label": "15 à 17 ans"
+        }
+      ]
+    },
+    {
+      "id": "motif",
+      "label": "Quelle est votre situation ?",
+      "choices": [
+        {
+          "value": "premiere",
+          "label": "C'est une première demande"
+        },
+        {
+          "value": "renouvellement",
+          "label": "Je renouvelle (périmé ou bientôt périmé)"
+        },
+        {
+          "value": "perte_vol",
+          "label": "Je l'ai perdu ou on me l'a volé"
+        }
+      ]
+    },
+    {
+      "id": "vol_ou_perte",
+      "label": "Perte ou vol ?",
+      "show_if": {
+        "motif": "perte_vol"
+      },
+      "choices": [
+        {
+          "value": "perte",
+          "label": "Je l'ai perdu"
+        },
+        {
+          "value": "vol",
+          "label": "On me l'a volé"
+        }
+      ]
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "cni_perte_vol",
+      "when": {
+        "titre": "cni",
+        "motif": "perte_vol"
+      },
+      "cout_eur": 25,
+      "cout_label": "25 € en timbre fiscal (achat en ligne sur timbres.impots.gouv.fr)",
+      "pieces": [
+        "photo_identite",
+        "justificatif_domicile",
+        "timbre_fiscal"
+      ],
+      "etapes": [
+        "pre_demande",
+        "rendez_vous",
+        "depot",
+        "retrait"
+      ],
+      "delai_reponse_jours": 30
+    },
+    {
+      "id": "cni",
+      "when": {
+        "titre": "cni"
+      },
+      "cout_eur": 0,
+      "pieces": [
+        "photo_identite",
+        "justificatif_domicile",
+        "ancien_titre"
+      ],
+      "etapes": [
+        "pre_demande",
+        "rendez_vous",
+        "depot",
+        "retrait"
+      ],
+      "delai_reponse_jours": 30
+    },
+    {
+      "id": "passeport_moins_15",
+      "when": {
+        "titre": "passeport",
+        "pour_qui": "mineur",
+        "age_mineur": "moins_15"
+      },
+      "cout_eur": 17,
+      "cout_label": "17 € en timbre fiscal",
+      "pieces": [
+        "photo_identite",
+        "justificatif_domicile",
+        "timbre_fiscal",
+        "ancien_titre"
+      ],
+      "etapes": [
+        "pre_demande",
+        "rendez_vous",
+        "depot",
+        "retrait"
+      ],
+      "delai_reponse_jours": 30
+    },
+    {
+      "id": "passeport_15_17",
+      "when": {
+        "titre": "passeport",
+        "pour_qui": "mineur",
+        "age_mineur": "15_17"
+      },
+      "cout_eur": 42,
+      "cout_label": "42 € en timbre fiscal",
+      "pieces": [
+        "photo_identite",
+        "justificatif_domicile",
+        "timbre_fiscal",
+        "ancien_titre"
+      ],
+      "etapes": [
+        "pre_demande",
+        "rendez_vous",
+        "depot",
+        "retrait"
+      ],
+      "delai_reponse_jours": 30
+    },
+    {
+      "id": "passeport_majeur",
+      "when": {
+        "titre": "passeport"
+      },
+      "cout_eur": 86,
+      "cout_label": "86 € en timbre fiscal",
+      "pieces": [
+        "photo_identite",
+        "justificatif_domicile",
+        "timbre_fiscal",
+        "ancien_titre"
+      ],
+      "etapes": [
+        "pre_demande",
+        "rendez_vous",
+        "depot",
+        "retrait"
+      ],
+      "delai_reponse_jours": 30
+    }
+  ],
+  "pieces_conditionnelles": [
+    {
+      "when": {
+        "pour_qui": "mineur"
+      },
+      "ajouter": [
+        "identite_parent"
+      ]
+    },
+    {
+      "when": {
+        "motif": "premiere"
+      },
+      "retirer": [
+        "ancien_titre"
+      ]
+    },
+    {
+      "when": {
+        "motif": "perte_vol"
+      },
+      "retirer": [
+        "ancien_titre"
+      ],
+      "ajouter": [
+        "declaration_perte_vol"
+      ]
+    }
+  ],
+  "pieces": {
+    "photo_identite": {
+      "label": "Photo d'identité de moins de 6 mois",
+      "aide": "Prenez-la dans une cabine ou chez un photographe agréé « ePhoto » : vous recevrez un code à 22 caractères à donner en mairie, plus besoin de photo papier.",
+      "max_age_months": 6,
+      "category": "identite"
+    },
+    "justificatif_domicile": {
+      "label": "Justificatif de domicile de moins d'un an",
+      "aide": "Facture d'électricité, de gaz, d'eau, d'internet ou avis d'imposition. Si vous êtes hébergé : attestation de l'hébergeur, sa pièce d'identité et son justificatif.",
+      "max_age_months": 12,
+      "category": "domicile"
+    },
+    "ancien_titre": {
+      "label": "Votre ancienne carte ou ancien passeport",
+      "aide": "Vous le rendrez en mairie au moment du retrait.",
+      "category": "identite"
+    },
+    "timbre_fiscal": {
+      "label": "Timbre fiscal électronique",
+      "aide": "Achetez-le sur le site officiel timbres.impots.gouv.fr (ou chez un buraliste). Gardez le numéro ou le QR code.",
+      "url_officielle": "https://timbres.impots.gouv.fr",
+      "category": "fiscal"
+    },
+    "declaration_perte_vol": {
+      "label": "Déclaration de perte ou de vol",
+      "aide": "Perte : vous la remplissez en mairie le jour du dépôt, ou en ligne pendant la pré-demande. Vol : déclaration à faire au commissariat ou à la gendarmerie.",
+      "category": "identite"
+    },
+    "identite_parent": {
+      "label": "Pièce d'identité du parent qui fait la demande",
+      "aide": "Le parent (ou tuteur) doit être présent au dépôt, avec l'enfant.",
+      "category": "identite"
+    }
+  },
+  "etapes": {
+    "pre_demande": {
+      "label": "Remplir la pré-demande en ligne",
+      "url": "https://ants.gouv.fr",
+      "aide": "Comptez 10 minutes. À la fin, notez le numéro de pré-demande ou gardez le QR code : nous l'enregistrons pour vous.",
+      "champs": [
+        {
+          "label": "Connexion",
+          "aide": "Connectez-vous vous-même avec FranceConnect. L'application ne voit jamais vos identifiants."
+        },
+        {
+          "label": "État civil",
+          "aide": "Recopiez exactement ce qui figure sur votre ancien titre ou votre acte de naissance, accents compris."
+        },
+        {
+          "label": "Adresse",
+          "aide": "L'adresse de votre justificatif de domicile.",
+          "copiable": "adresse"
+        },
+        {
+          "label": "Taille",
+          "aide": "En centimètres, sans virgule (ex. 168)."
+        }
+      ]
+    },
+    "rendez_vous": {
+      "label": "Prendre rendez-vous en mairie",
+      "url": "https://rendezvouspasseport.ants.gouv.fr",
+      "aide": "Vous pouvez aller dans n'importe quelle mairie équipée, pas forcément la vôtre. Les créneaux se libèrent souvent le matin."
+    },
+    "depot": {
+      "label": "Aller au rendez-vous",
+      "aide": "Venez avec toutes les pièces cochées ci-dessus. Vos empreintes seront prises sur place (sauf enfant de moins de 12 ans)."
+    },
+    "retrait": {
+      "label": "Récupérer votre titre",
+      "aide": "Vous recevez un SMS quand il est prêt. Retrait dans la même mairie, dans les 3 mois."
+    }
+  },
+  "rappels": [
+    {
+      "etape": "depot",
+      "decalage_jours": -1,
+      "titre": "Demain : rendez-vous en mairie pour votre {titre}"
+    },
+    {
+      "etape": "depot",
+      "decalage_jours": 30,
+      "titre": "Avez-vous reçu le SMS de retrait de votre {titre} ?"
+    }
+  ]
+}
