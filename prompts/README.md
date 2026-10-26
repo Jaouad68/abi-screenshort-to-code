@@ -23,3 +23,17 @@ avant d'envoyer le prompt.
 | [09-seo-contenus-manquants.md](09-seo-contenus-manquants.md) | Trouver les sujets que les concurrents couvrent et pas nous | SEO Content Gap Finder |
 | [10-titres-google-ads.md](10-titres-google-ads.md) | Écrire des titres d'annonces Google Ads | Google Ads Title Copywriter |
 | [11-prospection-salons.md](11-prospection-salons.md) | Proposer une démo à des salons | Professional Real Estate Appointment Setter |
+
+## Base complète
+
+`source/prompts.csv` contient les 2 992 prompts de prompts.chat, en anglais,
+tels que publiés dans le dépôt GitHub le 26 octobre 2026 (2 623 textes,
+348 structurés, 21 pour générer des images). Colonnes : `act` (titre),
+`prompt` (texte), `for_devs`, `type`, `contributor`. Les prompts sont dans le
+domaine public (CC0 1.0, voir `source/LICENSE` et `source/LICENSE-CC0`).
+
+Pour mettre à jour :
+
+```
+curl -sSfL -o prompts/source/prompts.csv https://raw.githubusercontent.com/f/awesome-chatgpt-prompts/main/prompts.csv
+```
