@@ -380,6 +380,8 @@ main, .footer, .nav-wrap { position: relative; z-index: 1; }
   .footer-cols { gap: 40px; }
 }
 @media (max-width: 420px) {
+  .nav { gap: 8px; padding-left: 14px; }
+  .logo { font-size: 16px; gap: 8px; }
   .nav-actions .btn-primary { padding: 8px 12px; font-size: 14px; }
   .features { grid-template-columns: 1fr; }
 }
