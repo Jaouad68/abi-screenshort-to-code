@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:grille-maline": "node --test grille-maline/moteur.test.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

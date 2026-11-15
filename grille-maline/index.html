@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Grille Maline : générateur de grilles EuroMillions peu jouées, score d'originalité, statistiques, budget et simulateur. Ne prédit aucun tirage." />
+  <meta name="theme-color" content="#1e1b4b" />
+  <title>Grille Maline</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e1b4b'/%3E%3Ccircle cx='26' cy='34' r='14' fill='%23fff'/%3E%3Cpath d='M46 8l3.5 7.5 8 1-6 5.5 1.6 8L46 26l-7.1 4 1.6-8-6-5.5 8-1z' fill='%23fbbf24'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+  <style>
+    body { background: #f5f5f7; -webkit-tap-highlight-color: transparent; }
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+    input[type="number"] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="text-slate-900 antialiased">
+  <div id="racine">
+    <p style="padding:24px;font-family:system-ui">Chargement de Grille Maline…</p>
+  </div>
+
+  <!--
+    ===================================================================
+    MOTEUR : logique pure, sans React ni DOM.
+    Testé par grille-maline/moteur.test.mjs (node --test grille-maline/).
+    ===================================================================
+  -->
+  <script id="moteur">
+  (function (root) {
+    "use strict";
+
+    // ---------- Constantes du jeu ----------
+    const NB_NUMEROS = 50;
+    const NB_ETOILES = 12;
+    const K_NUMEROS = 5;
+    const K_ETOILES = 2;
+    // Disposition de référence de la grille de jeu : 5 lignes de 10 numéros (1 à 10, 11 à 20…).
+    // Sert à détecter les motifs visuels (colonnes, diagonales).
+    const COLONNES = 10;
+    const LIGNES = Math.ceil(NB_NUMEROS / COLONNES);
+
+    function combinaisons(n, k) {
+      let r = 1;
+      for (let i = 1; i <= k; i++) r = (r * (n - k + i)) / i;
+      return Math.round(r);
+    }
+    // C(50,5) × C(12,2) = 2 118 760 × 66 = 139 838 160
+    const TOTAL_COMBINAISONS = combinaisons(NB_NUMEROS, K_NUMEROS) * combinaisons(NB_ETOILES, K_ETOILES);
+    // Probabilité officielle de gagner un lot, tous rangs confondus : environ 1 sur 13.
+    const CHANCE_UN_GAIN = 13;
+
+    // ---------- Aléa cryptographique ----------
+    function sourceCrypto() {
+      const c = root.crypto;
+      if (!c || typeof c.getRandomValues !== "function") {
+        throw new Error("crypto.getRandomValues est indisponible : pas de génération sans source cryptographique.");
+      }
+      return (tampon) => c.getRandomValues(tampon);
+    }
+
+    // Entier uniforme dans [0, max), sans biais de modulo (échantillonnage par rejet).
+    function entierAleatoire(max, remplir) {
+      if (!Number.isInteger(max) || max < 1 || max > 0x100000000) {
+        throw new RangeError("max doit être un entier entre 1 et 2^32");
+      }
+      const src = remplir || sourceCrypto();
+      const limite = Math.floor(0x100000000 / max) * max;
+      const tampon = new Uint32Array(1);
+      for (let essai = 0; essai < 1000; essai++) {
+        src(tampon);
+        if (tampon[0] < limite) return tampon[0] % max;
+      }
+      throw new Error("Source aléatoire défaillante");
+    }
+
+    // k valeurs distinctes parmi 1..n (Fisher-Yates partiel), triées.
+    function tirerSansRemise(n, k, remplir) {
+      const src = remplir || sourceCrypto();
+      const urne = Array.from({ length: n }, (_, i) => i + 1);
+      for (let i = 0; i < k; i++) {
+        const j = i + entierAleatoire(n - i, src);
+        const t = urne[i]; urne[i] = urne[j]; urne[j] = t;
+      }
+      return urne.slice(0, k).sort((a, b) => a - b);
+    }
+
+    // ---------- Validation ----------
+    function validerGrille(numeros, etoiles) {
+      const distincts = (l) => new Set(l).size === l.length;
+      const dansPlage = (l, max) => l.every((x) => Number.isInteger(x) && x >= 1 && x <= max);
+      if (!Array.isArray(numeros) || numeros.length !== K_NUMEROS) return "Il faut exactement 5 numéros.";
+      if (!dansPlage(numeros, NB_NUMEROS) || !distincts(numeros)) return "Les numéros doivent être distincts, entre 1 et 50.";
+      if (!Array.isArray(etoiles) || etoiles.length !== K_ETOILES) return "Il faut exactement 2 étoiles.";
+      if (!dansPlage(etoiles, NB_ETOILES) || !distincts(etoiles)) return "Les étoiles doivent être distinctes, entre 1 et 12.";
+      return null;
+    }
+
+    // ---------- Analyse d'une grille ----------
+    const trier = (l) => [...l].sort((a, b) => a - b);
+    const position = (n) => ({ ligne: Math.floor((n - 1) / COLONNES), colonne: (n - 1) % COLONNES });
+
+    function plusLongueSuite(numeros) {
+      const s = trier(numeros);
+      let max = s.length ? 1 : 0, cur = 1;
+      for (let i = 1; i < s.length; i++) {
+        cur = s[i] === s[i - 1] + 1 ? cur + 1 : 1;
+        if (cur > max) max = cur;
+      }
+      return max;
+    }
+
+    // Plus long alignement de cases voisines en colonne ou en diagonale sur la grille de jeu.
+    // (Les alignements horizontaux sont des suites, comptées à part.)
+    function alignementMax(numeros) {
+      const ens = new Set(numeros);
+      const directions = [[1, 0], [1, 1], [1, -1]];
+      let max = numeros.length ? 1 : 0;
+      for (const n of numeros) {
+        const p = position(n);
+        for (const [dl, dc] of directions) {
+          let l = p.ligne + dl, c = p.colonne + dc, long = 1;
+          while (l < LIGNES && c >= 0 && c < COLONNES && ens.has(l * COLONNES + c + 1)) {
+            long++; l += dl; c += dc;
+          }
+          if (long > max) max = long;
+        }
+      }
+      return max;
+    }
+
+    function concentration(numeros) {
+      const lignes = {}, colonnes = {};
+      for (const n of numeros) {
+        const p = position(n);
+        lignes[p.ligne] = (lignes[p.ligne] || 0) + 1;
+        colonnes[p.colonne] = (colonnes[p.colonne] || 0) + 1;
+      }
+      return {
+        ligne: Math.max(0, ...Object.values(lignes)),
+        colonne: Math.max(0, ...Object.values(colonnes)),
+      };
+    }
+
+    // Plus longue progression arithmétique (ex. 5, 10, 15, 20 ou 2, 4, 6, 8 ; une suite est une progression de pas 1).
+    function progressionMax(numeros) {
+      const s = trier(numeros), ens = new Set(s);
+      let max = Math.min(s.length, 1);
+      for (let i = 0; i < s.length; i++) {
+        for (let j = i + 1; j < s.length; j++) {
+          const pas = s[j] - s[i];
+          let long = 2, suivant = s[j] + pas;
+          while (ens.has(suivant)) { long++; suivant += pas; }
+          if (long > max) max = long;
+        }
+      }
+      return max;
+    }
+
+    const cleNumeros = (numeros) => trier(numeros).join("-");
+
+    function indexerHistorique(historique) {
+      if (historique && historique.__index) return historique.__index;
+      const index = new Map();
+      for (const t of historique || []) {
+        const cle = cleNumeros(t.numeros);
+        if (!index.has(cle)) index.set(cle, []);
+        index.get(cle).push(t);
+      }
+      return index;
+    }
+
+    function rechercherDejaSorti(numeros, etoiles, index) {
+      const tirages = (index && index.get(cleNumeros(numeros))) || [];
+      if (!tirages.length) return { numeros: false, complet: false, date: null };
+      const e = cleNumeros(etoiles);
+      const complet = tirages.find((t) => cleNumeros(t.etoiles) === e);
+      const ref = complet || tirages[0];
+      return { numeros: true, complet: Boolean(complet), date: ref.date || null };
+    }
+
+    function analyser(numeros, etoiles, historique) {
+      const index = historique instanceof Map ? historique : indexerHistorique(historique);
+      const c = concentration(numeros);
+      return {
+        dates: numeros.filter((n) => n <= 31).length,
+        suite: plusLongueSuite(numeros),
+        alignement: alignementMax(numeros),
+        ligneMax: c.ligne,
+        colonneMax: c.colonne,
+        multiples5: numeros.filter((n) => n % 5 === 0).length,
+        progression: progressionMax(numeros),
+        dejaSorti: rechercherDejaSorti(numeros, etoiles || [], index),
+        historiqueDisponible: index.size > 0,
+      };
+    }
+
+    // ---------- Règles de rejet du générateur ----------
+    const REGLES = [
+      { id: "dates", titre: "Pas plus de 3 numéros entre 1 et 31 (dates de naissance)", rejette: (a) => a.dates > 3 },
+      { id: "suites", titre: "Aucune suite de 3 numéros consécutifs ou plus", rejette: (a) => a.suite >= 3 },
+      { id: "motifs", titre: "Aucun motif visuel (colonne, diagonale, 4 numéros sur une même ligne ou colonne)", rejette: (a) => a.alignement >= 3 || a.ligneMax >= 4 || a.colonneMax >= 4 },
+      { id: "multiples", titre: "Pas de multiples réguliers (3 multiples de 5 ou plus, progression de 4 termes)", rejette: (a) => a.multiples5 >= 3 || a.progression >= 4 },
+      { id: "historique", titre: "Combinaison jamais sortie (si l'historique est importé)", rejette: (a) => a.dejaSorti.numeros },
+    ];
+
+    function raisonsDeRejet(analyse) {
+      return REGLES.filter((r) => r.rejette(analyse)).map((r) => r.id);
+    }
+
+    function genererGrille(options) {
+      const opts = options || {};
+      const remplir = opts.remplir || sourceCrypto();
+      const index = opts.index || indexerHistorique(opts.historique);
+      const maxEssais = opts.maxEssais || 10000;
+      const exclues = opts.exclues || new Set();
+      for (let essais = 1; essais <= maxEssais; essais++) {
+        const numeros = tirerSansRemise(NB_NUMEROS, K_NUMEROS, remplir);
+        const etoiles = tirerSansRemise(NB_ETOILES, K_ETOILES, remplir);
+        const cle = cleNumeros(numeros) + "|" + cleNumeros(etoiles);
+        if (exclues.has(cle)) continue;
+        if (raisonsDeRejet(analyser(numeros, etoiles, index)).length === 0) {
+          return { numeros, etoiles, essais };
+        }
+      }
+      throw new Error("Aucune grille acceptable trouvée après " + maxEssais + " essais.");
+    }
+
+    function genererGrilles(nombre, options) {
+      const opts = Object.assign({}, options);
+      opts.index = opts.index || indexerHistorique(opts.historique);
+      opts.exclues = new Set();
+      const grilles = [];
+      for (let i = 0; i < nombre; i++) {
+        const g = genererGrille(opts);
+        opts.exclues.add(cleNumeros(g.numeros) + "|" + cleNumeros(g.etoiles));
+        grilles.push(g);
+      }
+      return grilles;
+    }
+
+    // ---------- Score d'originalité ----------
+    function scoreOriginalite(numeros, etoiles, historique) {
+      const a = analyser(numeros, etoiles, historique);
+      const criteres = [];
+
+      const pDates = [0, 0, 0, 5, 20, 30][a.dates];
+      criteres.push({
+        id: "dates", titre: "Dates de naissance", max: 30, penalite: pDates,
+        explication: a.dates + " numéro" + (a.dates > 1 ? "s" : "") + " entre 1 et 31. Beaucoup de joueurs jouent des dates (jours 1 à 31) : ces numéros sont surjoués. Au hasard, on en tire 3 en moyenne ; au-delà de 3, la grille ressemble à celles de milliers d'autres joueurs.",
+      });
+
+      const pSuite = [0, 0, 5, 15, 20, 25][a.suite];
+      criteres.push({
+        id: "suites", titre: "Numéros consécutifs", max: 25, penalite: pSuite,
+        explication: a.suite >= 2
+          ? "Plus longue suite : " + a.suite + " numéros consécutifs. Les suites (12, 13, 14…) sont très prisées et donc souvent partagées."
+          : "Aucun numéro consécutif.",
+      });
+
+      let pMotif = 0;
+      if (a.alignement >= 4) pMotif = 20; else if (a.alignement === 3) pMotif = 15;
+      if (a.ligneMax >= 4 || a.colonneMax >= 4) pMotif = Math.max(pMotif, 10);
+      criteres.push({
+        id: "motifs", titre: "Motifs visuels sur la grille", max: 20, penalite: pMotif,
+        explication: pMotif
+          ? "Alignement en colonne ou diagonale : " + a.alignement + " cases ; maximum sur une ligne : " + a.ligneMax + ", sur une colonne : " + a.colonneMax + ". Les joueurs qui « dessinent » sur le bulletin choisissent souvent les mêmes formes."
+          : "Pas de dessin reconnaissable sur la grille (colonnes, diagonales, regroupements).",
+      });
+
+      let pMult = 0;
+      if (a.multiples5 >= 4) pMult = 15; else if (a.multiples5 === 3) pMult = 10;
+      if (a.progression >= 4) pMult = 15;
+      criteres.push({
+        id: "multiples", titre: "Multiples et écarts réguliers", max: 15, penalite: pMult,
+        explication: a.multiples5 + " multiple" + (a.multiples5 > 1 ? "s" : "") + " de 5 ; plus longue progression régulière : " + a.progression + " termes. Les séries comme 5, 10, 15, 20 ou 2, 4, 6, 8 sont des choix fréquents.",
+      });
+
+      let pHisto = 0, expliHisto;
+      if (!a.historiqueDisponible) {
+        expliHisto = "Historique non importé : critère non vérifié. Importez un fichier CSV dans l'onglet Stats.";
+      } else if (a.dejaSorti.complet) {
+        pHisto = 30;
+        expliHisto = "Cette combinaison complète est déjà sortie" + (a.dejaSorti.date ? " (" + a.dejaSorti.date + ")" : "") + ". Rejouer un ancien tirage est courant : ses chances ne sont ni plus ni moins grandes, mais le gain serait davantage partagé.";
+      } else if (a.dejaSorti.numeros) {
+        pHisto = 25;
+        expliHisto = "Ces 5 numéros sont déjà sortis" + (a.dejaSorti.date ? " (" + a.dejaSorti.date + ")" : "") + ". Des joueurs rejouent les anciens tirages.";
+      } else {
+        expliHisto = "Ces 5 numéros ne sont jamais sortis dans l'historique importé.";
+      }
+      criteres.push({ id: "historique", titre: "Tirage déjà sorti", max: 30, penalite: pHisto, explication: expliHisto, verifie: a.historiqueDisponible });
+
+      const total = criteres.reduce((s, c) => s + c.penalite, 0);
+      return { score: Math.max(0, 100 - total), criteres, analyse: a };
+    }
+
+    // ---------- Import CSV ----------
+    function sansAccents(s) {
+      return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+    }
+
+    function lireDate(s) {
+      if (!s) return null;
+      const v = String(s).trim().replace(/^"|"$/g, "");
+      let m = v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4}|\d{2})$/);
+      if (m) {
+        const an = m[3].length === 2 ? "20" + m[3] : m[3];
+        return an + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+      }
+      m = v.match(/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})/);
+      if (m) return m[1] + "-" + m[2].padStart(2, "0") + "-" + m[3].padStart(2, "0");
+      m = v.match(/^(20\d{2}|19\d{2})(\d{2})(\d{2})$/);
+      if (m) return m[1] + "-" + m[2] + "-" + m[3];
+      return null;
+    }
+
+    function decouper(ligne, sep) {
+      const champs = [];
+      let cur = "", guillemets = false;
+      for (const ch of ligne) {
+        if (ch === '"') guillemets = !guillemets;
+        else if (ch === sep && !guillemets) { champs.push(cur.trim()); cur = ""; }
+        else cur += ch;
+      }
+      champs.push(cur.trim());
+      return champs;
+    }
+
+    function tirageValide(numeros, etoiles) {
+      return validerGrille(numeros, etoiles) === null;
+    }
+
+    // Accepte les fichiers FDJ (colonnes boule_1…boule_5, etoile_1, etoile_2, date_de_tirage)
+    // ou tout fichier « date;n1;n2;n3;n4;n5;e1;e2 ».
+    function analyserCSV(texte) {
+      const lignes = String(texte).replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim());
+      if (!lignes.length) return { tirages: [], ignorees: 0 };
+      const premiere = lignes[0];
+      const sep = [";", "\t", ","].map((s) => [s, premiere.split(s).length]).sort((a, b) => b[1] - a[1])[0][0];
+
+      const entete = decouper(premiere, sep).map(sansAccents);
+      const col = (re) => entete.findIndex((h) => re.test(h));
+      const colsN = [1, 2, 3, 4, 5].map((i) => col(new RegExp("^(boule|numero|num|n|b)[ _-]?" + i + "$")));
+      const colsE = [1, 2].map((i) => col(new RegExp("^(etoile|star|e)[ _-]?" + i + "$")));
+      const colDate = entete.findIndex((h) => h.includes("date"));
+      const avecEntete = colsN.every((c) => c >= 0) && colsE.every((c) => c >= 0);
+      const aEnteteTexte = entete.some((h) => /[a-z]/.test(h) && !lireDate(h));
+
+      const tirages = [];
+      let ignorees = 0;
+      const debut = avecEntete || aEnteteTexte ? 1 : 0;
+      for (let i = debut; i < lignes.length; i++) {
+        const champs = decouper(lignes[i], sep);
+        let date = null, numeros, etoiles;
+        if (avecEntete) {
+          numeros = colsN.map((c) => parseInt(champs[c], 10));
+          etoiles = colsE.map((c) => parseInt(champs[c], 10));
+          date = colDate >= 0 ? lireDate(champs[colDate]) : null;
+        } else {
+          const entiers = [];
+          for (const ch of champs) {
+            const d = lireDate(ch);
+            if (d && !date) { date = d; continue; }
+            if (/^\d{1,2}$/.test(ch)) entiers.push(parseInt(ch, 10));
+          }
+          numeros = entiers.slice(0, 5);
+          etoiles = entiers.slice(5, 7);
+        }
+        if (tirageValide(numeros, etoiles)) {
+          tirages.push({ date, numeros: trier(numeros), etoiles: trier(etoiles) });
+        } else {
+          ignorees++;
+        }
+      }
+      return { tirages, ignorees };
+    }
+
+    // ---------- Statistiques descriptives ----------
+    function statistiques(tirages) {
+      const avecDates = tirages.length > 0 && tirages.every((t) => t.date);
+      // Du plus récent au plus ancien. Sans dates, on suppose le fichier déjà dans cet ordre.
+      const ordonnes = avecDates ? [...tirages].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)) : tirages;
+      const calc = (max, cle) => {
+        const freq = Array(max + 1).fill(0);
+        const ecart = Array(max + 1).fill(null);
+        ordonnes.forEach((t, i) => {
+          for (const n of t[cle]) {
+            freq[n]++;
+            if (ecart[n] === null) ecart[n] = i;
+          }
+        });
+        return Array.from({ length: max }, (_, i) => ({
+          valeur: i + 1,
+          frequence: freq[i + 1],
+          ecart: ecart[i + 1] === null ? ordonnes.length : ecart[i + 1],
+          jamais: ecart[i + 1] === null,
+        }));
+      };
+      return {
+        nombre: ordonnes.length,
+        avecDates,
+        premier: avecDates ? ordonnes[ordonnes.length - 1].date : null,
+        dernier: avecDates ? ordonnes[0].date : null,
+        numeros: calc(NB_NUMEROS, "numeros"),
+        etoiles: calc(NB_ETOILES, "etoiles"),
+        attenduNumero: (ordonnes.length * K_NUMEROS) / NB_NUMEROS,
+      };
+    }
+
+    // ---------- Simulateur ----------
+    function simuler({ grillesParSemaine, annees, prix, tauxRetour }) {
+      const grilles = Math.max(0, Math.round(grillesParSemaine * 52 * annees));
+      const depense = grilles * prix;
+      const gainMoyen = depense * tauxRetour;
+      const p = 1 / TOTAL_COMBINAISONS;
+      const probaJackpot = grilles > 0 ? -Math.expm1(grilles * Math.log1p(-p)) : 0;
+      return {
+        grilles,
+        depense,
+        gainMoyen,
+        perteMoyenne: depense - gainMoyen,
+        probaJackpot,
+        anneesPourUneChance: grillesParSemaine > 0 ? TOTAL_COMBINAISONS / (grillesParSemaine * 52) : Infinity,
+        gainsEspere: grilles / CHANCE_UN_GAIN,
+      };
+    }
+
+    // ---------- Budget ----------
+    const moisDe = (dateIso) => String(dateIso).slice(0, 7);
+    function totalDuMois(depenses, mois) {
+      return depenses.filter((d) => moisDe(d.date) === mois).reduce((s, d) => s + d.montant, 0);
+    }
+    function etatBudget(total, plafond) {
+      if (!plafond || plafond <= 0) return "sans-plafond";
+      if (total > plafond) return "depasse";
+      if (total >= plafond * 0.8) return "attention";
+      return "ok";
+    }
+
+    // ---------- Analyse statistique approfondie ----------
+    // Évolution des règles : 9 étoiles à l'origine (13/02/2004), 11 à partir du 10/05/2011,
+    // 12 à partir du 27/09/2016. Les 50 numéros n'ont jamais changé.
+    const DEBUT_11_ETOILES = "2011-05-10";
+    const DEBUT_12_ETOILES = "2016-09-27";
+    function etoilesEnVigueur(date) {
+      if (!date) return NB_ETOILES;
+      if (date >= DEBUT_12_ETOILES) return 12;
+      if (date >= DEBUT_11_ETOILES) return 11;
+      return 9;
+    }
+
+    // Du plus ancien au plus récent (sans dates : fichier supposé du plus récent au plus ancien).
+    function ordreChronologique(tirages) {
+      const avecDates = tirages.length > 0 && tirages.every((t) => t.date);
+      return avecDates ? [...tirages].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) : [...tirages].reverse();
+    }
+
+    function lnGamma(z) {
+      const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313,
+        -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+      if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lnGamma(1 - z);
+      z -= 1;
+      let x = c[0];
+      for (let i = 1; i < 9; i++) x += c[i] / (z + i);
+      const t = z + 7.5;
+      return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+    }
+
+    // Fonction gamma incomplète régularisée Q(a, x) = 1 − P(a, x).
+    function gammaQ(a, x) {
+      if (x <= 0) return 1;
+      const facteur = Math.exp(-x + a * Math.log(x) - lnGamma(a));
+      if (x < a + 1) {
+        let somme = 1 / a, terme = somme, ap = a;
+        for (let n = 0; n < 1000; n++) {
+          ap++; terme *= x / ap; somme += terme;
+          if (Math.abs(terme) < Math.abs(somme) * 1e-15) break;
+        }
+        return Math.max(0, 1 - somme * facteur);
+      }
+      const PETIT = 1e-300;
+      let b = x + 1 - a, c = 1 / PETIT, d = 1 / b, h = d;
+      for (let i = 1; i < 1000; i++) {
+        const an = -i * (i - a);
+        b += 2;
+        d = an * d + b; if (Math.abs(d) < PETIT) d = PETIT;
+        c = b + an / c; if (Math.abs(c) < PETIT) c = PETIT;
+        d = 1 / d;
+        const delta = d * c;
+        h *= delta;
+        if (Math.abs(delta - 1) < 1e-15) break;
+      }
+      return facteur * h;
+    }
+
+    const pValeurKhi2 = (khi2, ddl) => gammaQ(ddl / 2, khi2 / 2);
+
+    // Probabilité hypergéométrique : k succès en n tirages sans remise, K succès parmi N.
+    const hypergeometrique = (N, K, n, k) => (combinaisons(K, k) * combinaisons(N - K, n - k)) / combinaisons(N, n);
+
+    // Test du khi-deux d'uniformité pour un tirage de k boules parmi n, sans remise.
+    // Le facteur (n − 1) / (n − k) corrige l'absence de remise : la statistique suit alors un khi-deux à n − 1 ddl.
+    function khi2Uniformite(frequences, attendus, n, k) {
+      let brut = 0;
+      for (let i = 0; i < frequences.length; i++) {
+        if (attendus[i] > 0) brut += (frequences[i] - attendus[i]) ** 2 / attendus[i];
+      }
+      const khi2 = (brut * (n - 1)) / (n - k);
+      const ddl = n - 1;
+      return { khi2, ddl, p: pValeurKhi2(khi2, ddl) };
+    }
+
+    function pearson(x, y) {
+      const n = x.length, mx = x.reduce((s, v) => s + v, 0) / n, my = y.reduce((s, v) => s + v, 0) / n;
+      let sxy = 0, sxx = 0, syy = 0;
+      for (let i = 0; i < n; i++) {
+        sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; syy += (y[i] - my) ** 2;
+      }
+      return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+    }
+
+    // Classement des valeurs par fréquence décroissante (à égalité : la plus petite d'abord).
+    function classerParFrequence(compteurs) {
+      return compteurs.map((f, i) => ({ valeur: i + 1, frequence: f })).sort((a, b) => b.frequence - a.frequence || a.valeur - b.valeur);
+    }
+
+    // Test rétrospectif : avant chaque tirage, on prend les `taille` numéros les plus sortis
+    // jusque-là (tout l'historique, ou seulement les `fenetre` derniers tirages), puis on compte
+    // combien d'entre eux sortent réellement. Au hasard, on en attend 5 × taille / 50.
+    function testRetrospectif(tirages, options) {
+      const opts = Object.assign({ taille: 15, fenetre: null, debut: 50 }, options);
+      const chrono = ordreChronologique(tirages);
+      const compteurs = Array(NB_NUMEROS).fill(0);
+      const pTop = opts.taille / NB_NUMEROS;
+      let touches = 0, essais = 0;
+      for (let i = 0; i < chrono.length; i++) {
+        if (i >= opts.debut) {
+          const top = new Set(classerParFrequence(compteurs).slice(0, opts.taille).map((x) => x.valeur));
+          touches += chrono[i].numeros.filter((n) => top.has(n)).length;
+          essais++;
+        }
+        for (const n of chrono[i].numeros) compteurs[n - 1]++;
+        if (opts.fenetre && i >= opts.fenetre) for (const n of chrono[i - opts.fenetre].numeros) compteurs[n - 1]--;
+      }
+      const attenduParTirage = K_NUMEROS * pTop;
+      // Variance hypergéométrique du nombre de numéros trouvés par tirage.
+      const variance = K_NUMEROS * pTop * (1 - pTop) * (NB_NUMEROS - K_NUMEROS) / (NB_NUMEROS - 1);
+      const z = essais ? (touches - attenduParTirage * essais) / Math.sqrt(variance * essais) : 0;
+      return {
+        taille: opts.taille, fenetre: opts.fenetre, tiragesTestes: essais,
+        moyenne: essais ? touches / essais : 0, attenduParTirage, z,
+        p: essais ? 2 * normaleQ(Math.abs(z)) : 1,
+      };
+    }
+
+    // Queue de la loi normale centrée réduite : P(Z > z).
+    function normaleQ(z) {
+      return 0.5 * gammaQ(0.5, (z * z) / 2) * (z >= 0 ? 1 : -1) + (z >= 0 ? 0 : 1);
+    }
+
+    function analyseApprofondie(tirages) {
+      const chrono = ordreChronologique(tirages);
+      const T = chrono.length;
+      const avecDates = T > 0 && chrono.every((t) => t.date);
+      const st = statistiques(tirages);
+
+      // Numéros : fréquences, écart-type binomial, score z.
+      const p = K_NUMEROS / NB_NUMEROS;
+      const attendu = T * p;
+      const sigma = Math.sqrt(T * p * (1 - p));
+      const numeros = st.numeros.map((x) => Object.assign({}, x, { attendu, z: sigma ? (x.frequence - attendu) / sigma : 0 }));
+      const testNumeros = khi2Uniformite(numeros.map((x) => x.frequence), numeros.map(() => attendu), NB_NUMEROS, K_NUMEROS);
+      const horsZone = numeros.filter((x) => Math.abs(x.z) > 1.96);
+
+      // Étoiles : attendu calculé tirage par tirage selon le nombre d'étoiles en vigueur.
+      const freqE = Array(NB_ETOILES).fill(0), attenduE = Array(NB_ETOILES).fill(0);
+      const ere12 = chrono.filter((t) => etoilesEnVigueur(t.date) === 12);
+      const freqE12 = Array(NB_ETOILES).fill(0);
+      for (const t of chrono) {
+        const k = etoilesEnVigueur(t.date);
+        for (let e = 1; e <= k; e++) attenduE[e - 1] += K_ETOILES / k;
+        for (const e of t.etoiles) freqE[e - 1]++;
+      }
+      for (const t of ere12) for (const e of t.etoiles) freqE12[e - 1]++;
+      const etoiles = freqE.map((f, i) => ({ valeur: i + 1, frequence: f, attendu: attenduE[i], ratio: attenduE[i] ? f / attenduE[i] : 0, frequence12: freqE12[i] }));
+      const testEtoiles = ere12.length
+        ? khi2Uniformite(freqE12, freqE12.map(() => (ere12.length * K_ETOILES) / NB_ETOILES), NB_ETOILES, K_ETOILES)
+        : null;
+
+      // Structure des tirages, comparée aux lois théoriques.
+      const repartition = (compte, K) => Array.from({ length: K_NUMEROS + 1 }, (_, k) => ({
+        k,
+        observe: chrono.filter((t) => compte(t) === k).length,
+        attendu: T * hypergeometrique(NB_NUMEROS, K, K_NUMEROS, k),
+      }));
+      const parite = repartition((t) => t.numeros.filter((n) => n % 2 === 0).length, 25);
+      const dates = repartition((t) => t.numeros.filter((n) => n <= 31).length, 31);
+      const sommes = chrono.map((t) => t.numeros.reduce((s, n) => s + n, 0));
+      const moyenneSomme = T ? sommes.reduce((s, v) => s + v, 0) / T : 0;
+      const ecartTypeSomme = T > 1 ? Math.sqrt(sommes.reduce((s, v) => s + (v - moyenneSomme) ** 2, 0) / (T - 1)) : 0;
+      const varUniforme = (NB_NUMEROS * NB_NUMEROS - 1) / 12;
+      const sommeTheorique = {
+        moyenne: (K_NUMEROS * (NB_NUMEROS + 1)) / 2,
+        ecartType: Math.sqrt((K_NUMEROS * varUniforme * (NB_NUMEROS - K_NUMEROS)) / (NB_NUMEROS - 1)),
+      };
+      const avecSuite = chrono.filter((t) => plusLongueSuite(t.numeros) >= 2).length;
+      const probaSuite = 1 - combinaisons(NB_NUMEROS - K_NUMEROS + 1, K_NUMEROS) / combinaisons(NB_NUMEROS, K_NUMEROS);
+
+      // Paires de numéros sorties ensemble.
+      const paires = new Map();
+      for (const t of chrono) {
+        for (let i = 0; i < 5; i++) for (let j = i + 1; j < 5; j++) {
+          const cle = t.numeros[i] + "-" + t.numeros[j];
+          paires.set(cle, (paires.get(cle) || 0) + 1);
+        }
+      }
+      const attenduPaire = (T * combinaisons(K_NUMEROS, 2)) / combinaisons(NB_NUMEROS, 2);
+      const topPaires = [...paires.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
+        .map(([cle, f]) => ({ paire: cle.split("-").map(Number), frequence: f }));
+
+      // Écarts entre deux sorties d'un même numéro (loi géométrique : moyenne 9 tirages).
+      const derniere = Array(NB_NUMEROS).fill(null), ecarts = [];
+      chrono.forEach((t, i) => {
+        for (const n of t.numeros) {
+          if (derniere[n - 1] !== null) ecarts.push(i - derniere[n - 1] - 1);
+          derniere[n - 1] = i;
+        }
+      });
+      const ecartMoyen = ecarts.length ? ecarts.reduce((s, v) => s + v, 0) / ecarts.length : 0;
+      const ecartMax = ecarts.length ? Math.max(...ecarts) : 0;
+
+      // Persistance : les numéros fréquents de la 1re moitié le sont-ils dans la 2de ?
+      const moitie = Math.floor(T / 2);
+      const f1 = Array(NB_NUMEROS).fill(0), f2 = Array(NB_NUMEROS).fill(0);
+      chrono.forEach((t, i) => { for (const n of t.numeros) (i < moitie ? f1 : f2)[n - 1]++; });
+      const correlationMoities = T >= 20 ? pearson(f1, f2) : null;
+      // Sous l'hypothèse de hasard, r suit à peu près une loi normale d'écart-type 1/√(n − 3).
+      const zCorrelation = correlationMoities === null ? 0 : 0.5 * Math.log((1 + correlationMoities) / (1 - correlationMoities)) * Math.sqrt(NB_NUMEROS - 3);
+
+      const retro = T > 60 ? [
+        testRetrospectif(chrono, { taille: 15, fenetre: null, debut: 50 }),
+        testRetrospectif(chrono, { taille: 15, fenetre: 50, debut: 50 }),
+        testRetrospectif(chrono, { taille: 5, fenetre: null, debut: 50 }),
+      ] : [];
+
+      return {
+        nombre: T, avecDates, premier: st.premier, dernier: st.dernier,
+        numeros, testNumeros, horsZone, sigma, attendu,
+        etoiles, testEtoiles, tiragesEre12: ere12.length,
+        parite, dates, sommes: { moyenne: moyenneSomme, ecartType: ecartTypeSomme, theorique: sommeTheorique },
+        suites: { observe: avecSuite, attendu: T * probaSuite, proba: probaSuite },
+        paires: { top: topPaires, attendu: attenduPaire, nombre: combinaisons(NB_NUMEROS, 2) },
+        ecarts: { moyen: ecartMoyen, theorique: (1 - p) / p, max: ecartMax },
+        persistance: { r: correlationMoities, z: zCorrelation, p: 2 * normaleQ(Math.abs(zCorrelation)) },
+        retro,
+      };
+    }
+
+    // ---------- Grilles « numéros les plus sortis » ----------
+    // Choix aléatoire (crypto) parmi les numéros et étoiles les plus sortis de l'historique.
+    // Cela ne change PAS la probabilité de gagner : c'est une préférence, pas une prédiction.
+    function viviersFrequents(tirages, tailleNumeros, tailleEtoiles) {
+      const fn = Array(NB_NUMEROS).fill(0), fe = Array(NB_ETOILES).fill(0);
+      const ere12 = tirages.filter((t) => etoilesEnVigueur(t.date) === 12);
+      for (const t of tirages) for (const n of t.numeros) fn[n - 1]++;
+      for (const t of ere12.length ? ere12 : tirages) for (const e of t.etoiles) fe[e - 1]++;
+      return {
+        numeros: classerParFrequence(fn).slice(0, tailleNumeros),
+        etoiles: classerParFrequence(fe).slice(0, tailleEtoiles),
+      };
+    }
+
+    function genererGrilleFrequente(options) {
+      const opts = Object.assign({ tailleNumeros: 15, tailleEtoiles: 5, maxEssais: 5000 }, options);
+      if (!opts.tirages || !opts.tirages.length) throw new Error("Importez l'historique des tirages pour utiliser ce mode.");
+      const remplir = opts.remplir || sourceCrypto();
+      const index = opts.index || indexerHistorique(opts.tirages);
+      const vivier = opts.vivier || viviersFrequents(opts.tirages, opts.tailleNumeros, opts.tailleEtoiles);
+      const exclues = opts.exclues || new Set();
+      const piocher = (liste, k) => tirerSansRemise(liste.length, k, remplir).map((i) => liste[i - 1].valeur).sort((a, b) => a - b);
+      let secours = null;
+      for (let essais = 1; essais <= opts.maxEssais; essais++) {
+        const numeros = piocher(vivier.numeros, K_NUMEROS);
+        const etoiles = piocher(vivier.etoiles, K_ETOILES);
+        const cle = cleNumeros(numeros) + "|" + cleNumeros(etoiles);
+        if (exclues.has(cle)) continue;
+        const a = analyser(numeros, etoiles, index);
+        if (a.dejaSorti.numeros) continue;
+        if (raisonsDeRejet(a).length === 0) return { numeros, etoiles, essais, filtresRespectes: true };
+        if (!secours) secours = { numeros, etoiles, essais, filtresRespectes: false };
+      }
+      if (secours) return secours;
+      throw new Error("Aucune grille trouvée dans ce vivier.");
+    }
+
+    function genererGrillesFrequentes(nombre, options) {
+      const opts = Object.assign({}, options);
+      opts.index = opts.index || indexerHistorique(opts.tirages);
+      opts.vivier = opts.vivier || viviersFrequents(opts.tirages || [], opts.tailleNumeros || 15, opts.tailleEtoiles || 5);
+      opts.exclues = new Set();
+      const grilles = [];
+      for (let i = 0; i < nombre; i++) {
+        const g = genererGrilleFrequente(opts);
+        opts.exclues.add(cleNumeros(g.numeros) + "|" + cleNumeros(g.etoiles));
+        grilles.push(g);
+      }
+      return grilles;
+    }
+
+    root.GrilleMaline = {
+      NB_NUMEROS, NB_ETOILES, K_NUMEROS, K_ETOILES, COLONNES, LIGNES,
+      TOTAL_COMBINAISONS, CHANCE_UN_GAIN, REGLES,
+      etoilesEnVigueur, ordreChronologique, gammaQ, pValeurKhi2, normaleQ, hypergeometrique,
+      khi2Uniformite, pearson, testRetrospectif, analyseApprofondie,
+      viviersFrequents, genererGrilleFrequente, genererGrillesFrequentes,
+      combinaisons, entierAleatoire, tirerSansRemise, validerGrille,
+      plusLongueSuite, alignementMax, concentration, progressionMax,
+      indexerHistorique, analyser, raisonsDeRejet, genererGrille, genererGrilles,
+      scoreOriginalite, lireDate, analyserCSV, statistiques, simuler,
+      moisDe, totalDuMois, etatBudget,
+    };
+  })(typeof window !== "undefined" ? window : globalThis);
+  </script>
+
+  <!--
+    ===================================================================
+    INTERFACE : React 18 + htm (JSX sans compilation) + Tailwind.
+    ===================================================================
+  -->
+  <script>
+  (function () {
+    "use strict";
+    if (!window.React || !window.ReactDOM || !window.htm) {
+      document.getElementById("racine").innerHTML = '<p style="padding:24px;font-family:system-ui">Impossible de charger les bibliothèques. Vérifiez votre connexion puis rechargez la page.</p>';
+      return;
+    }
+    const { useState, useEffect, useMemo, useRef } = React;
+    const html = htm.bind(React.createElement);
+    const G = window.GrilleMaline;
+
+    const nf = new Intl.NumberFormat("fr-FR");
+    const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+    const eur0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+    const TOTAL_TXT = nf.format(G.TOTAL_COMBINAISONS);
+    const aujourdhui = () => new Date().toISOString().slice(0, 10);
+    const dateFr = (iso) => (iso ? iso.split("-").reverse().join("/") : "");
+    const moisFr = (m) => {
+      const [a, mo] = m.split("-").map(Number);
+      return new Date(a, mo - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    };
+
+    function useStockage(cle, initial) {
+      const [valeur, setValeur] = useState(() => {
+        try {
+          const brut = localStorage.getItem(cle);
+          return brut ? JSON.parse(brut) : initial;
+        } catch (e) {
+          return initial;
+        }
+      });
+      useEffect(() => {
+        try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* stockage indisponible */ }
+      }, [cle, valeur]);
+      return [valeur, setValeur];
+    }
+
+    // ---------- Petits composants ----------
+    function Boule({ n, actif = true, taille = "md" }) {
+      const t = taille === "sm" ? "w-8 h-8 text-sm" : "w-10 h-10 text-base";
+      return html`<span className=${t + " inline-flex items-center justify-center rounded-full font-bold tabular-nums shadow-sm " + (actif ? "bg-white text-indigo-950 ring-2 ring-indigo-200" : "bg-slate-100 text-slate-400")}>${n}</span>`;
+    }
+
+    function Etoile({ n, taille = "md" }) {
+      const t = taille === "sm" ? "w-9 h-9 text-xs" : "w-11 h-11 text-sm";
+      return html`<span className=${t + " relative inline-flex items-center justify-center font-bold tabular-nums text-amber-950"}>
+        <svg viewBox="0 0 24 24" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true"><path fill="#fbbf24" stroke="#d97706" strokeWidth="1" strokeLinejoin="round" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>
+        <span className="relative mt-0.5">${n}</span>
+      </span>`;
+    }
+
+    function LigneGrille({ numeros, etoiles, taille }) {
+      return html`<div className="flex flex-wrap items-center gap-1.5">
+        ${numeros.map((n) => html`<${Boule} key=${"n" + n} n=${n} taille=${taille} />`)}
+        <span className="w-1"></span>
+        ${etoiles.map((e) => html`<${Etoile} key=${"e" + e} n=${e} taille=${taille} />`)}
+      </div>`;
+    }
+
+    function Carte({ titre, children, className = "" }) {
+      return html`<section className=${"bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-4 " + className}>
+        ${titre && html`<h2 className="text-base font-semibold text-slate-900 mb-3">${titre}</h2>`}
+        ${children}
+      </section>`;
+    }
+
+    function Avertissement({ ton = "info", children }) {
+      const styles = {
+        info: "bg-indigo-50 text-indigo-950 ring-indigo-200",
+        attention: "bg-amber-50 text-amber-950 ring-amber-300",
+        danger: "bg-red-50 text-red-900 ring-red-300",
+      };
+      return html`<div role=${ton === "danger" ? "alert" : "note"} className=${"rounded-xl ring-1 p-3 text-sm leading-relaxed " + styles[ton]}>${children}</div>`;
+    }
+
+    function Champ({ label, aide, children }) {
+      return html`<label className="block">
+        <span className="block text-sm font-medium text-slate-700 mb-1">${label}</span>
+        ${children}
+        ${aide && html`<span className="block text-xs text-slate-500 mt-1">${aide}</span>`}
+      </label>`;
+    }
+
+    const classeInput = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500";
+    const classeBouton = "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold transition active:scale-[.98] disabled:opacity-50";
+    const boutonPrimaire = classeBouton + " bg-indigo-700 text-white hover:bg-indigo-800";
+    const boutonSecondaire = classeBouton + " bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50";
+
+    function couleurScore(s) {
+      if (s >= 80) return { texte: "text-emerald-700", barre: "bg-emerald-500", mot: "Très originale" };
+      if (s >= 50) return { texte: "text-amber-700", barre: "bg-amber-500", mot: "Assez courante" };
+      return { texte: "text-red-700", barre: "bg-red-500", mot: "Très jouée" };
+    }
+
+    function RappelChances() {
+      return html`<p className="text-xs text-slate-500 leading-relaxed">
+        Rappel : quelle que soit la méthode, chaque combinaison a exactement <strong>1 chance sur ${TOTAL_TXT}</strong> de remporter le jackpot. Grille Maline ne prédit aucun tirage.
+      </p>`;
+    }
+
+    // ---------- Onglet : Générateur ----------
+    function OngletGenerer({ historique, onAnalyser, allerStats }) {
+      const [nombre, setNombre] = useState(3);
+      const [mode, setMode] = useStockage("grille-maline:mode", "anti-partage");
+      const [grilles, setGrilles] = useState([]);
+      const [erreur, setErreur] = useState(null);
+      const [copie, setCopie] = useState(null);
+      const index = useMemo(() => G.indexerHistorique(historique), [historique]);
+      const vivier = useMemo(() => (historique.length ? G.viviersFrequents(historique, 15, 5) : null), [historique]);
+      const frequents = mode === "frequents";
+
+      function generer() {
+        setErreur(null);
+        try {
+          const res = frequents
+            ? G.genererGrillesFrequentes(nombre, { tirages: historique, index, vivier })
+            : G.genererGrilles(nombre, { index });
+          setGrilles(res.map((g) => Object.assign(g, { score: G.scoreOriginalite(g.numeros, g.etoiles, index).score })));
+        } catch (e) {
+          setErreur(e.message);
+        }
+      }
+
+      async function copier(g, i) {
+        const texte = g.numeros.join(" - ") + "  ★ " + g.etoiles.join(" - ");
+        try { await navigator.clipboard.writeText(texte); setCopie(i); setTimeout(() => setCopie(null), 1500); } catch (e) { /* presse-papiers refusé */ }
+      }
+
+      const modes = [["anti-partage", "Anti-partage"], ["frequents", "Les plus sortis"]];
+
+      return html`<div className="space-y-4">
+        <div className="flex rounded-xl bg-slate-200/70 p-1" role="tablist" aria-label="Mode de génération">
+          ${modes.map(([v, l]) => html`<button key=${v} role="tab" aria-selected=${mode === v} onClick=${() => { setMode(v); setGrilles([]); setErreur(null); }}
+            className=${"flex-1 rounded-lg py-2.5 text-sm font-semibold " + (mode === v ? "bg-white shadow-sm text-slate-900" : "text-slate-600")}>${l}</button>`)}
+        </div>
+
+        <${Carte} titre=${frequents ? "Numéros les plus sortis" : "Générateur anti-partage"}>
+          ${frequents
+            ? html`<p className="text-sm text-slate-600 mb-3 leading-relaxed">
+                Tirage au hasard cryptographique parmi les <strong>15 numéros</strong> et les <strong>5 étoiles</strong> les plus sortis de votre historique, en écartant autant que possible les grilles très jouées.
+              </p>
+              <div className="mb-4"><${Avertissement} ton="attention">
+                <strong>Ce choix n'augmente pas vos chances.</strong> Les boules n'ont pas de mémoire : un numéro souvent sorti a exactement la même probabilité (1 sur 10) d'être tiré la prochaine fois. Le test rétrospectif de l'onglet Stats le vérifie sur votre propre historique. Autre effet : beaucoup de joueurs suivent les « numéros chauds », donc en cas de gain le partage est plus probable.
+              <//></div>
+              ${vivier ? html`<div className="mb-4">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Vivier (${nf.format(historique.length)} tirages)</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">${vivier.numeros.map((x) => html`<span key=${x.valeur} title=${x.frequence + " sorties"}><${Boule} n=${x.valeur} taille="sm" /></span>`)}</div>
+                <div className="flex flex-wrap gap-1">${vivier.etoiles.map((x) => html`<span key=${x.valeur} title=${x.frequence + " sorties"}><${Etoile} n=${x.valeur} taille="sm" /></span>`)}</div>
+              </div>` : html`<div className="mb-4"><${Avertissement}>
+                Ce mode a besoin de l'historique des tirages. <button className="font-semibold underline" onClick=${allerStats}>Importer le fichier CSV dans Stats</button>.
+              <//></div>`}`
+            : html`<p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                Tirage au hasard cryptographique, puis rejet des grilles que beaucoup de joueurs choisissent. Une grille originale ne gagne <strong>pas plus souvent</strong> : si elle gagne, elle a simplement moins de risques d'être partagée avec d'autres gagnants.
+              </p>`}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-sm font-medium text-slate-700">Nombre de grilles</span>
+            <div className="ml-auto flex items-center rounded-xl ring-1 ring-slate-300 overflow-hidden">
+              <button className="w-11 h-11 text-xl font-bold text-slate-700 active:bg-slate-100" aria-label="Moins" onClick=${() => setNombre(Math.max(1, nombre - 1))}>−</button>
+              <span className="w-10 text-center font-semibold tabular-nums" aria-live="polite">${nombre}</span>
+              <button className="w-11 h-11 text-xl font-bold text-slate-700 active:bg-slate-100" aria-label="Plus" onClick=${() => setNombre(Math.min(10, nombre + 1))}>+</button>
+            </div>
+          </div>
+          <button className=${boutonPrimaire + " w-full"} disabled=${frequents && !vivier} onClick=${generer}>Générer ${nombre > 1 ? nombre + " grilles" : "une grille"}</button>
+          ${erreur && html`<div className="mt-3"><${Avertissement} ton="danger">${erreur}<//></div>`}
+        <//>
+
+        ${grilles.length > 0 && html`<div className="space-y-3">
+          ${grilles.map((g, i) => {
+            const c = couleurScore(g.score);
+            return html`<div key=${g.numeros.join("-") + g.etoiles.join("-")} className="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-slate-500">Grille ${i + 1}</span>
+                <span className=${"text-xs font-semibold " + c.texte}>Originalité ${g.score}/100</span>
+              </div>
+              <${LigneGrille} numeros=${g.numeros} etoiles=${g.etoiles} />
+              ${g.filtresRespectes === false && html`<p className="text-xs text-amber-700 mt-2">Le vivier ne permettait pas d'éviter tous les motifs populaires.</p>`}
+              <div className="flex gap-2 mt-3">
+                <button className="text-sm font-medium text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50" onClick=${() => onAnalyser(g)}>Voir le détail</button>
+                <button className="text-sm font-medium text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100" onClick=${() => copier(g, i)}>${copie === i ? "Copié ✓" : "Copier"}</button>
+              </div>
+            </div>`;
+          })}
+          <p className="text-xs text-slate-500 text-center">Chacune de ces grilles a 1 chance sur ${TOTAL_TXT} de gagner le jackpot, ni plus ni moins qu'une autre.</p>
+        </div>`}
+
+        <${Carte} titre="Grilles écartées">
+          <ul className="space-y-2 text-sm">
+            ${G.REGLES.map((r) => {
+              const inactive = r.id === "historique" && index.size === 0;
+              return html`<li key=${r.id} className="flex gap-2">
+                <span className=${inactive ? "text-slate-400" : "text-emerald-600"} aria-hidden="true">${inactive ? "○" : "✓"}</span>
+                <span className=${inactive ? "text-slate-400" : "text-slate-700"}>${r.titre}${inactive ? " : inactive, aucun historique importé" : ""}</span>
+              </li>`;
+            })}
+          </ul>
+          <p className="text-xs text-slate-500 mt-3">Grille de référence : 5 lignes de 10 numéros (1 à 10, 11 à 20…). ${frequents ? "En mode « les plus sortis », les filtres sont appliqués quand le vivier le permet." : "Les étoiles sont tirées au hasard, sans filtre."}</p>
+        <//>
+      </div>`;
+    }
+
+    // ---------- Onglet : Score ----------
+    function OngletScore({ selection, setSelection, historique }) {
+      const { numeros, etoiles } = selection;
+      const complet = numeros.length === 5 && etoiles.length === 2;
+      const resultat = useMemo(() => (complet ? G.scoreOriginalite(numeros, etoiles, historique) : null), [numeros, etoiles, historique, complet]);
+
+      function basculer(liste, n, max) {
+        if (liste.includes(n)) return liste.filter((x) => x !== n);
+        if (liste.length >= max) return liste;
+        return [...liste, n].sort((a, b) => a - b);
+      }
+
+      const lignes = [];
+      for (let l = 0; l < G.LIGNES; l++) {
+        lignes.push(Array.from({ length: G.COLONNES }, (_, c) => l * G.COLONNES + c + 1).filter((n) => n <= G.NB_NUMEROS));
+      }
+
+      return html`<div className="space-y-4">
+        <${Carte} titre="Votre grille">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-slate-600">Numéros <strong className="tabular-nums">${numeros.length}/5</strong></span>
+            <button className="text-sm text-slate-500 underline" onClick=${() => setSelection({ numeros: [], etoiles: [] })}>Effacer</button>
+          </div>
+          <div className="grid grid-cols-10 gap-1 mb-4" role="group" aria-label="Choix des 5 numéros">
+            ${lignes.flat().map((n) => {
+              const choisi = numeros.includes(n);
+              return html`<button key=${n} aria-pressed=${choisi} onClick=${() => setSelection({ numeros: basculer(numeros, n, 5), etoiles })}
+                className=${"aspect-square rounded-lg text-sm font-semibold tabular-nums transition " + (choisi ? "bg-indigo-700 text-white" : "bg-slate-100 text-slate-700 active:bg-slate-200")}>${n}</button>`;
+            })}
+          </div>
+          <span className="block text-sm text-slate-600 mb-2">Étoiles <strong className="tabular-nums">${etoiles.length}/2</strong></span>
+          <div className="grid grid-cols-6 gap-1.5" role="group" aria-label="Choix des 2 étoiles">
+            ${Array.from({ length: G.NB_ETOILES }, (_, i) => i + 1).map((n) => {
+              const choisi = etoiles.includes(n);
+              return html`<button key=${n} aria-pressed=${choisi} onClick=${() => setSelection({ numeros, etoiles: basculer(etoiles, n, 2) })}
+                className=${"h-10 rounded-lg text-sm font-semibold tabular-nums transition " + (choisi ? "bg-amber-400 text-amber-950" : "bg-amber-50 text-amber-900 active:bg-amber-100")}>★ ${n}</button>`;
+            })}
+          </div>
+        <//>
+
+        ${!complet && html`<p className="text-sm text-slate-500 text-center px-4">Choisissez 5 numéros et 2 étoiles pour obtenir le score d'originalité.</p>`}
+
+        ${resultat && (() => {
+          const c = couleurScore(resultat.score);
+          return html`<${Carte}>
+            <div className="flex items-end justify-between mb-2">
+              <div>
+                <p className="text-sm text-slate-500">Score d'originalité</p>
+                <p className=${"text-4xl font-extrabold tabular-nums " + c.texte}>${resultat.score}<span className="text-lg text-slate-400 font-semibold">/100</span></p>
+              </div>
+              <span className=${"text-sm font-semibold " + c.texte}>${c.mot}</span>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden mb-4"><div className=${"h-full rounded-full " + c.barre} style=${{ width: resultat.score + "%" }}></div></div>
+            <${LigneGrille} numeros=${numeros} etoiles=${etoiles} taille="sm" />
+            <ul className="mt-4 divide-y divide-slate-100">
+              ${resultat.criteres.map((cr) => html`<li key=${cr.id} className="py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-slate-800 text-sm">${cr.titre}</span>
+                  <span className=${"text-sm font-semibold tabular-nums " + (cr.verifie === false ? "text-slate-400" : cr.penalite === 0 ? "text-emerald-700" : "text-red-700")}>
+                    ${cr.verifie === false ? "non vérifié" : cr.penalite === 0 ? "0 pt retiré" : "−" + cr.penalite + " pts"}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">${cr.explication}</p>
+              </li>`)}
+            </ul>
+            <div className="mt-2"><${Avertissement}>Le score mesure le risque de <strong>partager</strong> un gain, pas la probabilité de gagner. Cette grille a, comme toutes les autres, 1 chance sur ${TOTAL_TXT} de remporter le jackpot.<//></div>
+          <//>`;
+        })()}
+      </div>`;
+    }
+
+    // ---------- Analyse approfondie ----------
+    const dec = (x, d = 1) => x.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+    const pourcent = (x, d = 1) => dec(x * 100, d) + " %";
+    const formatP = (p) => (p < 0.001 ? "< 0,001" : dec(p, 3));
+
+    function verdict(p) {
+      if (p >= 0.05) return { ton: "text-emerald-700", texte: "Aucun écart significatif : compatible avec un tirage parfaitement aléatoire." };
+      if (p >= 0.01) return { ton: "text-amber-700", texte: "Écart léger : un historique parfaitement aléatoire sur 20 montrerait un écart au moins aussi grand. Rien de concluant." };
+      return { ton: "text-red-700", texte: "Écart inhabituel (environ 1 chance sur " + nf.format(Math.round(1 / Math.max(p, 1e-9))) + " d'arriver par pur hasard). Ce genre de résultat arrive quand on multiplie les tests ; il ne donne pas pour autant de moyen de prévoir le prochain tirage." };
+    }
+
+    function Ligne({ libelle, valeur, aide }) {
+      return html`<div className="flex items-baseline justify-between gap-3 py-1.5">
+        <span className="text-sm text-slate-600">${libelle}${aide && html`<span className="block text-xs text-slate-400">${aide}</span>`}</span>
+        <span className="text-sm font-semibold tabular-nums text-right">${valeur}</span>
+      </div>`;
+    }
+
+    function TableauRepartition({ titre, lignes, total, etiquette }) {
+      return html`<div className="mb-4">
+        <p className="text-sm font-medium text-slate-800 mb-1">${titre}</p>
+        <table className="w-full text-sm tabular-nums">
+          <thead><tr className="text-xs text-slate-500"><th className="text-left font-medium py-1">${etiquette}</th><th className="text-right font-medium">Observé</th><th className="text-right font-medium">Théorie</th></tr></thead>
+          <tbody>${lignes.map((l) => html`<tr key=${l.k} className="border-t border-slate-100">
+            <td className="py-1">${l.k}</td>
+            <td className="text-right">${pourcent(l.observe / total)}</td>
+            <td className="text-right text-slate-500">${pourcent(l.attendu / total)}</td>
+          </tr>`)}</tbody>
+        </table>
+      </div>`;
+    }
+
+    function AnalyseApprofondie({ historique }) {
+      const a = useMemo(() => G.analyseApprofondie(historique), [historique]);
+      if (a.nombre < 30) {
+        return html`<${Avertissement}>Importez au moins 30 tirages pour l'analyse approfondie (l'historique complet en compte plus de 1 900).<//>`;
+      }
+      const vN = verdict(a.testNumeros.p);
+      const tries = [...a.numeros].sort((x, y) => y.frequence - x.frequence);
+      const top = tries.slice(0, 10), bas = tries.slice(-10).reverse();
+      const maxF = tries[0].frequence;
+      const LigneNumero = (x) => html`<li key=${x.valeur} className="flex items-center gap-2 text-sm">
+        <span className="w-7 text-right font-semibold tabular-nums">${x.valeur}</span>
+        <div className="flex-1 h-3.5 rounded bg-slate-100 overflow-hidden relative">
+          <div className="h-full bg-indigo-400 rounded" style=${{ width: (x.frequence / maxF) * 100 + "%" }}></div>
+          <div className="absolute inset-y-0 w-0.5 bg-slate-700/60" style=${{ left: (a.attendu / maxF) * 100 + "%" }} title="Attendu"></div>
+        </div>
+        <span className="w-10 text-right tabular-nums">${x.frequence}</span>
+        <span className=${"w-14 text-right tabular-nums text-xs " + (Math.abs(x.z) > 1.96 ? "text-amber-700 font-semibold" : "text-slate-500")}>${(x.frequence >= a.attendu ? "+" : "") + pourcent(x.frequence / a.attendu - 1, 0)}</span>
+      </li>`;
+      const libelleRetro = (r) => (r.taille === 5 ? "Les 5 numéros les plus sortis" : "Les 15 plus sortis") + (r.fenetre ? " sur les " + r.fenetre + " derniers tirages" : " depuis le début");
+
+      return html`<div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900 px-1 pt-2">Analyse approfondie</h2>
+
+        <${Carte} titre="Verdict : le tirage est-il équitable ?">
+          <p className=${"text-sm font-semibold mb-2 " + vN.ton}>${vN.texte}</p>
+          <${Ligne} libelle="Test du khi-deux sur les 50 numéros" valeur=${"χ² = " + dec(a.testNumeros.khi2) + " (" + a.testNumeros.ddl + " ddl)"} />
+          <${Ligne} libelle="p-valeur" aide="Probabilité d'observer un écart au moins aussi grand avec des boules parfaitement équilibrées." valeur=${formatP(a.testNumeros.p)} />
+          ${a.testEtoiles && html`<${Ligne} libelle=${"Étoiles (" + nf.format(a.tiragesEre12) + " tirages à 12 étoiles)"} valeur=${"p = " + formatP(a.testEtoiles.p)} />`}
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed">Le test compare les fréquences observées à celles d'un hasard parfait, en tenant compte du tirage sans remise. Les tirages sont réalisés sous contrôle d'huissier, avec des jeux de boules vérifiés et renouvelés.</p>
+        <//>
+
+        <${Carte} titre="Test décisif : suivre les numéros les plus sortis aurait-il aidé ?">
+          <p className="text-sm text-slate-600 mb-3 leading-relaxed">
+            On rejoue l'histoire : avant chacun des tirages, on retient les numéros les plus sortis <em>jusque-là</em>, puis on compte combien sortent vraiment. Si les « numéros chauds » existaient, on en trouverait plus que le hasard.
+          </p>
+          ${a.retro.length ? html`<ul className="divide-y divide-slate-100">
+            ${a.retro.map((r, i) => {
+              const v = verdict(r.p);
+              return html`<li key=${i} className="py-2.5">
+                <p className="text-sm font-medium text-slate-800">${libelleRetro(r)}</p>
+                <div className="flex justify-between text-sm tabular-nums mt-1">
+                  <span className="text-slate-600">Trouvés par tirage : <strong className="text-slate-900">${dec(r.moyenne, 3)}</strong></span>
+                  <span className="text-slate-500">hasard : ${dec(r.attenduParTirage, 3)}</span>
+                </div>
+                <p className=${"text-xs mt-1 " + v.ton}>${nf.format(r.tiragesTestes)} tirages testés, p = ${formatP(r.p)}. ${r.p >= 0.05 ? "Aucun avantage mesurable." : r.moyenne > r.attenduParTirage ? "Écart positif, à confirmer sur de nouveaux tirages avant d'y voir autre chose que du hasard." : "Écart négatif : suivre ces numéros aurait même fait moins bien que le hasard."}</p>
+              </li>`;
+            })}
+          </ul>` : html`<p className="text-sm text-slate-500">Il faut au moins 60 tirages.</p>`}
+          ${a.persistance.r !== null && html`<div className="mt-3 pt-3 border-t border-slate-100">
+            <${Ligne} libelle="Corrélation entre 1re et 2de moitié de l'historique" aide="Proche de 0 : les numéros fréquents d'une période ne le restent pas dans la suivante." valeur=${"r = " + dec(a.persistance.r, 2) + " (p = " + formatP(a.persistance.p) + ")"} />
+          </div>`}
+        <//>
+
+        <${Carte} titre="Numéros les plus et les moins sortis">
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            Attendu au hasard : <strong>${dec(a.attendu)}</strong> sorties par numéro, avec une marge normale de ± ${dec(1.96 * a.sigma)} (95 %). Le trait vertical marque l'attendu. ${a.horsZone.length} numéro${a.horsZone.length > 1 ? "s sont" : " est"} hors de cette marge ; au hasard, on en attend environ 2 ou 3 sur 50.
+          </p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Les 10 plus sortis</p>
+          <ul className="space-y-1 mb-4">${top.map(LigneNumero)}</ul>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Les 10 moins sortis</p>
+          <ul className="space-y-1">${bas.map(LigneNumero)}</ul>
+        <//>
+
+        <${Carte} titre="Étoiles, ajustées à l'évolution des règles">
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">9 étoiles jusqu'au 10/05/2011, 11 jusqu'au 27/09/2016, 12 depuis. L'« attendu » tient compte du nombre d'étoiles en jeu à chaque tirage${a.avecDates ? "" : " (dates absentes : 12 étoiles supposées)"}.</p>
+          <table className="w-full text-sm tabular-nums">
+            <thead><tr className="text-xs text-slate-500"><th className="text-left font-medium py-1">Étoile</th><th className="text-right font-medium">Sorties</th><th className="text-right font-medium">Attendu</th><th className="text-right font-medium">Écart</th></tr></thead>
+            <tbody>${a.etoiles.map((e) => html`<tr key=${e.valeur} className="border-t border-slate-100">
+              <td className="py-1">★ ${e.valeur}</td><td className="text-right">${e.frequence}</td>
+              <td className="text-right text-slate-500">${dec(e.attendu)}</td>
+              <td className="text-right text-slate-600">${e.attendu ? (e.ratio >= 1 ? "+" : "") + pourcent(e.ratio - 1, 0) : "–"}</td>
+            </tr>`)}</tbody>
+          </table>
+        <//>
+
+        <${Carte} titre="Structure des tirages">
+          <${TableauRepartition} titre="Nombre de numéros pairs par tirage" etiquette="Pairs" lignes=${a.parite} total=${a.nombre} />
+          <${TableauRepartition} titre="Nombre de numéros entre 1 et 31 par tirage" etiquette="1 à 31" lignes=${a.dates} total=${a.nombre} />
+          <${Ligne} libelle="Somme des 5 numéros : moyenne" valeur=${dec(a.sommes.moyenne) + " (théorie " + dec(a.sommes.theorique.moyenne) + ")"} />
+          <${Ligne} libelle="Somme : écart-type" valeur=${dec(a.sommes.ecartType) + " (théorie " + dec(a.sommes.theorique.ecartType) + ")"} />
+          <${Ligne} libelle="Tirages avec au moins 2 numéros consécutifs" valeur=${pourcent(a.suites.observe / a.nombre) + " (théorie " + pourcent(a.suites.proba) + ")"} />
+          <p className="text-xs text-slate-500 mt-2">Les tirages réels ressemblent aux tirages théoriques : beaucoup contiennent des suites et des numéros au-delà de 31, contrairement aux grilles « intuitives » des joueurs.</p>
+        <//>
+
+        <${Carte} titre="Paires les plus fréquentes">
+          <p className="text-xs text-slate-500 mb-2 leading-relaxed">Attendu par paire : ${dec(a.paires.attendu)} sorties. Avec ${nf.format(a.paires.nombre)} paires possibles, il est normal que les premières dépassent nettement cette valeur : c'est l'effet du grand nombre de comparaisons, pas une affinité entre numéros.</p>
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm tabular-nums">
+            ${a.paires.top.map((x) => html`<li key=${x.paire.join("-")} className="flex justify-between"><span>${x.paire.join(" et ")}</span><span className="font-semibold">${x.frequence}</span></li>`)}
+          </ul>
+        <//>
+
+        <${Carte} titre="Écarts entre deux sorties">
+          <${Ligne} libelle="Écart moyen observé" valeur=${dec(a.ecarts.moyen, 2) + " tirages"} />
+          <${Ligne} libelle="Écart moyen théorique" aide="Loi géométrique de paramètre 1/10." valeur=${dec(a.ecarts.theorique, 0) + " tirages"} />
+          <${Ligne} libelle="Plus long écart observé" valeur=${nf.format(a.ecarts.max) + " tirages"} />
+          <p className="text-xs text-slate-500 mt-2">Un long écart n'annonce pas un retour imminent : après 50 tirages d'absence, la probabilité de sortir au prochain reste 1 sur 10.</p>
+        <//>
+      </div>`;
+    }
+
+    // ---------- Onglet : Historique et statistiques ----------
+    function OngletStats({ historique, setHistorique }) {
+      const [message, setMessage] = useState(null);
+      const [vue, setVue] = useState("numeros");
+      const [tri, setTri] = useState("valeur");
+      const entree = useRef(null);
+      const stats = useMemo(() => (historique.length ? G.statistiques(historique) : null), [historique]);
+
+      function importer(fichier) {
+        if (!fichier) return;
+        const lecteur = new FileReader();
+        lecteur.onload = () => {
+          const { tirages, ignorees } = G.analyserCSV(String(lecteur.result));
+          if (!tirages.length) {
+            setMessage({ ton: "danger", texte: "Aucun tirage valide trouvé. Le fichier doit contenir, pour chaque tirage, 5 numéros (1 à 50) et 2 étoiles (1 à 12)." });
+            return;
+          }
+          setHistorique(tirages);
+          setMessage({ ton: "info", texte: nf.format(tirages.length) + " tirages importés" + (ignorees ? ", " + ignorees + " ligne(s) ignorée(s)" : "") + "." });
+        };
+        lecteur.onerror = () => setMessage({ ton: "danger", texte: "Lecture du fichier impossible." });
+        lecteur.readAsText(fichier);
+      }
+
+      const liste = stats ? [...stats[vue]].sort((a, b) => (tri === "valeur" ? a.valeur - b.valeur : tri === "frequence" ? b.frequence - a.frequence : b.ecart - a.ecart)) : [];
+      const maxFreq = liste.reduce((m, x) => Math.max(m, x.frequence), 1);
+
+      return html`<div className="space-y-4">
+        <${Avertissement} ton="attention">
+          <strong>Ces chiffres ne prédisent rien.</strong> Chaque tirage est indépendant des précédents : un numéro « en retard » n'a pas plus de chances de sortir, un numéro « chaud » pas moins. Les statistiques ci-dessous décrivent le passé, rien de plus.
+        <//>
+
+        <${Carte} titre="Historique des tirages">
+          <p className="text-sm text-slate-600 mb-3 leading-relaxed">Importez un fichier CSV, par exemple l'historique téléchargeable sur le site de la FDJ (colonnes <code className="text-xs bg-slate-100 px-1 rounded">boule_1</code> … <code className="text-xs bg-slate-100 px-1 rounded">etoile_2</code>), ou un fichier simple au format <code className="text-xs bg-slate-100 px-1 rounded">date;n1;n2;n3;n4;n5;e1;e2</code>. Le fichier reste sur votre appareil.</p>
+          <input ref=${entree} type="file" accept=".csv,.txt,text/csv" className="hidden" onChange=${(e) => { importer(e.target.files[0]); e.target.value = ""; }} />
+          <div className="flex gap-2">
+            <button className=${boutonPrimaire + " flex-1"} onClick=${() => entree.current && entree.current.click()}>Importer un CSV</button>
+            ${historique.length > 0 && html`<button className=${boutonSecondaire} onClick=${() => { if (confirm("Effacer l'historique importé ?")) { setHistorique([]); setMessage(null); } }}>Effacer</button>`}
+          </div>
+          ${message && html`<div className="mt-3"><${Avertissement} ton=${message.ton}>${message.texte}<//></div>`}
+        <//>
+
+        ${stats && html`<${Carte}>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Tirages</p><p className="text-xl font-bold tabular-nums">${nf.format(stats.nombre)}</p></div>
+            <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Période</p><p className="text-sm font-semibold tabular-nums">${stats.avecDates ? dateFr(stats.premier) + " → " + dateFr(stats.dernier) : "dates absentes"}</p></div>
+          </div>
+          ${!stats.avecDates && html`<p className="text-xs text-slate-500 mb-3">Sans dates, le fichier est supposé trié du plus récent au plus ancien pour calculer les écarts.</p>`}
+          <div className="flex rounded-xl bg-slate-100 p-1 mb-3" role="tablist">
+            ${[["numeros", "Numéros"], ["etoiles", "Étoiles"]].map(([v, l]) => html`<button key=${v} role="tab" aria-selected=${vue === v} onClick=${() => setVue(v)}
+              className=${"flex-1 rounded-lg py-2 text-sm font-semibold " + (vue === v ? "bg-white shadow-sm text-slate-900" : "text-slate-500")}>${l}</button>`)}
+          </div>
+          <div className="flex items-center gap-2 mb-3 text-sm">
+            <span className="text-slate-500">Trier par</span>
+            <select value=${tri} onChange=${(e) => setTri(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-2 py-1.5">
+              <option value="valeur">valeur</option>
+              <option value="frequence">fréquence</option>
+              <option value="ecart">écart</option>
+            </select>
+          </div>
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            <strong>Fréquence</strong> : nombre de sorties. <strong>Écart</strong> : nombre de tirages depuis la dernière sortie.
+            ${vue === "numeros" ? " Si tout était parfaitement régulier, chaque numéro serait sorti " + stats.attenduNumero.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " fois ; les écarts observés sont normaux pour du hasard." : " Attention : il y avait 9 étoiles avant 2011 et 11 avant 2016, les étoiles 10 à 12 ont donc moins d'historique."}
+          </p>
+          <ul className="space-y-1.5">
+            ${liste.map((x) => html`<li key=${x.valeur} className="flex items-center gap-2 text-sm">
+              <span className="w-8 shrink-0 text-right font-semibold tabular-nums">${vue === "etoiles" ? "★" + x.valeur : x.valeur}</span>
+              <div className="flex-1 h-4 rounded bg-slate-100 overflow-hidden"><div className=${"h-full rounded " + (vue === "etoiles" ? "bg-amber-400" : "bg-indigo-400")} style=${{ width: (x.frequence / maxFreq) * 100 + "%" }}></div></div>
+              <span className="w-10 shrink-0 text-right tabular-nums text-slate-700">${x.frequence}</span>
+              <span className="w-16 shrink-0 text-right tabular-nums text-slate-500 text-xs">${x.jamais ? "jamais" : "écart " + x.ecart}</span>
+            </li>`)}
+          </ul>
+        <//>`}
+
+        ${stats && html`<${AnalyseApprofondie} historique=${historique} />`}
+      </div>`;
+    }
+
+    // ---------- Onglet : Budget ----------
+    function OngletBudget() {
+      const [budget, setBudget] = useStockage("grille-maline:budget", { plafond: null, prixGrille: 2.5, depenses: [] });
+      const [montant, setMontant] = useState("");
+      const [date, setDate] = useState(aujourdhui());
+      const [note, setNote] = useState("");
+      const mois = G.moisDe(aujourdhui());
+      const total = G.totalDuMois(budget.depenses, mois);
+      const etat = G.etatBudget(total, budget.plafond);
+      const depensesMois = budget.depenses.filter((d) => G.moisDe(d.date) === mois).sort((a, b) => (a.date < b.date ? 1 : -1));
+      const historiqueMois = useMemo(() => {
+        const totaux = {};
+        for (const d of budget.depenses) totaux[G.moisDe(d.date)] = (totaux[G.moisDe(d.date)] || 0) + d.montant;
+        return Object.entries(totaux).filter(([m]) => m !== mois).sort((a, b) => (a[0] < b[0] ? 1 : -1)).slice(0, 6);
+      }, [budget.depenses, mois]);
+
+      function ajouter(valeur, libelle) {
+        const m = Math.round(parseFloat(String(valeur).replace(",", ".")) * 100) / 100;
+        if (!(m > 0)) return;
+        const d = { id: Date.now() + "-" + Math.random().toString(36).slice(2, 7), date: date || aujourdhui(), montant: m, note: libelle || "" };
+        setBudget({ ...budget, depenses: [...budget.depenses, d] });
+        setMontant(""); setNote("");
+      }
+
+      const ratio = budget.plafond ? Math.min(100, (total / budget.plafond) * 100) : 0;
+      const couleurBarre = etat === "depasse" ? "bg-red-500" : etat === "attention" ? "bg-amber-500" : "bg-emerald-500";
+
+      return html`<div className="space-y-4">
+        ${etat === "depasse" && html`<${Avertissement} ton="danger">
+          <strong>Plafond dépassé de ${eur.format(total - budget.plafond)}.</strong> C'est le bon moment pour faire une pause. Si le jeu devient difficile à contrôler, des professionnels peuvent vous aider gratuitement et anonymement : <a className="font-semibold underline" href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">joueurs-info-service.fr</a> ou le 09 74 75 13 13 (appel non surtaxé).
+        <//>`}
+        ${etat === "attention" && html`<${Avertissement} ton="attention">Vous avez utilisé ${Math.round((total / budget.plafond) * 100)} % de votre plafond du mois.<//>`}
+
+        <${Carte} titre=${"Budget de " + moisFr(mois)}>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <${Champ} label="Plafond mensuel (€)">
+              <input type="number" inputMode="decimal" min="0" step="1" className=${classeInput} placeholder="ex. 20"
+                value=${budget.plafond ?? ""} onChange=${(e) => setBudget({ ...budget, plafond: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })} />
+            <//>
+            <${Champ} label="Prix d'une grille (€)">
+              <input type="number" inputMode="decimal" min="0" step="0.1" className=${classeInput}
+                value=${budget.prixGrille} onChange=${(e) => setBudget({ ...budget, prixGrille: Math.max(0, Number(e.target.value)) })} />
+            <//>
+          </div>
+          <div className="flex items-baseline justify-between mb-1">
+            <span className="text-2xl font-bold tabular-nums">${eur.format(total)}</span>
+            <span className="text-sm text-slate-500 tabular-nums">${budget.plafond ? "sur " + eur.format(budget.plafond) : "aucun plafond fixé"}</span>
+          </div>
+          ${budget.plafond ? html`<div className="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div className=${"h-full rounded-full " + couleurBarre} style=${{ width: ratio + "%" }}></div></div>
+            <p className="text-sm text-slate-600 mt-2">${etat === "depasse" ? "Plafond dépassé." : "Reste " + eur.format(budget.plafond - total) + " ce mois-ci."}</p>`
+            : html`<p className="text-sm text-amber-700 mt-1">Fixez un plafond : c'est la règle de base pour que le jeu reste un loisir.</p>`}
+        <//>
+
+        <${Carte} titre="Ajouter une dépense">
+          <div className="flex gap-2 mb-3">
+            <button className=${boutonSecondaire + " flex-1 text-sm"} onClick=${() => ajouter(budget.prixGrille, "1 grille")}>+1 grille (${eur.format(budget.prixGrille)})</button>
+            <button className=${boutonSecondaire + " flex-1 text-sm"} onClick=${() => ajouter(budget.prixGrille * 2, "2 grilles")}>+2 grilles</button>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <${Champ} label="Montant (€)"><input type="number" inputMode="decimal" min="0" step="0.01" className=${classeInput} value=${montant} onChange=${(e) => setMontant(e.target.value)} /><//>
+            <${Champ} label="Date"><input type="date" className=${classeInput} value=${date} onChange=${(e) => setDate(e.target.value)} /><//>
+          </div>
+          <${Champ} label="Note (facultatif)"><input type="text" className=${classeInput} value=${note} maxLength="60" onChange=${(e) => setNote(e.target.value)} placeholder="ex. tirage du vendredi" /><//>
+          <button className=${boutonPrimaire + " w-full mt-3"} disabled=${!(parseFloat(String(montant).replace(",", ".")) > 0)} onClick=${() => ajouter(montant, note)}>Ajouter</button>
+        <//>
+
+        <${Carte} titre="Dépenses du mois">
+          ${depensesMois.length === 0 ? html`<p className="text-sm text-slate-500">Aucune dépense enregistrée ce mois-ci.</p>` : html`<ul className="divide-y divide-slate-100">
+            ${depensesMois.map((d) => html`<li key=${d.id} className="flex items-center gap-3 py-2.5 text-sm">
+              <span className="tabular-nums text-slate-500 w-20">${dateFr(d.date)}</span>
+              <span className="flex-1 truncate text-slate-700">${d.note || "Dépense"}</span>
+              <span className="tabular-nums font-semibold">${eur.format(d.montant)}</span>
+              <button aria-label="Supprimer" className="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-600" onClick=${() => setBudget({ ...budget, depenses: budget.depenses.filter((x) => x.id !== d.id) })}>✕</button>
+            </li>`)}
+          </ul>`}
+          ${historiqueMois.length > 0 && html`<div className="mt-4 pt-3 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Mois précédents</p>
+            <ul className="space-y-1 text-sm">${historiqueMois.map(([m, t]) => html`<li key=${m} className="flex justify-between"><span className="capitalize text-slate-600">${moisFr(m)}</span><span className=${"tabular-nums " + (budget.plafond && t > budget.plafond ? "text-red-700 font-semibold" : "")}>${eur.format(t)}</span></li>`)}</ul>
+          </div>`}
+        <//>
+
+        <${Avertissement}>
+          Jouer comporte des risques : endettement, isolement, dépendance. Pour être aidé : <a className="font-semibold underline" href="https://www.joueurs-info-service.fr/" target="_blank" rel="noopener noreferrer">joueurs-info-service.fr</a> ou 09 74 75 13 13 (appel non surtaxé).
+        <//>
+      </div>`;
+    }
+
+    // ---------- Onglet : Simulateur ----------
+    function OngletSimulateur() {
+      const [p, setP] = useStockage("grille-maline:simulateur", { grillesParSemaine: 2, annees: 10, prix: 2.5, tauxRetour: 50 });
+      const r = G.simuler({ grillesParSemaine: p.grillesParSemaine, annees: p.annees, prix: p.prix, tauxRetour: p.tauxRetour / 100 });
+      const maj = (cle) => (e) => setP({ ...p, [cle]: Math.max(0, Number(e.target.value) || 0) });
+      const unSur = r.probaJackpot > 0 ? Math.round(1 / r.probaJackpot) : null;
+
+      return html`<div className="space-y-4">
+        <${Carte} titre="Si je joue…">
+          <div className="space-y-4">
+            <${Champ} label=${p.grillesParSemaine + " grille" + (p.grillesParSemaine > 1 ? "s" : "") + " par semaine"}>
+              <input type="range" min="1" max="50" value=${p.grillesParSemaine} onChange=${maj("grillesParSemaine")} className="w-full accent-indigo-700" />
+            <//>
+            <${Champ} label=${"pendant " + p.annees + " an" + (p.annees > 1 ? "s" : "")}>
+              <input type="range" min="1" max="60" value=${p.annees} onChange=${maj("annees")} className="w-full accent-indigo-700" />
+            <//>
+            <div className="grid grid-cols-2 gap-3">
+              <${Champ} label="Prix d'une grille (€)"><input type="number" inputMode="decimal" min="0" step="0.1" className=${classeInput} value=${p.prix} onChange=${maj("prix")} /><//>
+              <${Champ} label="Taux de retour (%)" aide="Part moyenne des mises reversée en gains."><input type="number" inputMode="decimal" min="0" max="100" step="1" className=${classeInput} value=${p.tauxRetour} onChange=${maj("tauxRetour")} /><//>
+            </div>
+          </div>
+        <//>
+
+        <${Carte} titre="Résultat moyen">
+          <dl className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-slate-500">Grilles jouées</dt><dd className="text-xl font-bold tabular-nums">${nf.format(r.grilles)}</dd></div>
+            <div className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-slate-500">Dépense totale</dt><dd className="text-xl font-bold tabular-nums">${eur0.format(r.depense)}</dd></div>
+            <div className="rounded-xl bg-emerald-50 p-3"><dt className="text-xs text-emerald-800">Gain moyen attendu</dt><dd className="text-xl font-bold tabular-nums text-emerald-800">${eur0.format(r.gainMoyen)}</dd></div>
+            <div className="rounded-xl bg-red-50 p-3"><dt className="text-xs text-red-800">Perte moyenne attendue</dt><dd className="text-xl font-bold tabular-nums text-red-800">${eur0.format(r.perteMoyenne)}</dd></div>
+          </dl>
+          <ul className="mt-4 space-y-2 text-sm text-slate-700 leading-relaxed">
+            <li>Chance de gagner le jackpot au moins une fois sur toute la période : <strong>${unSur ? "1 sur " + nf.format(unSur) : "nulle"}</strong>${unSur ? " (" + (r.probaJackpot * 100).toLocaleString("fr-FR", { maximumSignificantDigits: 2 }) + " %)" : ""}.</li>
+            <li>À ce rythme, il faudrait en moyenne <strong>${nf.format(Math.round(r.anneesPourUneChance))} ans</strong> de jeu pour toucher le jackpot une fois.</li>
+            <li>Vous remporteriez environ ${nf.format(Math.round(r.gainsEspere))} petits lots (1 grille sur 13 en moyenne), le plus souvent de quelques euros.</li>
+          </ul>
+        <//>
+
+        <${Avertissement}>
+          Le « gain moyen » est une espérance : sur un très grand nombre de joueurs, chacun récupère en moyenne ${p.tauxRetour} % de ses mises. En pratique, presque tout le monde récupère beaucoup moins et une poignée de gagnants beaucoup plus. Le taux de retour de l'EuroMillions est d'environ 50 % ; ajustez-le si besoin.
+        <//>
+      </div>`;
+    }
+
+    // ---------- Application ----------
+    const ONGLETS = [
+      { id: "generer", label: "Générer", icone: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6" },
+      { id: "score", label: "Score", icone: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
+      { id: "stats", label: "Stats", icone: "M3 3v18h18M7 15l4-4 3 3 5-6" },
+      { id: "budget", label: "Budget", icone: "M3 7h18v12H3zM3 7l3-4h12l3 4M16 13h2" },
+      { id: "simulateur", label: "Simuler", icone: "M4 4h16v16H4zM8 8h8M8 12h2M14 12h2M8 16h2M14 16h2" },
+    ];
+
+    function App() {
+      const [onglet, setOnglet] = useState(() => {
+        const h = location.hash.slice(1);
+        return ONGLETS.some((o) => o.id === h) ? h : "generer";
+      });
+      const [historique, setHistorique] = useStockage("grille-maline:historique", []);
+      const [selection, setSelection] = useState({ numeros: [], etoiles: [] });
+
+      useEffect(() => {
+        history.replaceState(null, "", "#" + onglet);
+        window.scrollTo(0, 0);
+      }, [onglet]);
+
+      const contenu = {
+        generer: html`<${OngletGenerer} historique=${historique} allerStats=${() => setOnglet("stats")} onAnalyser=${(g) => { setSelection({ numeros: g.numeros, etoiles: g.etoiles }); setOnglet("score"); }} />`,
+        score: html`<${OngletScore} selection=${selection} setSelection=${setSelection} historique=${historique} />`,
+        stats: html`<${OngletStats} historique=${historique} setHistorique=${setHistorique} />`,
+        budget: html`<${OngletBudget} />`,
+        simulateur: html`<${OngletSimulateur} />`,
+      }[onglet];
+
+      return html`<div className="min-h-screen flex flex-col">
+        <header className="bg-indigo-950 text-white">
+          <div className="max-w-xl mx-auto px-4 pt-5 pb-4">
+            <div className="flex items-center gap-2">
+              <svg viewBox="0 0 64 64" className="w-8 h-8" aria-hidden="true"><circle cx="26" cy="34" r="14" fill="#fff"/><path d="M46 8l3.5 7.5 8 1-6 5.5 1.6 8L46 26l-7.1 4 1.6-8-6-5.5 8-1z" fill="#fbbf24"/></svg>
+              <h1 className="text-xl font-extrabold tracking-tight">Grille Maline</h1>
+              <span className="ml-auto text-xs text-indigo-300">EuroMillions</span>
+            </div>
+            <p className="mt-3 rounded-xl bg-white/10 px-3 py-2 text-sm leading-snug">
+              Chaque combinaison a <strong className="text-amber-300 tabular-nums">1 chance sur ${TOTAL_TXT}</strong> de gagner le jackpot. Aucune méthode ne prédit les tirages.
+            </p>
+          </div>
+        </header>
+
+        <main className="flex-1 w-full max-w-xl mx-auto px-4 py-4 pb-28">
+          ${contenu}
+          <div className="mt-6"><${RappelChances} /></div>
+          <p className="text-xs text-slate-400 mt-3">Application indépendante, sans lien avec la FDJ ni les organisateurs de l'EuroMillions. Interdit aux mineurs. Vos données restent sur cet appareil.</p>
+        </main>
+
+        <nav className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-200 pb-safe" aria-label="Navigation">
+          <div className="max-w-xl mx-auto grid grid-cols-5">
+            ${ONGLETS.map((o) => html`<button key=${o.id} onClick=${() => setOnglet(o.id)} aria-current=${onglet === o.id ? "page" : undefined}
+              className=${"flex flex-col items-center gap-0.5 pt-2 pb-1 text-[11px] font-medium " + (onglet === o.id ? "text-indigo-700" : "text-slate-500")}>
+              <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d=${o.icone} /></svg>
+              ${o.label}
+            </button>`)}
+          </div>
+        </nav>
+      </div>`;
+    }
+
+    ReactDOM.createRoot(document.getElementById("racine")).render(html`<${App} />`);
+  })();
+  </script>
+</body>
+</html>
