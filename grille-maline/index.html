@@ -709,10 +709,26 @@
       return grilles;
     }
 
+    // ---------- Fusion de plusieurs fichiers d'historique ----------
+    // La FDJ publie l'historique en plusieurs fichiers (un par période de règles) : on les fusionne
+    // sans doublons, du plus récent au plus ancien.
+    function fusionnerTirages(existants, nouveaux) {
+      const cle = (t) => (t.date || "") + "|" + cleNumeros(t.numeros) + "|" + cleNumeros(t.etoiles);
+      const vus = new Set(existants.map(cle));
+      const ajoutes = [];
+      for (const t of nouveaux) {
+        const k = cle(t);
+        if (!vus.has(k)) { vus.add(k); ajoutes.push(t); }
+      }
+      let tirages = existants.concat(ajoutes);
+      if (tirages.every((t) => t.date)) tirages = [...tirages].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+      return { tirages, ajoutes: ajoutes.length, doublons: nouveaux.length - ajoutes.length };
+    }
+
     root.GrilleMaline = {
       NB_NUMEROS, NB_ETOILES, K_NUMEROS, K_ETOILES, COLONNES, LIGNES,
       TOTAL_COMBINAISONS, CHANCE_UN_GAIN, REGLES,
-      etoilesEnVigueur, ordreChronologique, gammaQ, pValeurKhi2, normaleQ, hypergeometrique,
+      fusionnerTirages, etoilesEnVigueur, ordreChronologique, gammaQ, pValeurKhi2, normaleQ, hypergeometrique,
       khi2Uniformite, pearson, testRetrospectif, analyseApprofondie,
       viviersFrequents, genererGrilleFrequente, genererGrillesFrequentes,
       combinaisons, entierAleatoire, tirerSansRemise, validerGrille,
@@ -1140,20 +1156,67 @@
       const entree = useRef(null);
       const stats = useMemo(() => (historique.length ? G.statistiques(historique) : null), [historique]);
 
-      function importer(fichier) {
-        if (!fichier) return;
-        const lecteur = new FileReader();
-        lecteur.onload = () => {
-          const { tirages, ignorees } = G.analyserCSV(String(lecteur.result));
-          if (!tirages.length) {
+      // Lit un fichier .csv, ou les .csv contenus dans un .zip (archives de la FDJ).
+      async function lireFichier(fichier) {
+        const octets = new Uint8Array(await fichier.arrayBuffer());
+        if (octets[0] === 0x50 && octets[1] === 0x4b) return lireZip(octets);
+        return [new TextDecoder("utf-8").decode(octets)];
+      }
+
+      async function lireZip(octets) {
+        const vue = new DataView(octets.buffer, octets.byteOffset, octets.byteLength);
+        let fin = -1;
+        for (let i = octets.length - 22; i >= Math.max(0, octets.length - 65557); i--) {
+          if (vue.getUint32(i, true) === 0x06054b50) { fin = i; break; }
+        }
+        if (fin < 0) throw new Error("Archive zip illisible.");
+        const nb = vue.getUint16(fin + 10, true);
+        let pos = vue.getUint32(fin + 16, true);
+        const textes = [];
+        for (let e = 0; e < nb; e++) {
+          if (vue.getUint32(pos, true) !== 0x02014b50) break;
+          const methode = vue.getUint16(pos + 10, true);
+          const tailleComp = vue.getUint32(pos + 20, true);
+          const lgNom = vue.getUint16(pos + 28, true), lgExtra = vue.getUint16(pos + 30, true), lgComm = vue.getUint16(pos + 32, true);
+          const decalage = vue.getUint32(pos + 42, true);
+          const nom = new TextDecoder().decode(octets.subarray(pos + 46, pos + 46 + lgNom));
+          pos += 46 + lgNom + lgExtra + lgComm;
+          if (!/\.(csv|txt)$/i.test(nom)) continue;
+          const debut = decalage + 30 + vue.getUint16(decalage + 26, true) + vue.getUint16(decalage + 28, true);
+          const donnees = octets.subarray(debut, debut + tailleComp);
+          let brut;
+          if (methode === 0) brut = donnees;
+          else if (methode === 8 && typeof DecompressionStream !== "undefined") {
+            const flux = new Blob([donnees]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+            brut = new Uint8Array(await new Response(flux).arrayBuffer());
+          } else throw new Error("Ce navigateur ne sait pas ouvrir ce zip : décompressez-le puis importez le fichier .csv.");
+          textes.push(new TextDecoder("utf-8").decode(brut));
+        }
+        if (!textes.length) throw new Error("Aucun fichier CSV dans l'archive.");
+        return textes;
+      }
+
+      async function importer(fichiers) {
+        if (!fichiers || !fichiers.length) return;
+        try {
+          let nouveaux = [], ignorees = 0;
+          for (const f of fichiers) {
+            for (const texte of await lireFichier(f)) {
+              const r = G.analyserCSV(texte);
+              nouveaux = nouveaux.concat(r.tirages);
+              ignorees += r.ignorees;
+            }
+          }
+          if (!nouveaux.length) {
             setMessage({ ton: "danger", texte: "Aucun tirage valide trouvé. Le fichier doit contenir, pour chaque tirage, 5 numéros (1 à 50) et 2 étoiles (1 à 12)." });
             return;
           }
-          setHistorique(tirages);
-          setMessage({ ton: "info", texte: nf.format(tirages.length) + " tirages importés" + (ignorees ? ", " + ignorees + " ligne(s) ignorée(s)" : "") + "." });
-        };
-        lecteur.onerror = () => setMessage({ ton: "danger", texte: "Lecture du fichier impossible." });
-        lecteur.readAsText(fichier);
+          const r = G.fusionnerTirages(historique, nouveaux);
+          setHistorique(r.tirages);
+          setMessage({ ton: "info", texte: nf.format(r.ajoutes) + " tirages ajoutés" + (r.doublons ? ", " + nf.format(r.doublons) + " déjà présents" : "") + (ignorees ? ", " + ignorees + " ligne(s) ignorée(s)" : "") + ". Historique : " + nf.format(r.tirages.length) + " tirages au total. Vous pouvez importer les autres fichiers de la FDJ, ils s'ajoutent." });
+        } catch (e) {
+          setMessage({ ton: "danger", texte: e.message || "Lecture du fichier impossible." });
+        }
       }
 
       const liste = stats ? [...stats[vue]].sort((a, b) => (tri === "valeur" ? a.valeur - b.valeur : tri === "frequence" ? b.frequence - a.frequence : b.ecart - a.ecart)) : [];
@@ -1165,10 +1228,11 @@
         <//>
 
         <${Carte} titre="Historique des tirages">
-          <p className="text-sm text-slate-600 mb-3 leading-relaxed">Importez un fichier CSV, par exemple l'historique téléchargeable sur le site de la FDJ (colonnes <code className="text-xs bg-slate-100 px-1 rounded">boule_1</code> … <code className="text-xs bg-slate-100 px-1 rounded">etoile_2</code>), ou un fichier simple au format <code className="text-xs bg-slate-100 px-1 rounded">date;n1;n2;n3;n4;n5;e1;e2</code>. Le fichier reste sur votre appareil.</p>
-          <input ref=${entree} type="file" accept=".csv,.txt,text/csv" className="hidden" onChange=${(e) => { importer(e.target.files[0]); e.target.value = ""; }} />
+          <p className="text-sm text-slate-600 mb-3 leading-relaxed">Importez l'historique téléchargeable sur fdj.fr (EuroMillions, « Historique des résultats ») : fichiers .zip ou .csv, plusieurs à la fois si besoin, ils s'additionnent (colonnes <code className="text-xs bg-slate-100 px-1 rounded">boule_1</code> … <code className="text-xs bg-slate-100 px-1 rounded">etoile_2</code>), ou un fichier simple au format <code className="text-xs bg-slate-100 px-1 rounded">date;n1;n2;n3;n4;n5;e1;e2</code>. Le fichier reste sur votre appareil.</p>
+          <a href="https://www.fdj.fr/jeux-de-tirage/euromillions-my-million/historique" target="_blank" rel="noopener noreferrer" className="block text-sm font-semibold text-indigo-700 underline mb-3">Ouvrir la page des historiques sur fdj.fr ↗</a>
+          <input ref=${entree} type="file" multiple accept=".csv,.txt,.zip,text/csv,application/zip" className="hidden" onChange=${(e) => { importer([...e.target.files]); e.target.value = ""; }} />
           <div className="flex gap-2">
-            <button className=${boutonPrimaire + " flex-1"} onClick=${() => entree.current && entree.current.click()}>Importer un CSV</button>
+            <button className=${boutonPrimaire + " flex-1"} onClick=${() => entree.current && entree.current.click()}>Importer des fichiers</button>
             ${historique.length > 0 && html`<button className=${boutonSecondaire} onClick=${() => { if (confirm("Effacer l'historique importé ?")) { setHistorique([]); setMessage(null); } }}>Effacer</button>`}
           </div>
           ${message && html`<div className="mt-3"><${Avertissement} ton=${message.ton}>${message.texte}<//></div>`}

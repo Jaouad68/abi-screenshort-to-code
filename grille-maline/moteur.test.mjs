@@ -365,3 +365,15 @@ describe("générateur « les plus sortis »", () => {
     assert.throws(() => G.genererGrilleFrequente({ tirages: [] }), /historique/);
   });
 });
+
+describe("fusion de plusieurs fichiers", () => {
+  test("additionne les périodes sans doublons et trie du plus récent au plus ancien", () => {
+    const a = G.analyserCSV("date;n1;n2;n3;n4;n5;e1;e2\n10/05/2011;1;2;3;4;5;1;2\n13/02/2004;16;29;32;36;41;7;9\n").tirages;
+    const b = G.analyserCSV("date;n1;n2;n3;n4;n5;e1;e2\n27/09/2016;7;19;33;41;48;3;12\n10/05/2011;1;2;3;4;5;1;2\n").tirages;
+    const r = G.fusionnerTirages(a, b);
+    assert.equal(r.tirages.length, 3);
+    assert.equal(r.ajoutes, 1);
+    assert.equal(r.doublons, 1);
+    assert.deepEqual(r.tirages.map((t) => t.date), ["2016-09-27", "2011-05-10", "2004-02-13"]);
+  });
+});
