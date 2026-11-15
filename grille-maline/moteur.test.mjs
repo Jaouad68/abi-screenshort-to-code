@@ -262,3 +262,106 @@ describe("simulateur et budget", () => {
     assert.equal(G.etatBudget(25, null), "sans-plafond");
   });
 });
+
+// ---------- Analyse approfondie et mode « les plus sortis » ----------
+// Historique SIMULÉ (tirages aléatoires), uniquement pour les tests : ce ne sont pas de vrais résultats.
+function historiqueSimule(nombre, remplir, biais = null) {
+  const t = [];
+  const d0 = Date.UTC(2004, 1, 13);
+  for (let i = 0; i < nombre; i++) {
+    const date = new Date(d0 + i * 3.5 * 864e5).toISOString().slice(0, 10);
+    let numeros = G.tirerSansRemise(50, 5, remplir);
+    if (biais && !numeros.includes(biais) && G.entierAleatoire(4, remplir) === 0) {
+      numeros = [...numeros.slice(1), biais].sort((a, b) => a - b); // le numéro biaisé sort plus souvent
+    }
+    t.push({ date, numeros, etoiles: G.tirerSansRemise(G.etoilesEnVigueur(date), 2, remplir) });
+  }
+  return t;
+}
+
+describe("outils statistiques", () => {
+  test("p-valeurs du khi-deux et de la loi normale", () => {
+    assert.ok(Math.abs(G.pValeurKhi2(3.841, 1) - 0.05) < 1e-3);
+    assert.ok(Math.abs(G.pValeurKhi2(85.35, 49) - 0.001) < 1e-4);
+    assert.ok(Math.abs(G.normaleQ(1.96) - 0.025) < 1e-4);
+    assert.ok(Math.abs(G.normaleQ(-1) - 0.8413) < 1e-4);
+  });
+
+  test("lois hypergéométriques : somme à 1", () => {
+    let s = 0;
+    for (let k = 0; k <= 5; k++) s += G.hypergeometrique(50, 25, 5, k);
+    assert.ok(Math.abs(s - 1) < 1e-12);
+  });
+
+  test("nombre d'étoiles selon la date", () => {
+    assert.equal(G.etoilesEnVigueur("2004-02-13"), 9);
+    assert.equal(G.etoilesEnVigueur("2011-05-10"), 11);
+    assert.equal(G.etoilesEnVigueur("2016-09-27"), 12);
+    assert.equal(G.etoilesEnVigueur(null), 12);
+  });
+});
+
+describe("analyse approfondie", () => {
+  test("sur des tirages équitables : environ 5 % de fausses alertes au seuil de 5 %", () => {
+    const src = sourceDeterministe(123);
+    let alertes = 0, alertesRetro = 0;
+    const S = 60;
+    for (let s = 0; s < S; s++) {
+      const a = G.analyseApprofondie(historiqueSimule(800, src));
+      if (a.testNumeros.p < 0.05) alertes++;
+      if (a.retro[0].p < 0.05) alertesRetro++;
+    }
+    assert.ok(alertes / S <= 0.15, `khi² : ${alertes}/${S}`);
+    assert.ok(alertesRetro / S <= 0.15, `rétrospectif : ${alertesRetro}/${S}`);
+  });
+
+  test("détecte un biais réel quand il existe (puissance du test)", () => {
+    const a = G.analyseApprofondie(historiqueSimule(1900, sourceDeterministe(8), 7));
+    assert.ok(a.testNumeros.p < 0.001);
+    assert.equal(a.numeros.sort((x, y) => y.frequence - x.frequence)[0].valeur, 7);
+    assert.ok(a.retro[0].moyenne > a.retro[0].attenduParTirage && a.retro[0].p < 0.01);
+  });
+
+  test("valeurs théoriques de structure", () => {
+    const a = G.analyseApprofondie(historiqueSimule(500, sourceDeterministe(4)));
+    assert.equal(a.sommes.theorique.moyenne, 127.5);
+    assert.ok(Math.abs(a.sommes.theorique.ecartType - 30.923) < 1e-3);
+    assert.ok(Math.abs(a.suites.proba - 0.35304) < 1e-4);
+    assert.equal(a.ecarts.theorique, 9);
+    assert.ok(Math.abs(a.paires.attendu - 500 * 10 / 1225) < 1e-9);
+  });
+
+  test("étoiles : l'attendu suit l'évolution des règles", () => {
+    const a = G.analyseApprofondie(historiqueSimule(1900, sourceDeterministe(6)));
+    const total = a.etoiles.reduce((s, e) => s + e.attendu, 0);
+    assert.ok(Math.abs(total - 1900 * 2) < 1e-6);
+    assert.ok(a.etoiles[11].attendu < a.etoiles[0].attendu, "l'étoile 12 a moins d'historique");
+  });
+});
+
+describe("générateur « les plus sortis »", () => {
+  const historique = historiqueSimule(1000, sourceDeterministe(77));
+
+  test("ne pioche que dans le vivier des plus sortis", () => {
+    const vivier = G.viviersFrequents(historique, 15, 5);
+    const nums = new Set(vivier.numeros.map((x) => x.valeur)), etoiles = new Set(vivier.etoiles.map((x) => x.valeur));
+    for (const g of G.genererGrillesFrequentes(10, { tirages: historique, remplir: sourceDeterministe(1) })) {
+      assert.equal(G.validerGrille(g.numeros, g.etoiles), null);
+      assert.ok(g.numeros.every((n) => nums.has(n)));
+      assert.ok(g.etoiles.every((e) => etoiles.has(e)));
+      assert.equal(G.analyser(g.numeros, g.etoiles, historique).dejaSorti.numeros, false);
+    }
+  });
+
+  test("le vivier contient bien les plus fréquents", () => {
+    const vivier = G.viviersFrequents(historique, 15, 5);
+    const freq = Array(51).fill(0);
+    for (const t of historique) for (const n of t.numeros) freq[n]++;
+    const seuil = Math.min(...vivier.numeros.map((x) => freq[x.valeur]));
+    for (let n = 1; n <= 50; n++) if (!vivier.numeros.some((x) => x.valeur === n)) assert.ok(freq[n] <= seuil);
+  });
+
+  test("refuse de fonctionner sans historique", () => {
+    assert.throws(() => G.genererGrilleFrequente({ tirages: [] }), /historique/);
+  });
+});

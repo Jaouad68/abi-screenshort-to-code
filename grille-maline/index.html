@@ -439,9 +439,282 @@
       return "ok";
     }
 
+    // ---------- Analyse statistique approfondie ----------
+    // Évolution des règles : 9 étoiles à l'origine (13/02/2004), 11 à partir du 10/05/2011,
+    // 12 à partir du 27/09/2016. Les 50 numéros n'ont jamais changé.
+    const DEBUT_11_ETOILES = "2011-05-10";
+    const DEBUT_12_ETOILES = "2016-09-27";
+    function etoilesEnVigueur(date) {
+      if (!date) return NB_ETOILES;
+      if (date >= DEBUT_12_ETOILES) return 12;
+      if (date >= DEBUT_11_ETOILES) return 11;
+      return 9;
+    }
+
+    // Du plus ancien au plus récent (sans dates : fichier supposé du plus récent au plus ancien).
+    function ordreChronologique(tirages) {
+      const avecDates = tirages.length > 0 && tirages.every((t) => t.date);
+      return avecDates ? [...tirages].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) : [...tirages].reverse();
+    }
+
+    function lnGamma(z) {
+      const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313,
+        -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+      if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lnGamma(1 - z);
+      z -= 1;
+      let x = c[0];
+      for (let i = 1; i < 9; i++) x += c[i] / (z + i);
+      const t = z + 7.5;
+      return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+    }
+
+    // Fonction gamma incomplète régularisée Q(a, x) = 1 − P(a, x).
+    function gammaQ(a, x) {
+      if (x <= 0) return 1;
+      const facteur = Math.exp(-x + a * Math.log(x) - lnGamma(a));
+      if (x < a + 1) {
+        let somme = 1 / a, terme = somme, ap = a;
+        for (let n = 0; n < 1000; n++) {
+          ap++; terme *= x / ap; somme += terme;
+          if (Math.abs(terme) < Math.abs(somme) * 1e-15) break;
+        }
+        return Math.max(0, 1 - somme * facteur);
+      }
+      const PETIT = 1e-300;
+      let b = x + 1 - a, c = 1 / PETIT, d = 1 / b, h = d;
+      for (let i = 1; i < 1000; i++) {
+        const an = -i * (i - a);
+        b += 2;
+        d = an * d + b; if (Math.abs(d) < PETIT) d = PETIT;
+        c = b + an / c; if (Math.abs(c) < PETIT) c = PETIT;
+        d = 1 / d;
+        const delta = d * c;
+        h *= delta;
+        if (Math.abs(delta - 1) < 1e-15) break;
+      }
+      return facteur * h;
+    }
+
+    const pValeurKhi2 = (khi2, ddl) => gammaQ(ddl / 2, khi2 / 2);
+
+    // Probabilité hypergéométrique : k succès en n tirages sans remise, K succès parmi N.
+    const hypergeometrique = (N, K, n, k) => (combinaisons(K, k) * combinaisons(N - K, n - k)) / combinaisons(N, n);
+
+    // Test du khi-deux d'uniformité pour un tirage de k boules parmi n, sans remise.
+    // Le facteur (n − 1) / (n − k) corrige l'absence de remise : la statistique suit alors un khi-deux à n − 1 ddl.
+    function khi2Uniformite(frequences, attendus, n, k) {
+      let brut = 0;
+      for (let i = 0; i < frequences.length; i++) {
+        if (attendus[i] > 0) brut += (frequences[i] - attendus[i]) ** 2 / attendus[i];
+      }
+      const khi2 = (brut * (n - 1)) / (n - k);
+      const ddl = n - 1;
+      return { khi2, ddl, p: pValeurKhi2(khi2, ddl) };
+    }
+
+    function pearson(x, y) {
+      const n = x.length, mx = x.reduce((s, v) => s + v, 0) / n, my = y.reduce((s, v) => s + v, 0) / n;
+      let sxy = 0, sxx = 0, syy = 0;
+      for (let i = 0; i < n; i++) {
+        sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; syy += (y[i] - my) ** 2;
+      }
+      return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+    }
+
+    // Classement des valeurs par fréquence décroissante (à égalité : la plus petite d'abord).
+    function classerParFrequence(compteurs) {
+      return compteurs.map((f, i) => ({ valeur: i + 1, frequence: f })).sort((a, b) => b.frequence - a.frequence || a.valeur - b.valeur);
+    }
+
+    // Test rétrospectif : avant chaque tirage, on prend les `taille` numéros les plus sortis
+    // jusque-là (tout l'historique, ou seulement les `fenetre` derniers tirages), puis on compte
+    // combien d'entre eux sortent réellement. Au hasard, on en attend 5 × taille / 50.
+    function testRetrospectif(tirages, options) {
+      const opts = Object.assign({ taille: 15, fenetre: null, debut: 50 }, options);
+      const chrono = ordreChronologique(tirages);
+      const compteurs = Array(NB_NUMEROS).fill(0);
+      const pTop = opts.taille / NB_NUMEROS;
+      let touches = 0, essais = 0;
+      for (let i = 0; i < chrono.length; i++) {
+        if (i >= opts.debut) {
+          const top = new Set(classerParFrequence(compteurs).slice(0, opts.taille).map((x) => x.valeur));
+          touches += chrono[i].numeros.filter((n) => top.has(n)).length;
+          essais++;
+        }
+        for (const n of chrono[i].numeros) compteurs[n - 1]++;
+        if (opts.fenetre && i >= opts.fenetre) for (const n of chrono[i - opts.fenetre].numeros) compteurs[n - 1]--;
+      }
+      const attenduParTirage = K_NUMEROS * pTop;
+      // Variance hypergéométrique du nombre de numéros trouvés par tirage.
+      const variance = K_NUMEROS * pTop * (1 - pTop) * (NB_NUMEROS - K_NUMEROS) / (NB_NUMEROS - 1);
+      const z = essais ? (touches - attenduParTirage * essais) / Math.sqrt(variance * essais) : 0;
+      return {
+        taille: opts.taille, fenetre: opts.fenetre, tiragesTestes: essais,
+        moyenne: essais ? touches / essais : 0, attenduParTirage, z,
+        p: essais ? 2 * normaleQ(Math.abs(z)) : 1,
+      };
+    }
+
+    // Queue de la loi normale centrée réduite : P(Z > z).
+    function normaleQ(z) {
+      return 0.5 * gammaQ(0.5, (z * z) / 2) * (z >= 0 ? 1 : -1) + (z >= 0 ? 0 : 1);
+    }
+
+    function analyseApprofondie(tirages) {
+      const chrono = ordreChronologique(tirages);
+      const T = chrono.length;
+      const avecDates = T > 0 && chrono.every((t) => t.date);
+      const st = statistiques(tirages);
+
+      // Numéros : fréquences, écart-type binomial, score z.
+      const p = K_NUMEROS / NB_NUMEROS;
+      const attendu = T * p;
+      const sigma = Math.sqrt(T * p * (1 - p));
+      const numeros = st.numeros.map((x) => Object.assign({}, x, { attendu, z: sigma ? (x.frequence - attendu) / sigma : 0 }));
+      const testNumeros = khi2Uniformite(numeros.map((x) => x.frequence), numeros.map(() => attendu), NB_NUMEROS, K_NUMEROS);
+      const horsZone = numeros.filter((x) => Math.abs(x.z) > 1.96);
+
+      // Étoiles : attendu calculé tirage par tirage selon le nombre d'étoiles en vigueur.
+      const freqE = Array(NB_ETOILES).fill(0), attenduE = Array(NB_ETOILES).fill(0);
+      const ere12 = chrono.filter((t) => etoilesEnVigueur(t.date) === 12);
+      const freqE12 = Array(NB_ETOILES).fill(0);
+      for (const t of chrono) {
+        const k = etoilesEnVigueur(t.date);
+        for (let e = 1; e <= k; e++) attenduE[e - 1] += K_ETOILES / k;
+        for (const e of t.etoiles) freqE[e - 1]++;
+      }
+      for (const t of ere12) for (const e of t.etoiles) freqE12[e - 1]++;
+      const etoiles = freqE.map((f, i) => ({ valeur: i + 1, frequence: f, attendu: attenduE[i], ratio: attenduE[i] ? f / attenduE[i] : 0, frequence12: freqE12[i] }));
+      const testEtoiles = ere12.length
+        ? khi2Uniformite(freqE12, freqE12.map(() => (ere12.length * K_ETOILES) / NB_ETOILES), NB_ETOILES, K_ETOILES)
+        : null;
+
+      // Structure des tirages, comparée aux lois théoriques.
+      const repartition = (compte, K) => Array.from({ length: K_NUMEROS + 1 }, (_, k) => ({
+        k,
+        observe: chrono.filter((t) => compte(t) === k).length,
+        attendu: T * hypergeometrique(NB_NUMEROS, K, K_NUMEROS, k),
+      }));
+      const parite = repartition((t) => t.numeros.filter((n) => n % 2 === 0).length, 25);
+      const dates = repartition((t) => t.numeros.filter((n) => n <= 31).length, 31);
+      const sommes = chrono.map((t) => t.numeros.reduce((s, n) => s + n, 0));
+      const moyenneSomme = T ? sommes.reduce((s, v) => s + v, 0) / T : 0;
+      const ecartTypeSomme = T > 1 ? Math.sqrt(sommes.reduce((s, v) => s + (v - moyenneSomme) ** 2, 0) / (T - 1)) : 0;
+      const varUniforme = (NB_NUMEROS * NB_NUMEROS - 1) / 12;
+      const sommeTheorique = {
+        moyenne: (K_NUMEROS * (NB_NUMEROS + 1)) / 2,
+        ecartType: Math.sqrt((K_NUMEROS * varUniforme * (NB_NUMEROS - K_NUMEROS)) / (NB_NUMEROS - 1)),
+      };
+      const avecSuite = chrono.filter((t) => plusLongueSuite(t.numeros) >= 2).length;
+      const probaSuite = 1 - combinaisons(NB_NUMEROS - K_NUMEROS + 1, K_NUMEROS) / combinaisons(NB_NUMEROS, K_NUMEROS);
+
+      // Paires de numéros sorties ensemble.
+      const paires = new Map();
+      for (const t of chrono) {
+        for (let i = 0; i < 5; i++) for (let j = i + 1; j < 5; j++) {
+          const cle = t.numeros[i] + "-" + t.numeros[j];
+          paires.set(cle, (paires.get(cle) || 0) + 1);
+        }
+      }
+      const attenduPaire = (T * combinaisons(K_NUMEROS, 2)) / combinaisons(NB_NUMEROS, 2);
+      const topPaires = [...paires.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
+        .map(([cle, f]) => ({ paire: cle.split("-").map(Number), frequence: f }));
+
+      // Écarts entre deux sorties d'un même numéro (loi géométrique : moyenne 9 tirages).
+      const derniere = Array(NB_NUMEROS).fill(null), ecarts = [];
+      chrono.forEach((t, i) => {
+        for (const n of t.numeros) {
+          if (derniere[n - 1] !== null) ecarts.push(i - derniere[n - 1] - 1);
+          derniere[n - 1] = i;
+        }
+      });
+      const ecartMoyen = ecarts.length ? ecarts.reduce((s, v) => s + v, 0) / ecarts.length : 0;
+      const ecartMax = ecarts.length ? Math.max(...ecarts) : 0;
+
+      // Persistance : les numéros fréquents de la 1re moitié le sont-ils dans la 2de ?
+      const moitie = Math.floor(T / 2);
+      const f1 = Array(NB_NUMEROS).fill(0), f2 = Array(NB_NUMEROS).fill(0);
+      chrono.forEach((t, i) => { for (const n of t.numeros) (i < moitie ? f1 : f2)[n - 1]++; });
+      const correlationMoities = T >= 20 ? pearson(f1, f2) : null;
+      // Sous l'hypothèse de hasard, r suit à peu près une loi normale d'écart-type 1/√(n − 3).
+      const zCorrelation = correlationMoities === null ? 0 : 0.5 * Math.log((1 + correlationMoities) / (1 - correlationMoities)) * Math.sqrt(NB_NUMEROS - 3);
+
+      const retro = T > 60 ? [
+        testRetrospectif(chrono, { taille: 15, fenetre: null, debut: 50 }),
+        testRetrospectif(chrono, { taille: 15, fenetre: 50, debut: 50 }),
+        testRetrospectif(chrono, { taille: 5, fenetre: null, debut: 50 }),
+      ] : [];
+
+      return {
+        nombre: T, avecDates, premier: st.premier, dernier: st.dernier,
+        numeros, testNumeros, horsZone, sigma, attendu,
+        etoiles, testEtoiles, tiragesEre12: ere12.length,
+        parite, dates, sommes: { moyenne: moyenneSomme, ecartType: ecartTypeSomme, theorique: sommeTheorique },
+        suites: { observe: avecSuite, attendu: T * probaSuite, proba: probaSuite },
+        paires: { top: topPaires, attendu: attenduPaire, nombre: combinaisons(NB_NUMEROS, 2) },
+        ecarts: { moyen: ecartMoyen, theorique: (1 - p) / p, max: ecartMax },
+        persistance: { r: correlationMoities, z: zCorrelation, p: 2 * normaleQ(Math.abs(zCorrelation)) },
+        retro,
+      };
+    }
+
+    // ---------- Grilles « numéros les plus sortis » ----------
+    // Choix aléatoire (crypto) parmi les numéros et étoiles les plus sortis de l'historique.
+    // Cela ne change PAS la probabilité de gagner : c'est une préférence, pas une prédiction.
+    function viviersFrequents(tirages, tailleNumeros, tailleEtoiles) {
+      const fn = Array(NB_NUMEROS).fill(0), fe = Array(NB_ETOILES).fill(0);
+      const ere12 = tirages.filter((t) => etoilesEnVigueur(t.date) === 12);
+      for (const t of tirages) for (const n of t.numeros) fn[n - 1]++;
+      for (const t of ere12.length ? ere12 : tirages) for (const e of t.etoiles) fe[e - 1]++;
+      return {
+        numeros: classerParFrequence(fn).slice(0, tailleNumeros),
+        etoiles: classerParFrequence(fe).slice(0, tailleEtoiles),
+      };
+    }
+
+    function genererGrilleFrequente(options) {
+      const opts = Object.assign({ tailleNumeros: 15, tailleEtoiles: 5, maxEssais: 5000 }, options);
+      if (!opts.tirages || !opts.tirages.length) throw new Error("Importez l'historique des tirages pour utiliser ce mode.");
+      const remplir = opts.remplir || sourceCrypto();
+      const index = opts.index || indexerHistorique(opts.tirages);
+      const vivier = opts.vivier || viviersFrequents(opts.tirages, opts.tailleNumeros, opts.tailleEtoiles);
+      const exclues = opts.exclues || new Set();
+      const piocher = (liste, k) => tirerSansRemise(liste.length, k, remplir).map((i) => liste[i - 1].valeur).sort((a, b) => a - b);
+      let secours = null;
+      for (let essais = 1; essais <= opts.maxEssais; essais++) {
+        const numeros = piocher(vivier.numeros, K_NUMEROS);
+        const etoiles = piocher(vivier.etoiles, K_ETOILES);
+        const cle = cleNumeros(numeros) + "|" + cleNumeros(etoiles);
+        if (exclues.has(cle)) continue;
+        const a = analyser(numeros, etoiles, index);
+        if (a.dejaSorti.numeros) continue;
+        if (raisonsDeRejet(a).length === 0) return { numeros, etoiles, essais, filtresRespectes: true };
+        if (!secours) secours = { numeros, etoiles, essais, filtresRespectes: false };
+      }
+      if (secours) return secours;
+      throw new Error("Aucune grille trouvée dans ce vivier.");
+    }
+
+    function genererGrillesFrequentes(nombre, options) {
+      const opts = Object.assign({}, options);
+      opts.index = opts.index || indexerHistorique(opts.tirages);
+      opts.vivier = opts.vivier || viviersFrequents(opts.tirages || [], opts.tailleNumeros || 15, opts.tailleEtoiles || 5);
+      opts.exclues = new Set();
+      const grilles = [];
+      for (let i = 0; i < nombre; i++) {
+        const g = genererGrilleFrequente(opts);
+        opts.exclues.add(cleNumeros(g.numeros) + "|" + cleNumeros(g.etoiles));
+        grilles.push(g);
+      }
+      return grilles;
+    }
+
     root.GrilleMaline = {
       NB_NUMEROS, NB_ETOILES, K_NUMEROS, K_ETOILES, COLONNES, LIGNES,
       TOTAL_COMBINAISONS, CHANCE_UN_GAIN, REGLES,
+      etoilesEnVigueur, ordreChronologique, gammaQ, pValeurKhi2, normaleQ, hypergeometrique,
+      khi2Uniformite, pearson, testRetrospectif, analyseApprofondie,
+      viviersFrequents, genererGrilleFrequente, genererGrillesFrequentes,
       combinaisons, entierAleatoire, tirerSansRemise, validerGrille,
       plusLongueSuite, alignementMax, concentration, progressionMax,
       indexerHistorique, analyser, raisonsDeRejet, genererGrille, genererGrilles,
@@ -557,17 +830,22 @@
     }
 
     // ---------- Onglet : Générateur ----------
-    function OngletGenerer({ historique, onAnalyser }) {
+    function OngletGenerer({ historique, onAnalyser, allerStats }) {
       const [nombre, setNombre] = useState(3);
+      const [mode, setMode] = useStockage("grille-maline:mode", "anti-partage");
       const [grilles, setGrilles] = useState([]);
       const [erreur, setErreur] = useState(null);
       const [copie, setCopie] = useState(null);
       const index = useMemo(() => G.indexerHistorique(historique), [historique]);
+      const vivier = useMemo(() => (historique.length ? G.viviersFrequents(historique, 15, 5) : null), [historique]);
+      const frequents = mode === "frequents";
 
       function generer() {
         setErreur(null);
         try {
-          const res = G.genererGrilles(nombre, { index });
+          const res = frequents
+            ? G.genererGrillesFrequentes(nombre, { tirages: historique, index, vivier })
+            : G.genererGrilles(nombre, { index });
           setGrilles(res.map((g) => Object.assign(g, { score: G.scoreOriginalite(g.numeros, g.etoiles, index).score })));
         } catch (e) {
           setErreur(e.message);
@@ -579,11 +857,32 @@
         try { await navigator.clipboard.writeText(texte); setCopie(i); setTimeout(() => setCopie(null), 1500); } catch (e) { /* presse-papiers refusé */ }
       }
 
+      const modes = [["anti-partage", "Anti-partage"], ["frequents", "Les plus sortis"]];
+
       return html`<div className="space-y-4">
-        <${Carte} titre="Générateur anti-partage">
-          <p className="text-sm text-slate-600 mb-4 leading-relaxed">
-            Tirage au hasard cryptographique, puis rejet des grilles que beaucoup de joueurs choisissent. Une grille originale ne gagne <strong>pas plus souvent</strong> : si elle gagne, elle a simplement moins de risques d'être partagée avec d'autres gagnants.
-          </p>
+        <div className="flex rounded-xl bg-slate-200/70 p-1" role="tablist" aria-label="Mode de génération">
+          ${modes.map(([v, l]) => html`<button key=${v} role="tab" aria-selected=${mode === v} onClick=${() => { setMode(v); setGrilles([]); setErreur(null); }}
+            className=${"flex-1 rounded-lg py-2.5 text-sm font-semibold " + (mode === v ? "bg-white shadow-sm text-slate-900" : "text-slate-600")}>${l}</button>`)}
+        </div>
+
+        <${Carte} titre=${frequents ? "Numéros les plus sortis" : "Générateur anti-partage"}>
+          ${frequents
+            ? html`<p className="text-sm text-slate-600 mb-3 leading-relaxed">
+                Tirage au hasard cryptographique parmi les <strong>15 numéros</strong> et les <strong>5 étoiles</strong> les plus sortis de votre historique, en écartant autant que possible les grilles très jouées.
+              </p>
+              <div className="mb-4"><${Avertissement} ton="attention">
+                <strong>Ce choix n'augmente pas vos chances.</strong> Les boules n'ont pas de mémoire : un numéro souvent sorti a exactement la même probabilité (1 sur 10) d'être tiré la prochaine fois. Le test rétrospectif de l'onglet Stats le vérifie sur votre propre historique. Autre effet : beaucoup de joueurs suivent les « numéros chauds », donc en cas de gain le partage est plus probable.
+              <//></div>
+              ${vivier ? html`<div className="mb-4">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Vivier (${nf.format(historique.length)} tirages)</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">${vivier.numeros.map((x) => html`<span key=${x.valeur} title=${x.frequence + " sorties"}><${Boule} n=${x.valeur} taille="sm" /></span>`)}</div>
+                <div className="flex flex-wrap gap-1">${vivier.etoiles.map((x) => html`<span key=${x.valeur} title=${x.frequence + " sorties"}><${Etoile} n=${x.valeur} taille="sm" /></span>`)}</div>
+              </div>` : html`<div className="mb-4"><${Avertissement}>
+                Ce mode a besoin de l'historique des tirages. <button className="font-semibold underline" onClick=${allerStats}>Importer le fichier CSV dans Stats</button>.
+              <//></div>`}`
+            : html`<p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                Tirage au hasard cryptographique, puis rejet des grilles que beaucoup de joueurs choisissent. Une grille originale ne gagne <strong>pas plus souvent</strong> : si elle gagne, elle a simplement moins de risques d'être partagée avec d'autres gagnants.
+              </p>`}
           <div className="flex items-center gap-3 mb-4">
             <span className="text-sm font-medium text-slate-700">Nombre de grilles</span>
             <div className="ml-auto flex items-center rounded-xl ring-1 ring-slate-300 overflow-hidden">
@@ -592,7 +891,7 @@
               <button className="w-11 h-11 text-xl font-bold text-slate-700 active:bg-slate-100" aria-label="Plus" onClick=${() => setNombre(Math.min(10, nombre + 1))}>+</button>
             </div>
           </div>
-          <button className=${boutonPrimaire + " w-full"} onClick=${generer}>Générer ${nombre > 1 ? nombre + " grilles" : "une grille"}</button>
+          <button className=${boutonPrimaire + " w-full"} disabled=${frequents && !vivier} onClick=${generer}>Générer ${nombre > 1 ? nombre + " grilles" : "une grille"}</button>
           ${erreur && html`<div className="mt-3"><${Avertissement} ton="danger">${erreur}<//></div>`}
         <//>
 
@@ -605,12 +904,14 @@
                 <span className=${"text-xs font-semibold " + c.texte}>Originalité ${g.score}/100</span>
               </div>
               <${LigneGrille} numeros=${g.numeros} etoiles=${g.etoiles} />
+              ${g.filtresRespectes === false && html`<p className="text-xs text-amber-700 mt-2">Le vivier ne permettait pas d'éviter tous les motifs populaires.</p>`}
               <div className="flex gap-2 mt-3">
                 <button className="text-sm font-medium text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50" onClick=${() => onAnalyser(g)}>Voir le détail</button>
                 <button className="text-sm font-medium text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100" onClick=${() => copier(g, i)}>${copie === i ? "Copié ✓" : "Copier"}</button>
               </div>
             </div>`;
           })}
+          <p className="text-xs text-slate-500 text-center">Chacune de ces grilles a 1 chance sur ${TOTAL_TXT} de gagner le jackpot, ni plus ni moins qu'une autre.</p>
         </div>`}
 
         <${Carte} titre="Grilles écartées">
@@ -623,7 +924,7 @@
               </li>`;
             })}
           </ul>
-          <p className="text-xs text-slate-500 mt-3">Grille de référence : 5 lignes de 10 numéros (1 à 10, 11 à 20…). Les étoiles sont tirées au hasard, sans filtre.</p>
+          <p className="text-xs text-slate-500 mt-3">Grille de référence : 5 lignes de 10 numéros (1 à 10, 11 à 20…). ${frequents ? "En mode « les plus sortis », les filtres sont appliqués quand le vivier le permet." : "Les étoiles sont tirées au hasard, sans filtre."}</p>
         <//>
       </div>`;
     }
@@ -696,6 +997,138 @@
             <div className="mt-2"><${Avertissement}>Le score mesure le risque de <strong>partager</strong> un gain, pas la probabilité de gagner. Cette grille a, comme toutes les autres, 1 chance sur ${TOTAL_TXT} de remporter le jackpot.<//></div>
           <//>`;
         })()}
+      </div>`;
+    }
+
+    // ---------- Analyse approfondie ----------
+    const dec = (x, d = 1) => x.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+    const pourcent = (x, d = 1) => dec(x * 100, d) + " %";
+    const formatP = (p) => (p < 0.001 ? "< 0,001" : dec(p, 3));
+
+    function verdict(p) {
+      if (p >= 0.05) return { ton: "text-emerald-700", texte: "Aucun écart significatif : compatible avec un tirage parfaitement aléatoire." };
+      if (p >= 0.01) return { ton: "text-amber-700", texte: "Écart léger : un historique parfaitement aléatoire sur 20 montrerait un écart au moins aussi grand. Rien de concluant." };
+      return { ton: "text-red-700", texte: "Écart inhabituel (environ 1 chance sur " + nf.format(Math.round(1 / Math.max(p, 1e-9))) + " d'arriver par pur hasard). Ce genre de résultat arrive quand on multiplie les tests ; il ne donne pas pour autant de moyen de prévoir le prochain tirage." };
+    }
+
+    function Ligne({ libelle, valeur, aide }) {
+      return html`<div className="flex items-baseline justify-between gap-3 py-1.5">
+        <span className="text-sm text-slate-600">${libelle}${aide && html`<span className="block text-xs text-slate-400">${aide}</span>`}</span>
+        <span className="text-sm font-semibold tabular-nums text-right">${valeur}</span>
+      </div>`;
+    }
+
+    function TableauRepartition({ titre, lignes, total, etiquette }) {
+      return html`<div className="mb-4">
+        <p className="text-sm font-medium text-slate-800 mb-1">${titre}</p>
+        <table className="w-full text-sm tabular-nums">
+          <thead><tr className="text-xs text-slate-500"><th className="text-left font-medium py-1">${etiquette}</th><th className="text-right font-medium">Observé</th><th className="text-right font-medium">Théorie</th></tr></thead>
+          <tbody>${lignes.map((l) => html`<tr key=${l.k} className="border-t border-slate-100">
+            <td className="py-1">${l.k}</td>
+            <td className="text-right">${pourcent(l.observe / total)}</td>
+            <td className="text-right text-slate-500">${pourcent(l.attendu / total)}</td>
+          </tr>`)}</tbody>
+        </table>
+      </div>`;
+    }
+
+    function AnalyseApprofondie({ historique }) {
+      const a = useMemo(() => G.analyseApprofondie(historique), [historique]);
+      if (a.nombre < 30) {
+        return html`<${Avertissement}>Importez au moins 30 tirages pour l'analyse approfondie (l'historique complet en compte plus de 1 900).<//>`;
+      }
+      const vN = verdict(a.testNumeros.p);
+      const tries = [...a.numeros].sort((x, y) => y.frequence - x.frequence);
+      const top = tries.slice(0, 10), bas = tries.slice(-10).reverse();
+      const maxF = tries[0].frequence;
+      const LigneNumero = (x) => html`<li key=${x.valeur} className="flex items-center gap-2 text-sm">
+        <span className="w-7 text-right font-semibold tabular-nums">${x.valeur}</span>
+        <div className="flex-1 h-3.5 rounded bg-slate-100 overflow-hidden relative">
+          <div className="h-full bg-indigo-400 rounded" style=${{ width: (x.frequence / maxF) * 100 + "%" }}></div>
+          <div className="absolute inset-y-0 w-0.5 bg-slate-700/60" style=${{ left: (a.attendu / maxF) * 100 + "%" }} title="Attendu"></div>
+        </div>
+        <span className="w-10 text-right tabular-nums">${x.frequence}</span>
+        <span className=${"w-14 text-right tabular-nums text-xs " + (Math.abs(x.z) > 1.96 ? "text-amber-700 font-semibold" : "text-slate-500")}>${(x.frequence >= a.attendu ? "+" : "") + pourcent(x.frequence / a.attendu - 1, 0)}</span>
+      </li>`;
+      const libelleRetro = (r) => (r.taille === 5 ? "Les 5 numéros les plus sortis" : "Les 15 plus sortis") + (r.fenetre ? " sur les " + r.fenetre + " derniers tirages" : " depuis le début");
+
+      return html`<div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-900 px-1 pt-2">Analyse approfondie</h2>
+
+        <${Carte} titre="Verdict : le tirage est-il équitable ?">
+          <p className=${"text-sm font-semibold mb-2 " + vN.ton}>${vN.texte}</p>
+          <${Ligne} libelle="Test du khi-deux sur les 50 numéros" valeur=${"χ² = " + dec(a.testNumeros.khi2) + " (" + a.testNumeros.ddl + " ddl)"} />
+          <${Ligne} libelle="p-valeur" aide="Probabilité d'observer un écart au moins aussi grand avec des boules parfaitement équilibrées." valeur=${formatP(a.testNumeros.p)} />
+          ${a.testEtoiles && html`<${Ligne} libelle=${"Étoiles (" + nf.format(a.tiragesEre12) + " tirages à 12 étoiles)"} valeur=${"p = " + formatP(a.testEtoiles.p)} />`}
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed">Le test compare les fréquences observées à celles d'un hasard parfait, en tenant compte du tirage sans remise. Les tirages sont réalisés sous contrôle d'huissier, avec des jeux de boules vérifiés et renouvelés.</p>
+        <//>
+
+        <${Carte} titre="Test décisif : suivre les numéros les plus sortis aurait-il aidé ?">
+          <p className="text-sm text-slate-600 mb-3 leading-relaxed">
+            On rejoue l'histoire : avant chacun des tirages, on retient les numéros les plus sortis <em>jusque-là</em>, puis on compte combien sortent vraiment. Si les « numéros chauds » existaient, on en trouverait plus que le hasard.
+          </p>
+          ${a.retro.length ? html`<ul className="divide-y divide-slate-100">
+            ${a.retro.map((r, i) => {
+              const v = verdict(r.p);
+              return html`<li key=${i} className="py-2.5">
+                <p className="text-sm font-medium text-slate-800">${libelleRetro(r)}</p>
+                <div className="flex justify-between text-sm tabular-nums mt-1">
+                  <span className="text-slate-600">Trouvés par tirage : <strong className="text-slate-900">${dec(r.moyenne, 3)}</strong></span>
+                  <span className="text-slate-500">hasard : ${dec(r.attenduParTirage, 3)}</span>
+                </div>
+                <p className=${"text-xs mt-1 " + v.ton}>${nf.format(r.tiragesTestes)} tirages testés, p = ${formatP(r.p)}. ${r.p >= 0.05 ? "Aucun avantage mesurable." : r.moyenne > r.attenduParTirage ? "Écart positif, à confirmer sur de nouveaux tirages avant d'y voir autre chose que du hasard." : "Écart négatif : suivre ces numéros aurait même fait moins bien que le hasard."}</p>
+              </li>`;
+            })}
+          </ul>` : html`<p className="text-sm text-slate-500">Il faut au moins 60 tirages.</p>`}
+          ${a.persistance.r !== null && html`<div className="mt-3 pt-3 border-t border-slate-100">
+            <${Ligne} libelle="Corrélation entre 1re et 2de moitié de l'historique" aide="Proche de 0 : les numéros fréquents d'une période ne le restent pas dans la suivante." valeur=${"r = " + dec(a.persistance.r, 2) + " (p = " + formatP(a.persistance.p) + ")"} />
+          </div>`}
+        <//>
+
+        <${Carte} titre="Numéros les plus et les moins sortis">
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+            Attendu au hasard : <strong>${dec(a.attendu)}</strong> sorties par numéro, avec une marge normale de ± ${dec(1.96 * a.sigma)} (95 %). Le trait vertical marque l'attendu. ${a.horsZone.length} numéro${a.horsZone.length > 1 ? "s sont" : " est"} hors de cette marge ; au hasard, on en attend environ 2 ou 3 sur 50.
+          </p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Les 10 plus sortis</p>
+          <ul className="space-y-1 mb-4">${top.map(LigneNumero)}</ul>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Les 10 moins sortis</p>
+          <ul className="space-y-1">${bas.map(LigneNumero)}</ul>
+        <//>
+
+        <${Carte} titre="Étoiles, ajustées à l'évolution des règles">
+          <p className="text-xs text-slate-500 mb-3 leading-relaxed">9 étoiles jusqu'au 10/05/2011, 11 jusqu'au 27/09/2016, 12 depuis. L'« attendu » tient compte du nombre d'étoiles en jeu à chaque tirage${a.avecDates ? "" : " (dates absentes : 12 étoiles supposées)"}.</p>
+          <table className="w-full text-sm tabular-nums">
+            <thead><tr className="text-xs text-slate-500"><th className="text-left font-medium py-1">Étoile</th><th className="text-right font-medium">Sorties</th><th className="text-right font-medium">Attendu</th><th className="text-right font-medium">Écart</th></tr></thead>
+            <tbody>${a.etoiles.map((e) => html`<tr key=${e.valeur} className="border-t border-slate-100">
+              <td className="py-1">★ ${e.valeur}</td><td className="text-right">${e.frequence}</td>
+              <td className="text-right text-slate-500">${dec(e.attendu)}</td>
+              <td className="text-right text-slate-600">${e.attendu ? (e.ratio >= 1 ? "+" : "") + pourcent(e.ratio - 1, 0) : "–"}</td>
+            </tr>`)}</tbody>
+          </table>
+        <//>
+
+        <${Carte} titre="Structure des tirages">
+          <${TableauRepartition} titre="Nombre de numéros pairs par tirage" etiquette="Pairs" lignes=${a.parite} total=${a.nombre} />
+          <${TableauRepartition} titre="Nombre de numéros entre 1 et 31 par tirage" etiquette="1 à 31" lignes=${a.dates} total=${a.nombre} />
+          <${Ligne} libelle="Somme des 5 numéros : moyenne" valeur=${dec(a.sommes.moyenne) + " (théorie " + dec(a.sommes.theorique.moyenne) + ")"} />
+          <${Ligne} libelle="Somme : écart-type" valeur=${dec(a.sommes.ecartType) + " (théorie " + dec(a.sommes.theorique.ecartType) + ")"} />
+          <${Ligne} libelle="Tirages avec au moins 2 numéros consécutifs" valeur=${pourcent(a.suites.observe / a.nombre) + " (théorie " + pourcent(a.suites.proba) + ")"} />
+          <p className="text-xs text-slate-500 mt-2">Les tirages réels ressemblent aux tirages théoriques : beaucoup contiennent des suites et des numéros au-delà de 31, contrairement aux grilles « intuitives » des joueurs.</p>
+        <//>
+
+        <${Carte} titre="Paires les plus fréquentes">
+          <p className="text-xs text-slate-500 mb-2 leading-relaxed">Attendu par paire : ${dec(a.paires.attendu)} sorties. Avec ${nf.format(a.paires.nombre)} paires possibles, il est normal que les premières dépassent nettement cette valeur : c'est l'effet du grand nombre de comparaisons, pas une affinité entre numéros.</p>
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm tabular-nums">
+            ${a.paires.top.map((x) => html`<li key=${x.paire.join("-")} className="flex justify-between"><span>${x.paire.join(" et ")}</span><span className="font-semibold">${x.frequence}</span></li>`)}
+          </ul>
+        <//>
+
+        <${Carte} titre="Écarts entre deux sorties">
+          <${Ligne} libelle="Écart moyen observé" valeur=${dec(a.ecarts.moyen, 2) + " tirages"} />
+          <${Ligne} libelle="Écart moyen théorique" aide="Loi géométrique de paramètre 1/10." valeur=${dec(a.ecarts.theorique, 0) + " tirages"} />
+          <${Ligne} libelle="Plus long écart observé" valeur=${nf.format(a.ecarts.max) + " tirages"} />
+          <p className="text-xs text-slate-500 mt-2">Un long écart n'annonce pas un retour imminent : après 50 tirages d'absence, la probabilité de sortir au prochain reste 1 sur 10.</p>
+        <//>
       </div>`;
     }
 
@@ -772,6 +1205,8 @@
             </li>`)}
           </ul>
         <//>`}
+
+        ${stats && html`<${AnalyseApprofondie} historique=${historique} />`}
       </div>`;
     }
 
@@ -928,7 +1363,7 @@
       }, [onglet]);
 
       const contenu = {
-        generer: html`<${OngletGenerer} historique=${historique} onAnalyser=${(g) => { setSelection({ numeros: g.numeros, etoiles: g.etoiles }); setOnglet("score"); }} />`,
+        generer: html`<${OngletGenerer} historique=${historique} allerStats=${() => setOnglet("stats")} onAnalyser=${(g) => { setSelection({ numeros: g.numeros, etoiles: g.etoiles }); setOnglet("score"); }} />`,
         score: html`<${OngletScore} selection=${selection} setSelection=${setSelection} historique=${historique} />`,
         stats: html`<${OngletStats} historique=${historique} setHistorique=${setHistorique} />`,
         budget: html`<${OngletBudget} />`,

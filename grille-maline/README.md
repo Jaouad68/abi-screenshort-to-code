@@ -16,9 +16,17 @@ Tout le code tient dans `index.html` (React 18 + htm pour le JSX sans compilatio
      ligne ou colonne de la grille de référence (5 lignes de 10, constante `COLONNES`) ;
    - multiples réguliers : 3 multiples de 5 ou plus, progression arithmétique de 4 termes ;
    - combinaison de 5 numéros déjà sortie (si un historique est importé).
+
+   Mode **« Les plus sortis »** : tirage aléatoire parmi les 15 numéros et 5 étoiles les plus sortis
+   de l'historique importé, avec les mêmes filtres quand c'est possible. Ce mode n'augmente pas les
+   chances de gagner, et l'interface le dit.
 2. **Score d'originalité** (0 à 100) avec l'explication de chaque critère.
 3. **Import CSV** de l'historique (format FDJ `boule_1…etoile_2` ou `date;n1;n2;n3;n4;n5;e1;e2`),
    fréquences et écarts, avec un rappel que ces chiffres ne prédisent rien.
+   **Analyse approfondie** : test du khi-deux d'uniformité (corrigé pour le tirage sans remise),
+   marges de normalité, étoiles ajustées aux changements de règles (9, 11 puis 12 étoiles), parité,
+   sommes, suites, paires, écarts, persistance entre périodes et **test rétrospectif** des
+   « numéros les plus sortis ».
 4. **Budget** : plafond mensuel, dépenses, alertes à 80 % et en cas de dépassement, lien vers
    joueurs-info-service.fr.
 5. **Simulateur** : X grilles par semaine pendant N années, dépense totale, gain moyen attendu
