@@ -845,6 +845,24 @@
       </p>`;
     }
 
+    // Lien vers le jeu officiel : copie la grille, puis ouvre fdj.fr dans un nouvel onglet.
+    const URL_FDJ = "https://www.fdj.fr/jeux-de-tirage/euromillions-my-million";
+    const texteGrille = (numeros, etoiles) => numeros.join(" - ") + "  ★ " + etoiles.join(" - ");
+    function BoutonJouer({ numeros, etoiles, plein = false }) {
+      const [copiee, setCopiee] = useState(false);
+      function copier() {
+        try {
+          const r = navigator.clipboard && navigator.clipboard.writeText(texteGrille(numeros, etoiles));
+          if (r && r.then) r.then(() => { setCopiee(true); setTimeout(() => setCopiee(false), 4000); }, () => {});
+        } catch (e) { /* presse-papiers refusé : le site s'ouvre quand même */ }
+      }
+      return html`<a href=${URL_FDJ} target="_blank" rel="noopener noreferrer" onClick=${copier}
+        title="Copie la grille puis ouvre le site officiel de la FDJ"
+        className=${plein ? boutonSecondaire + " w-full text-sm" : "whitespace-nowrap text-sm font-semibold text-emerald-700 px-2 py-1 rounded-lg hover:bg-emerald-50"}>
+        ${copiee ? "Grille copiée ✓" : "Jouer sur fdj.fr ↗"}
+      </a>`;
+    }
+
     // ---------- Onglet : Générateur ----------
     function OngletGenerer({ historique, onAnalyser, allerStats }) {
       const [nombre, setNombre] = useState(3);
@@ -922,12 +940,13 @@
               <${LigneGrille} numeros=${g.numeros} etoiles=${g.etoiles} />
               ${g.filtresRespectes === false && html`<p className="text-xs text-amber-700 mt-2">Le vivier ne permettait pas d'éviter tous les motifs populaires.</p>`}
               <div className="flex gap-2 mt-3">
-                <button className="text-sm font-medium text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50" onClick=${() => onAnalyser(g)}>Voir le détail</button>
-                <button className="text-sm font-medium text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100" onClick=${() => copier(g, i)}>${copie === i ? "Copié ✓" : "Copier"}</button>
+                <button className="whitespace-nowrap text-sm font-medium text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50" onClick=${() => onAnalyser(g)}>Détail</button>
+                <button className="whitespace-nowrap text-sm font-medium text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100" onClick=${() => copier(g, i)}>${copie === i ? "Copié ✓" : "Copier"}</button>
+                <span className="ml-auto"><${BoutonJouer} numeros=${g.numeros} etoiles=${g.etoiles} /></span>
               </div>
             </div>`;
           })}
-          <p className="text-xs text-slate-500 text-center">Chacune de ces grilles a 1 chance sur ${TOTAL_TXT} de gagner le jackpot, ni plus ni moins qu'une autre.</p>
+          <p className="text-xs text-slate-500 text-center">« Jouer sur fdj.fr » copie la grille et ouvre le site officiel, seul autorisé en France pour jouer en ligne. Notez la mise dans l'onglet Budget. Chacune de ces grilles a 1 chance sur ${TOTAL_TXT} de gagner le jackpot, ni plus ni moins qu'une autre.</p>
         </div>`}
 
         <${Carte} titre="Grilles écartées">
@@ -999,6 +1018,7 @@
             </div>
             <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden mb-4"><div className=${"h-full rounded-full " + c.barre} style=${{ width: resultat.score + "%" }}></div></div>
             <${LigneGrille} numeros=${numeros} etoiles=${etoiles} taille="sm" />
+            <div className="mt-3"><${BoutonJouer} numeros=${numeros} etoiles=${etoiles} plein=${true} /></div>
             <ul className="mt-4 divide-y divide-slate-100">
               ${resultat.criteres.map((cr) => html`<li key=${cr.id} className="py-3">
                 <div className="flex items-center justify-between gap-2">
