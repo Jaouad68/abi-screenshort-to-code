@@ -38,25 +38,65 @@ export const TOTAL = placed.reduce((a, p) => a + p.dur, 0) + XF;
 const KenBurns: React.FC<{ shot: Shot; dur: number }> = ({ shot, dur }) => {
   const f = useCurrentFrame();
   const p = interpolate(f, [0, dur + XF], [0, 1], { ...clamp, easing: Easing.inOut(Easing.sin) });
-  const [s0, s1] = shot.zoom ?? [1.06, 1.16];
-  const [x0, y0, x1, y1] = shot.pan ?? [0, 0, 0, 0];
+  const [s0, s1] = shot.z ?? [1.04, 1.14];
+  const [x0, y0, x1, y1] = shot.o ?? [50, 50, 50, 50];
   const sc = s0 + (s1 - s0) * p;
-  const x = x0 + (x1 - x0) * p;
-  const y = y0 + (y1 - y0) * p;
+  const ox = x0 + (x1 - x0) * p;
+  const oy = y0 + (y1 - y0) * p;
+  const src = staticFile(`photos/${shot.file}`);
+  const mode = shot.mode ?? "cover";
+  if (mode === "cover") {
+    return (
+      <AbsoluteFill style={{ overflow: "hidden", background: "#000" }}>
+        <Img
+          src={src}
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: `${ox}% ${oy}%`,
+            transformOrigin: `${ox}% ${oy}%`,
+            transform: `scale(${sc})`,
+            filter: "contrast(1.05) saturate(1.06)",
+          }}
+        />
+      </AbsoluteFill>
+    );
+  }
+  // fond flouté + image entière (portrait, basse définition, carte postale)
+  const card = mode === "card";
+  const rot = card ? interpolate(p, [0, 1], [-1.6, -0.6]) : 0;
   return (
-    <AbsoluteFill style={{ overflow: "hidden", background: "#000" }}>
+    <AbsoluteFill style={{ overflow: "hidden", background: "#120f0c" }}>
       <Img
-        src={staticFile(`photos/${shot.file}`)}
+        src={src}
         style={{
           position: "absolute",
-          width: "100%",
-          height: "100%",
+          inset: -60,
+          width: "calc(100% + 120px)",
+          height: "calc(100% + 120px)",
           objectFit: "cover",
-          objectPosition: shot.focus ?? "50% 50%",
-          transform: `scale(${sc}) translate(${x}%, ${y}%)`,
-          filter: "contrast(1.05) saturate(1.06)",
+          filter: card ? "blur(40px) brightness(0.35) sepia(0.4)" : "blur(36px) brightness(0.55)",
+          transform: `scale(${1.1 + 0.05 * p})`,
         }}
       />
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+        <Img
+          src={src}
+          style={{
+            height: card ? "74%" : "88%",
+            width: "auto",
+            maxWidth: "80%",
+            objectFit: "contain",
+            transform: `scale(${sc}) rotate(${rot}deg)`,
+            boxShadow: card ? "0 40px 90px rgba(0,0,0,0.7)" : "0 30px 80px rgba(0,0,0,0.5)",
+            border: card ? "14px solid #efe6d4" : "none",
+            borderRadius: card ? 4 : 6,
+            filter: card ? "sepia(0.25) contrast(1.05)" : "contrast(1.04) saturate(1.05)",
+          }}
+        />
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
@@ -68,6 +108,13 @@ const Caption: React.FC<{ title: string; sub?: string; dur: number }> = ({ title
   const outP = interpolate(f, [dur - 10, dur + 10], [1, 0], clamp);
   const line = interpolate(f, [XF + 6, XF + 40], [0, 1], { ...clamp, easing: ease });
   return (
+    <>
+    <AbsoluteFill
+      style={{
+        background: "linear-gradient(to top, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.25) 28%, transparent 45%)",
+        opacity: inP * outP,
+      }}
+    />
     <div
       style={{
         position: "absolute",
@@ -83,9 +130,10 @@ const Caption: React.FC<{ title: string; sub?: string; dur: number }> = ({ title
       <div style={{ width: 90 * line, height: 3, background: "#E3B778", marginBottom: 22 }} />
       <div style={{ fontFamily: SERIF, fontSize: 62, lineHeight: 1.1 }}>{title}</div>
       {sub && (
-        <div style={{ fontFamily: SANS, fontSize: 30, marginTop: 14, opacity: 0.92, lineHeight: 1.4 }}>{sub}</div>
+        <div style={{ fontFamily: SANS, fontSize: 34, marginTop: 14, opacity: 0.95, lineHeight: 1.4 }}>{sub}</div>
       )}
     </div>
+    </>
   );
 };
 
@@ -146,7 +194,7 @@ const OpeningTitle: React.FC<{ dur: number }> = ({ dur }) => {
 // ---------- Carte de situation ----------
 const project = (lon: number, lat: number) => {
   // projection équirectangulaire centrée sur la zone
-  const cx = 1.6, cy = 48.3, k = 560;
+  const cx = 1.75, cy = 48.4, k = 700;
   return [W / 2 + (lon - cx) * k * Math.cos((cy * Math.PI) / 180), H / 2 - (lat - cy) * k];
 };
 const cities = [
@@ -234,9 +282,9 @@ const MapScene: React.FC<{ dur: number }> = ({ dur }) => {
       <div
         style={{
           position: "absolute",
-          right: 120,
+          left: 140,
           top: 120,
-          textAlign: "right",
+          textAlign: "left",
           color: "#2A2420",
           opacity: interpolate(f, [140, 170], [0, 1], clamp),
         }}
@@ -244,7 +292,7 @@ const MapScene: React.FC<{ dur: number }> = ({ dur }) => {
         <div style={{ fontFamily: SANS, fontSize: 24, letterSpacing: 8, color: "#B5523A", fontWeight: 700 }}>
           CENTRE-VAL DE LOIRE
         </div>
-        <div style={{ fontFamily: SERIF, fontSize: 64, marginTop: 10 }}>Au sud de la Beauce</div>
+        <div style={{ fontFamily: SERIF, fontSize: 64, marginTop: 10 }}>Entre Beauce et Perche</div>
         <div style={{ fontFamily: SANS, fontSize: 30, marginTop: 10, opacity: 0.75 }}>Châteaudun · 28200</div>
       </div>
     </AbsoluteFill>
@@ -256,9 +304,8 @@ const EndCard: React.FC<{ dur: number }> = ({ dur }) => {
   const f = useCurrentFrame();
   const a = interpolate(f, [0, XF + 10], [0, 1], clamp);
   const t = interpolate(f, [XF, XF + 30], [0, 1], { ...clamp, easing: ease });
-  const cr = interpolate(f, [XF + 150, XF + 190], [0, 1], { ...clamp, easing: ease });
-  const t2 = interpolate(f, [XF + 140, XF + 170], [1, 0], clamp);
-  const half = Math.ceil(credits.length / 2);
+  const cr = interpolate(f, [XF + 170, XF + 210], [0, 1], { ...clamp, easing: ease });
+  const t2 = interpolate(f, [XF + 150, XF + 180], [1, 0], clamp);
   return (
     <AbsoluteFill style={{ background: "#14110E", opacity: a, color: "#F2EBE1" }}>
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: t * t2 }}>
@@ -273,21 +320,17 @@ const EndCard: React.FC<{ dur: number }> = ({ dur }) => {
           Renseignements : Office de tourisme du Grand Châteaudun
         </div>
       </AbsoluteFill>
-      <AbsoluteFill style={{ padding: "90px 140px", opacity: cr }}>
-        <div style={{ fontFamily: SANS, fontSize: 22, letterSpacing: 8, color: "#E3B778", fontWeight: 700, marginBottom: 26 }}>
-          CRÉDITS PHOTOS · WIKIMEDIA COMMONS
+      <AbsoluteFill style={{ padding: "0 160px", justifyContent: "center", opacity: cr }}>
+        <div style={{ fontFamily: SANS, fontSize: 26, letterSpacing: 10, color: "#E3B778", fontWeight: 700, marginBottom: 34 }}>
+          CRÉDITS IMAGES
         </div>
-        <div style={{ display: "flex", gap: 80, fontFamily: SANS, fontSize: 19, lineHeight: 1.55, opacity: 0.85 }}>
-          {[credits.slice(0, half), credits.slice(half)].map((col, i) => (
-            <div key={i} style={{ flex: 1 }}>
-              {col.map((c, j) => (
-                <div key={j}>{c}</div>
-              ))}
-            </div>
+        <div style={{ fontFamily: SANS, fontSize: 30, lineHeight: 1.7, opacity: 0.88 }}>
+          {credits.map((c, j) => (
+            <div key={j}>{c}</div>
           ))}
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 19, opacity: 0.55, marginTop: 26 }}>
-          Photos recadrées et animées pour ce film. Musique originale. Montage réalisé avec Remotion.
+        <div style={{ fontFamily: SANS, fontSize: 24, opacity: 0.55, marginTop: 40 }}>
+          Images recadrées et animées pour ce film · Musique originale · Montage réalisé avec Remotion
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
@@ -319,9 +362,9 @@ const Block: React.FC<{ it: Placed }> = ({ it }) => {
   if (it.kind === "end") return <EndCard dur={it.dur} />;
   return (
     <AbsoluteFill style={{ opacity: it.first ? interpolate(f, [0, 45], [0, 1], clamp) : fade }}>
-      <KenBurns shot={it.shot} dur={it.dur} />
+      <KenBurns shot={it.shot!} dur={it.dur} />
       {it.kind === "opening" && <OpeningTitle dur={it.dur} />}
-      {it.kind === "chapter" && <ChapterCard n={it.n} title={it.title} sub={it.sub} dur={it.dur} />}
+      {it.kind === "chapter" && <ChapterCard n={it.n!} title={it.title!} sub={it.sub!} dur={it.dur} />}
       {it.kind === "photo" && it.title && <Caption title={it.title} sub={it.sub} dur={it.dur} />}
     </AbsoluteFill>
   );
