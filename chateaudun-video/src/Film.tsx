@@ -40,9 +40,16 @@ const KenBurns: React.FC<{ shot: Shot; dur: number }> = ({ shot, dur }) => {
   const p = interpolate(f, [0, dur + XF], [0, 1], { ...clamp, easing: Easing.inOut(Easing.sin) });
   const [s0, s1] = shot.z ?? [1.04, 1.14];
   const [x0, y0, x1, y1] = shot.o ?? [50, 50, 50, 50];
-  const sc = s0 + (s1 - s0) * p;
-  const ox = x0 + (x1 - x0) * p;
-  const oy = y0 + (y1 - y0) * p;
+  // images clés optionnelles : [t (0..1), zoom, x %, y %]
+  const k = shot.k ?? [
+    [0, s0, x0, y0],
+    [1, s1, x1, y1],
+  ];
+  const ts = k.map((e) => e[0]);
+  const at = (i: number) => interpolate(p, ts, k.map((e) => e[i]), { ...clamp, easing: Easing.inOut(Easing.sin) });
+  const sc = at(1);
+  const ox = at(2);
+  const oy = at(3);
   const src = staticFile(`photos/${shot.file}`);
   const mode = shot.mode ?? "cover";
   if (mode === "cover") {
@@ -81,11 +88,11 @@ const KenBurns: React.FC<{ shot: Shot; dur: number }> = ({ shot, dur }) => {
           transform: `scale(${1.1 + 0.05 * p})`,
         }}
       />
-      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingBottom: 170 }}>
         <Img
           src={src}
           style={{
-            height: card ? "74%" : "88%",
+            height: card ? "66%" : "74%",
             width: "auto",
             maxWidth: "80%",
             objectFit: "contain",
@@ -314,7 +321,7 @@ const EndCard: React.FC<{ dur: number }> = ({ dur }) => {
         </div>
         <div style={{ fontFamily: SERIF, fontSize: 160, letterSpacing: 14, margin: "18px 0" }}>Châteaudun</div>
         <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 40, opacity: 0.85 }}>
-          Château · Vieille ville · Vallée du Loir · Grottes du Foulon
+          Château · Vieille ville · Histoire · Pays dunois
         </div>
         <div style={{ fontFamily: SANS, fontSize: 28, opacity: 0.6, marginTop: 40 }}>
           Renseignements : Office de tourisme du Grand Châteaudun
@@ -360,12 +367,26 @@ const Block: React.FC<{ it: Placed }> = ({ it }) => {
   const fade = interpolate(f, [0, XF], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
   if (it.kind === "map") return <MapScene dur={it.dur} />;
   if (it.kind === "end") return <EndCard dur={it.dur} />;
+  const chap = it.chapter ? Math.round(7 * FPS) : 0;
   return (
     <AbsoluteFill style={{ opacity: it.first ? interpolate(f, [0, 45], [0, 1], clamp) : fade }}>
       <KenBurns shot={it.shot!} dur={it.dur} />
       {it.kind === "opening" && <OpeningTitle dur={it.dur} />}
-      {it.kind === "chapter" && <ChapterCard n={it.n!} title={it.title!} sub={it.sub!} dur={it.dur} />}
-      {it.kind === "photo" && it.title && <Caption title={it.title} sub={it.sub} dur={it.dur} />}
+      {it.chapter && (
+        <Sequence durationInFrames={chap + 10}>
+          <ChapterCard n={it.chapter.n} title={it.chapter.title} sub={it.chapter.sub} dur={chap} />
+        </Sequence>
+      )}
+      {(it.caps ?? []).map((c, i) => {
+        const from = Math.round(c.at * FPS) + (it.chapter && c.at === 0 ? chap : 0);
+        const next = it.caps![i + 1];
+        const end = next ? Math.round(next.at * FPS) - 20 : it.dur;
+        return (
+          <Sequence key={i} from={from} durationInFrames={Math.max(60, end - from + 10)}>
+            <Caption title={c.title} sub={c.sub} dur={Math.max(60, end - from)} />
+          </Sequence>
+        );
+      })}
     </AbsoluteFill>
   );
 };
