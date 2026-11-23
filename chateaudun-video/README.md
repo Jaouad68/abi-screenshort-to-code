@@ -1,6 +1,6 @@
 # Châteaudun, film de découverte touristique (5 min)
 
-Format 16:9, 1920x1080, 30 i/s. Musique originale générée par script (libre de droits).
+Format 16:9, 1920x1080, 30 i/s. Musique originale joyeuse générée par script (libre de droits), sol majeur, 112 BPM. L'ancienne version calme est gardée dans `public/musique-calme.mp3`.
 
 - Aperçu : `npm run studio`
 - Musique : `npm run music` (crée `public/musique.mp3`)
