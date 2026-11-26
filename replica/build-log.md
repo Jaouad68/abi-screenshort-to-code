@@ -9,3 +9,12 @@ Stack : HTML, CSS et JavaScript sans dépendance ni build, dans `sillon/`.
 Vérifié : 1440 px et 390 px sans défilement horizontal, thème clair et sombre,
 navigation au clavier, aucune erreur console, balayage `sweep.py` propre.
 Captures pour replica-diff : `replica/clone-screens/S01.png` et `S01-mobile.png`.
+| S03 lecteur | 2026-11-26 | fait | synchronisation entre appareils (pas de comptes), hors connexion pour le catalogue, accès au lecteur non réservé aux abonnés (démo) | la limite de débit de l'API Openverse (100/min, 1 000/jour par IP sans clé) : requêtes en série, nouvelle tentative et cache de 12 h |
+
+Lecteur (`sillon/ecouter.html`, `player.js`, `player.css`) : fichiers de l'utilisateur
+stockés dans IndexedDB et titres Creative Commons d'Openverse filtrés sur les licences
+compatibles avec un usage commercial, avec licence, source et crédit sur chaque titre.
+Vérifié : import de deux fichiers, lecture, suivant, pause, favori, playlist, persistance
+après rechargement, Découvrir (48 titres), 1440 px et 390 px sans défilement horizontal.
+Non vérifié : lecture d'un titre du catalogue et recherche, le quota journalier anonyme
+d'Openverse étant épuisé pour l'adresse IP du conteneur de test.

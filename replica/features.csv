@@ -25,3 +25,14 @@ Intégrations voiture montres enceintes,integrations,skip,yes,skip,partenariats 
 Noms de fonctionnalités déposés (Jam daylist DJ),features,skip,yes,skip,marques de l'original
 Inscription paiement et vérification étudiante,checkout,should,yes,partial,Stripe Checkout en mode test + portail client ; pas d'inscription ni de vérification étudiante ; non testé avec une vraie clé
 Logo couleurs illustrations et textes de l'original,brand,skip,yes,skip,on crée les nôtres avec /replica-brand
+Lecteur : lecture pause suivant précédent barre de progression volume,player,must,yes,yes,ecouter.html
+Lecture aléatoire et répétition (file ou titre),player,must,yes,yes,
+File d'attente consultable,player,should,yes,yes,
+Titres aimés,library,must,yes,yes,stockés dans le navigateur
+Playlists : créer renommer supprimer ajouter retirer,library,must,yes,yes,"stockées dans le navigateur, suppression annulable"
+Recherche,search,must,yes,partial,catalogue libre Openverse + fichiers locaux ; recherche catalogue non vérifiée (quota)
+Écoute de ses propres fichiers audio,library,should,no,yes,"IndexedDB, rien n'est envoyé"
+Catalogue de titres sous licence libre,content,should,no,partial,"Openverse, licences permettant l'usage commercial, crédit affiché ; lecture non vérifiée (quota)"
+Commandes sur l'écran verrouillé et raccourcis clavier,player,should,yes,yes,Media Session API
+Synchronisation entre appareils,library,could,yes,no,demande des comptes et une base de données
+Écoute hors connexion du catalogue,player,could,yes,no,fichiers locaux seulement
