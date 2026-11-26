@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sillon Premium : les formules d'abonnement</title>
+  <meta name="description" content="Écoutez sans publicité, hors connexion et en haute fidélité. Comparez les formules Sillon Premium : Solo, Étudiant, Duo et Foyer.">
+  <meta name="theme-color" content="#FBF6EE" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1A1614" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
+  <!-- Icônes, dessinées pour Sillon -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-logo" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="currentColor"/><path d="M16 9.5a6.5 6.5 0 1 1-6.5 6.5M16 5.5A10.5 10.5 0 1 1 5.5 16M16 13a3 3 0 1 1-3 3" fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-noad" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9v6h3l5 4V5L7 9H4z"/><path d="M16 9l5 6M21 9l-5 6"/></g></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 4v16M15 7v10M19 10v4M21 12h0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></g></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 6l9 6-9 6z"/><path d="M18 6v12" stroke-linecap="round"/></g></symbol>
+    <symbol id="i-radio" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="2"/><path d="M8 8a5.6 5.6 0 0 0 0 8M16 8a5.6 5.6 0 0 1 0 8M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></g></symbol>
+    <symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M4 6h16M4 11h11M4 16h14M4 21h8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-focus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></g></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="9" r="3"/><circle cx="16.5" cy="10" r="2.5"/><path d="M3 19c.6-3 2.6-4.5 5-4.5s4.4 1.5 5 4.5M13.5 18.5c.5-2 1.6-3 3-3s2.6 1 3 3"/></g></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M4 12h10M4 17h6"/><circle cx="18" cy="16" r="2.5"/><path d="M20.5 16V6l-3 1"/></g></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></g></symbol>
+    <symbol id="i-live" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-8 3 4 3-6 6 10z"/><circle cx="17" cy="6" r="2"/></g></symbol>
+  </svg>
+
+  <header class="header">
+    <div class="wrap header__inner">
+      <a class="brand" href="#" aria-label="Sillon, accueil"><svg aria-hidden="true"><use href="#i-logo"/></svg>sillon</a>
+      <nav class="nav" aria-label="Navigation principale">
+        <div class="nav__desk">
+          <details class="dropdown">
+            <summary>Formules</summary>
+            <div class="dropdown__panel">
+              <a href="#formule-solo" data-highlight="solo"><strong>Solo</strong><span>Un compte, pour vous seul.</span></a>
+              <a href="#formule-etudiant" data-highlight="etudiant"><strong>Étudiant</strong><span>Un compte à tarif réduit, sur justificatif.</span></a>
+              <a href="#formule-duo" data-highlight="duo"><strong>Duo</strong><span>Deux comptes pour deux personnes qui vivent ensemble.</span></a>
+              <a href="#formule-foyer" data-highlight="foyer"><strong>Foyer</strong><span>Jusqu'à six comptes sous le même toit.</span></a>
+            </div>
+          </details>
+          <a href="#questions">Aide</a>
+          <a href="#">Se connecter</a>
+        </div>
+        <a class="btn btn--sm header__cta" href="#formule-solo" data-cta>1 mois offert</a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-mobile">Menu</button>
+      </nav>
+    </div>
+    <div class="wrap mobile-menu" id="menu-mobile" hidden>
+      <a href="#formule-solo" data-highlight="solo">Solo</a>
+      <a href="#formule-etudiant" data-highlight="etudiant">Étudiant</a>
+      <a href="#formule-duo" data-highlight="duo">Duo</a>
+      <a href="#formule-foyer" data-highlight="foyer">Foyer</a>
+      <a href="#questions">Aide</a>
+      <a href="#">Se connecter</a>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <section class="hero" aria-labelledby="hero-titre">
+      <div class="wrap hero__grid">
+        <div>
+          <p class="eyebrow">Sillon Premium</p>
+          <h1 id="hero-titre">
+            La bande-son <span class="nowrap">de vos</span>
+            <span class="visually-hidden">matins, trajets, soirées, dimanches et nuits blanches.</span>
+            <span class="rotator" aria-hidden="true" data-rotator>
+              <span>matins.</span><span aria-hidden="true">trajets.</span><span aria-hidden="true">soirées.</span><span aria-hidden="true">dimanches.</span><span aria-hidden="true">nuits blanches.</span>
+            </span>
+          </h1>
+          <p class="lead">Écoutez sans pub, téléchargez vos albums pour partir sans réseau et passez les titres autant que vous voulez.</p>
+          <div class="hero__actions">
+            <a class="btn" href="#formule-solo" data-cta id="hero-cta">Essayer 1 mois gratuitement</a>
+            <a class="link" href="#formules">Comparer les formules</a>
+          </div>
+          <p class="fine">Formule Solo : 0 € le premier mois, puis 10,99 € par mois. Pour un premier abonnement Sillon uniquement, sans engagement. Offre valable jusqu'au 31 janvier 2027. <a href="#conditions">Voir les conditions</a>.</p>
+        </div>
+        <div class="disc" aria-hidden="true">
+          <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="96" fill="currentColor"/>
+            <g class="spin" fill="none" stroke="var(--bg)" stroke-opacity=".22" stroke-width="1">
+              <circle cx="100" cy="100" r="88"/><circle cx="100" cy="100" r="80"/><circle cx="100" cy="100" r="72"/>
+              <circle cx="100" cy="100" r="64"/><circle cx="100" cy="100" r="56"/><circle cx="100" cy="100" r="48"/>
+              <path d="M100 12a88 88 0 0 1 76 44" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <circle cx="100" cy="100" r="34" fill="var(--accent)"/>
+            <circle cx="100" cy="100" r="4" fill="var(--bg)"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" aria-labelledby="solo-titre">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Ce que change Premium</p>
+          <h2 id="solo-titre">Rien entre vous et la musique</h2>
+        </div>
+        <div class="benefits">
+          <div class="benefit"><div class="benefit__icon"><svg aria-hidden="true"><use href="#i-noad"/></svg></div><h3>Zéro publicité</h3><p>Pas d'annonce entre deux morceaux, ni au milieu d'un album.</p></div>
+          <div class="benefit"><div class="benefit__icon"><svg aria-hidden="true"><use href="#i-wave"/></svg></div><h3>Son haute fidélité</h3><p>Les fichiers sans perte, jusqu'en 24 bits, sur les casques et enceintes qui le permettent.</p></div>
+          <div class="benefit"><div class="benefit__icon"><svg aria-hidden="true"><use href="#i-down"/></svg></div><h3>Sans réseau</h3><p>Téléchargez playlists et albums avant de partir, ils restent écoutables en avion ou en montagne.</p></div>
+          <div class="benefit"><div class="benefit__icon"><svg aria-hidden="true"><use href="#i-skip"/></svg></div><h3>Vous choisissez l'ordre</h3><p>Lecture aléatoire ou non, titre en boucle, passages sans limite : c'est vous qui menez.</p></div>
+        </div>
+        <div class="section__cta">
+          <a class="btn" href="#formule-solo" data-cta>Essayer 1 mois gratuitement</a>
+          <a class="link" href="#formules">Comparer les formules</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="fonctions-titre">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Inclus avec Premium</p>
+          <h2 id="fonctions-titre">Une écoute qui vous ressemble</h2>
+          <p class="lead">Sillon apprend ce que vous aimez et vous laisse le partager.</p>
+        </div>
+        <div class="groups">
+          <div>
+            <h3 class="visually-hidden">Pour vous</h3>
+            <div class="features">
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-solo)"><svg aria-hidden="true"><use href="#i-radio"/></svg></div><span class="tag">Premium</span><h3>Radio sur-mesure</h3><p>Une station qui part d'un titre que vous aimez et s'ajuste à chaque morceau passé ou gardé.</p></article>
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-etudiant)"><svg aria-hidden="true"><use href="#i-lyrics"/></svg></div><span class="tag">Premium</span><h3>Paroles en direct</h3><p>Le texte défile en rythme. Idéal pour chanter juste, ou presque.</p></article>
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-foyer)"><svg aria-hidden="true"><use href="#i-focus"/></svg></div><span class="tag">Premium</span><h3>Mode concentration</h3><p>Des sélections sans paroles, sans notifications, le temps d'une séance de travail.</p></article>
+            </div>
+          </div>
+          <div>
+            <h3 class="visually-hidden">À plusieurs</h3>
+            <div class="features">
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-duo)"><svg aria-hidden="true"><use href="#i-group"/></svg></div><span class="tag">Premium</span><h3>Salon d'écoute</h3><p>Invitez des proches par lien : tout le monde entend le même titre au même moment et chacun peut ajouter le suivant.</p></article>
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-solo)"><svg aria-hidden="true"><use href="#i-list"/></svg></div><span class="tag">Premium</span><h3>Playlists à plusieurs mains</h3><p>Une playlist commune pour la voiture, la fête ou la cuisine, que chacun complète.</p></article>
+            </div>
+          </div>
+          <div>
+            <h3 class="visually-hidden">Au-delà de la musique</h3>
+            <div class="features">
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-etudiant)"><svg aria-hidden="true"><use href="#i-mic"/></svg></div><span class="tag">Premium</span><h3>Podcasts</h3><p>Récits, enquêtes et discussions, au même endroit que vos playlists et sans pub ajoutée par Sillon.</p></article>
+              <article class="feature"><div class="feature__art" style="--art: var(--plan-foyer)"><svg aria-hidden="true"><use href="#i-live"/></svg></div><span class="tag">Premium</span><h3>Sessions live</h3><p>Des concerts enregistrés pour Sillon, à réécouter quand vous voulez.</p></article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" aria-labelledby="partout-titre">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Partout</p>
+          <h2 id="partout-titre">Votre musique vous suit</h2>
+        </div>
+        <div class="places">
+          <div class="place"><h3>En voiture</h3><p>Branchez votre téléphone à l'autoradio et pilotez la lecture depuis l'écran du tableau de bord.</p></div>
+          <div class="place"><h3>Au poignet</h3><p>Lancez vos playlists depuis une montre connectée, même quand le téléphone reste au vestiaire.</p></div>
+          <div class="place"><h3>Dans le salon</h3><p>Passez la musique sur l'enceinte, la télé ou la console, et reprenez-la sur le téléphone en partant.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="formules" aria-labelledby="formules-titre">
+      <div class="wrap">
+        <div class="section__head">
+          <p class="eyebrow">Les formules</p>
+          <h2 id="formules-titre">Choisissez la vôtre</h2>
+          <p class="lead">Toutes sont sans engagement. Vous pouvez changer ou arrêter depuis votre compte, à tout moment.</p>
+        </div>
+        <div class="plans">
+          <article class="plan" id="formule-solo" data-plan="solo" aria-labelledby="p-solo">
+            <span class="plan__badge">1 mois offert</span>
+            <div><h3 class="plan__name" id="p-solo">Solo</h3><p class="plan__who">Pour une personne</p></div>
+            <p class="plan__price"><span class="plan__amount">0 €</span><span class="plan__per">le premier mois</span><span class="plan__then">puis 10,99 € par mois</span></p>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>1 compte Premium</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Toutes les fonctions Premium</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Arrêt en deux clics</li>
+            </ul>
+            <a class="btn btn--block" href="#" data-cta data-plan-cta="Solo">Commencer le mois offert</a>
+            <p class="fine">Pour un premier abonnement Sillon. Offre valable jusqu'au 31 janvier 2027.</p>
+          </article>
+
+          <article class="plan" id="formule-etudiant" data-plan="etudiant" aria-labelledby="p-etudiant">
+            <span class="plan__badge">1 mois offert</span>
+            <div><h3 class="plan__name" id="p-etudiant">Étudiant</h3><p class="plan__who">Pour les étudiantes et étudiants du supérieur</p></div>
+            <p class="plan__price"><span class="plan__amount">0 €</span><span class="plan__per">le premier mois</span><span class="plan__then">puis 5,49 € par mois</span></p>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>1 compte Premium</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Toutes les fonctions Premium, à moitié prix</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Statut vérifié une fois par an</li>
+            </ul>
+            <a class="btn btn--block" href="#" data-cta data-plan-cta="Étudiant">Vérifier mon statut</a>
+            <p class="fine">Sur justificatif d'inscription dans un établissement d'enseignement supérieur, jusqu'à 4 ans.</p>
+          </article>
+
+          <article class="plan" id="formule-duo" data-plan="duo" aria-labelledby="p-duo">
+            <div><h3 class="plan__name" id="p-duo">Duo</h3><p class="plan__who">Pour deux personnes qui vivent ensemble</p></div>
+            <p class="plan__price"><span class="plan__amount">14,49 €</span><span class="plan__per">par mois</span><span class="plan__then">soit 7,25 € par personne</span></p>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>2 comptes Premium séparés</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Une playlist commune, mise à jour selon vos deux goûts</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Arrêt en deux clics</li>
+            </ul>
+            <a class="btn btn--block" href="#" data-cta data-plan-cta="Duo">Choisir Duo</a>
+            <p class="fine">Les deux comptes doivent être à la même adresse.</p>
+          </article>
+
+          <article class="plan" id="formule-foyer" data-plan="foyer" aria-labelledby="p-foyer">
+            <div><h3 class="plan__name" id="p-foyer">Foyer</h3><p class="plan__who">Pour toute la maison</p></div>
+            <p class="plan__price"><span class="plan__amount">17,99 €</span><span class="plan__per">par mois</span><span class="plan__then">pour jusqu'à 6 comptes</span></p>
+            <ul>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Jusqu'à 6 comptes Premium séparés</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Filtre des contenus explicites pour les comptes enfants</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>Le responsable gère les membres depuis son compte</li>
+            </ul>
+            <a class="btn btn--block" href="#" data-cta data-plan-cta="Foyer">Choisir Foyer</a>
+            <p class="fine">Tous les membres doivent être à la même adresse.</p>
+          </article>
+        </div>
+        <p class="plans__free">Pas encore décidé ? <a class="link" href="#">Écoutez gratuitement, avec des publicités</a>.</p>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="questions" aria-labelledby="questions-titre">
+      <div class="wrap">
+        <div class="section__head"><h2 id="questions-titre">Vos questions</h2></div>
+        <div class="faq">
+          <details><summary>Comment arrêter mon abonnement ?</summary><p>Dans votre compte, rubrique Abonnement, puis « Arrêter ». Premium reste actif jusqu'à la fin de la période déjà payée, puis vous repassez à la version gratuite. Vos playlists sont conservées.</p></details>
+          <details><summary>Que se passe-t-il à la fin du mois offert ?</summary><p>Nous vous envoyons un rappel 7 jours avant. Sans action de votre part, la formule Solo démarre à 10,99 € par mois. Vous pouvez arrêter avant la fin de l'essai sans rien payer.</p></details>
+          <details><summary>Puis-je changer de formule ?</summary><p>Oui, à tout moment. Le changement prend effet tout de suite et le prix est ajusté au prorata sur la facture suivante.</p></details>
+          <details><summary>Quel justificatif pour la formule Étudiant ?</summary><p>Un certificat de scolarité ou une carte étudiante de l'année en cours. La vérification prend quelques minutes et se renouvelle chaque année, dans la limite de 4 ans.</p></details>
+          <details id="conditions"><summary>Duo et Foyer : qui peut en faire partie ?</summary><p>Des personnes qui vivent à la même adresse. Le responsable de l'abonnement invite les membres par lien et peut les retirer à tout moment. Chacun garde ses propres playlists et recommandations.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__grid">
+        <div>
+          <a class="brand" href="#" aria-label="Sillon, accueil"><svg aria-hidden="true"><use href="#i-logo"/></svg>sillon</a>
+        </div>
+        <nav aria-labelledby="f1"><h2 id="f1">Sillon</h2><ul><li><a href="#">Qui sommes-nous</a></li><li><a href="#">Recrutement</a></li><li><a href="#">Presse</a></li></ul></nav>
+        <nav aria-labelledby="f2"><h2 id="f2">Artistes</h2><ul><li><a href="#">Espace artistes</a></li><li><a href="#">Podcasteurs</a></li><li><a href="#">Annonceurs</a></li></ul></nav>
+        <nav aria-labelledby="f3"><h2 id="f3">Écouter</h2><ul><li><a href="#">Lecteur web</a></li><li><a href="#">Applis mobiles</a></li><li><a href="#questions">Aide</a></li></ul></nav>
+        <nav aria-labelledby="f4"><h2 id="f4">Formules</h2><ul><li><a href="#formule-solo">Solo</a></li><li><a href="#formule-etudiant">Étudiant</a></li><li><a href="#formule-duo">Duo</a></li><li><a href="#formule-foyer">Foyer</a></li><li><a href="#">Gratuit</a></li></ul></nav>
+      </div>
+      <div class="footer__bottom">
+        <label class="country">Pays <select aria-label="Pays"><option>France</option><option>Belgique</option><option>Suisse</option><option>Canada</option></select></label>
+        <a href="#">Mentions légales</a>
+        <a href="#">Confidentialité</a>
+        <button type="button">Gérer les cookies</button>
+        <a href="#">Accessibilité</a>
+        <span>© 2026 Sillon</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="sticky-cta" data-sticky><a class="btn btn--block" href="#formule-solo" data-cta>Essayer 1 mois gratuitement</a></div>
+  <div class="toast" role="status" aria-live="polite" hidden data-toast></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
