@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Bienvenue sur Sillon Premium</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .thanks { min-height: 70vh; display: grid; align-content: center; gap: var(--s-5); padding-block: var(--s-8); max-width: 40rem; }
+    .thanks h1 { font-size: var(--fs-xl); }
+    .thanks__card { padding: var(--s-5); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-lg); display: grid; gap: var(--s-2); }
+    .thanks__actions { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: center; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header__inner">
+      <a class="brand" href="./" aria-label="Sillon, accueil"><svg aria-hidden="true" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="currentColor"/><path d="M16 9.5a6.5 6.5 0 1 1-6.5 6.5M16 5.5A10.5 10.5 0 1 1 5.5 16M16 13a3 3 0 1 1-3 3" fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round"/></svg>sillon</a>
+    </div>
+  </header>
+  <main class="wrap thanks" id="contenu">
+    <p class="eyebrow">Abonnement</p>
+    <h1 data-title>Vérification de votre abonnement…</h1>
+    <div class="thanks__card" data-card hidden>
+      <p><strong data-plan-name></strong></p>
+      <p data-detail></p>
+    </div>
+    <p class="lead" data-lead>Un instant, nous récupérons la confirmation de Stripe.</p>
+    <div class="thanks__actions">
+      <button class="btn" type="button" data-portal hidden>Gérer ou arrêter mon abonnement</button>
+      <a class="link" href="./">Retour à l'accueil</a>
+    </div>
+    <p class="fine">Mode test Stripe : aucun paiement réel n'a eu lieu.</p>
+  </main>
+  <div class="toast" role="status" aria-live="polite" hidden data-toast></div>
+  <script>
+    (() => {
+      const id = new URLSearchParams(location.search).get('session_id') || '';
+      const $ = (s) => document.querySelector(s);
+      const fail = (msg) => {
+        $('[data-title]').textContent = 'Confirmation introuvable';
+        $('[data-lead]').textContent = msg;
+      };
+      if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(id)) { fail("Ce lien ne contient pas de session de paiement valide."); return; }
+      fetch('/api/session?session_id=' + encodeURIComponent(id))
+        .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) throw new Error(d.error || 'Erreur');
+          $('[data-title]').textContent = 'Bienvenue sur Sillon Premium';
+          $('[data-plan-name]').textContent = d.planName || 'Votre formule';
+          const end = d.trialEnd ? new Date(d.trialEnd).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+          $('[data-detail]').textContent = d.status === 'trialing' && end
+            ? `Mois offert jusqu'au ${end}. Vous recevrez un rappel avant le premier prélèvement.`
+            : 'Votre abonnement est actif.';
+          $('[data-card]').hidden = false;
+          $('[data-lead]').textContent = 'Vous pouvez changer de formule ou arrêter à tout moment, en un clic.';
+          $('[data-portal]').hidden = false;
+        })
+        .catch(() => fail("Nous n'avons pas pu confirmer ce paiement. Si vous avez été débité, l'abonnement apparaîtra quand même dans Stripe."));
+      $('[data-portal]').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+          const r = await fetch('/api/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: id }) });
+          const d = await r.json();
+          if (!r.ok || !d.url) throw new Error(d.error);
+          location.href = d.url;
+        } catch (err) {
+          const t = $('[data-toast]');
+          t.textContent = (err && err.message) || 'Portail indisponible pour le moment.';
+          t.hidden = false;
+          btn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

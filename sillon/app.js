@@ -59,17 +59,39 @@
     if (plans) new IntersectionObserver(([e]) => { plansIn = e.isIntersecting; update(); }, { threshold: 0.15 }).observe(plans);
   }
 
-  // Démo : l'inscription n'est pas branchée, on le dit clairement
+  // Abonnement : session Stripe Checkout (mode test) créée par /api/checkout
   const toast = document.querySelector('[data-toast]');
   let timer;
-  document.querySelectorAll('[data-plan-cta]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
+  const say = (msg) => {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.hidden = false;
+    clearTimeout(timer);
+    timer = setTimeout(() => { toast.hidden = true; }, 5000);
+  };
+  document.querySelectorAll('.plan[data-plan]').forEach((card) => {
+    const btn = card.querySelector('[data-plan-cta]');
+    if (!btn) return;
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
-      if (!toast) return;
-      toast.textContent = `Formule ${btn.dataset.planCta} choisie. L'inscription arrive bientôt sur cette démo.`;
-      toast.hidden = false;
-      clearTimeout(timer);
-      timer = setTimeout(() => { toast.hidden = true; }, 3500);
+      if (btn.getAttribute('aria-busy') === 'true') return;
+      const label = btn.textContent;
+      btn.setAttribute('aria-busy', 'true');
+      btn.textContent = 'Redirection vers le paiement…';
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: card.dataset.plan }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) throw new Error(data.error || 'Paiement indisponible pour le moment.');
+        window.location.href = data.url;
+      } catch (err) {
+        say(`${err.message} Réessayez dans un instant.`);
+        btn.textContent = label;
+        btn.removeAttribute('aria-busy');
+      }
     });
   });
 })();

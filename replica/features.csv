@@ -23,5 +23,5 @@ Sélecteur de pays,footer,could,yes,partial,"menu présent, ne change ni langue 
 Catalogue musical livres audio et podcasts,content,skip,yes,skip,contenus sous licence
 Intégrations voiture montres enceintes,integrations,skip,yes,skip,partenariats et certifications
 Noms de fonctionnalités déposés (Jam daylist DJ),features,skip,yes,skip,marques de l'original
-Inscription paiement et vérification étudiante,checkout,skip,yes,skip,hors du scope choisi (page seule)
+Inscription paiement et vérification étudiante,checkout,should,yes,partial,Stripe Checkout en mode test + portail client ; pas d'inscription ni de vérification étudiante ; non testé avec une vraie clé
 Logo couleurs illustrations et textes de l'original,brand,skip,yes,skip,on crée les nôtres avec /replica-brand
