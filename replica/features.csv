@@ -1,0 +1,27 @@
+feature,area,priority,original,clone,notes
+En-tête avec logo et liens Assistance / Connexion / S'inscrire,header,must,yes,no,liens factices dans ce scope
+Bouton d'essai dans l'en-tête,header,must,yes,no,
+Hero avec titre et bouton d'essai principal,hero,must,yes,no,
+Mention légale de l'offre (prix après essai et date de fin),hero,must,yes,no,nos propres conditions
+Lien secondaire vers la grille des formules,hero,must,yes,no,ancre #plans
+Grille de 4 formules (Personnel Étudiants Duo Famille),plans,must,yes,no,noms et prix à nous
+Carte d'offre : prix mensuel et nombre de comptes,plans,must,yes,no,
+Carte d'offre : liste des avantages,plans,must,yes,no,
+Carte d'offre : bouton et condition d'éligibilité,plans,must,yes,no,
+Mise en page responsive mobile,layout,must,yes,no,
+Badge d'essai gratuit sur les cartes concernées,plans,should,yes,no,
+Couleur d'accent par formule,plans,should,yes,no,palette à nous
+Bloc avantages de la formule principale (4 lignes icône titre texte),benefits,should,yes,no,
+Menu déroulant des formules dans l'en-tête,header,should,yes,no,
+Bouton d'essai collant sur mobile,layout,should,yes,no,
+Lien « ou inscrivez-vous gratuitement » sous la grille,plans,should,yes,no,
+Pied de page avec liens légaux et paramètres des cookies,footer,should,yes,no,
+Titre du hero avec mot qui change en boucle,hero,could,yes,no,respecter prefers-reduced-motion
+Cartes de fonctionnalités par thème (perso social contenus),features,could,yes,no,fonctionnalités et noms à nous
+Section appareils compatibles,features,could,yes,no,sans logos de marques tierces
+Sélecteur de pays,footer,could,yes,no,
+Catalogue musical livres audio et podcasts,content,skip,yes,skip,contenus sous licence
+Intégrations voiture montres enceintes,integrations,skip,yes,skip,partenariats et certifications
+Noms de fonctionnalités déposés (Jam daylist DJ),features,skip,yes,skip,marques de l'original
+Inscription paiement et vérification étudiante,checkout,skip,yes,skip,hors du scope choisi (page seule)
+Logo couleurs illustrations et textes de l'original,brand,skip,yes,skip,on crée les nôtres avec /replica-brand

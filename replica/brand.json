@@ -1,0 +1,7 @@
+{
+  "name": "Sillon",
+  "name_status": "proposé, vérifications de marque à faire",
+  "avoid": ["Spotify", "Spotify AB", "Jam", "daylist", "Mix à plusieurs"],
+  "domains": ["spotify.com", "scdn.co", "spotifycdn.com"],
+  "colors": ["#1DB954", "#1ED760", "#191414", "#121212"]
+}
