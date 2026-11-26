@@ -1,0 +1,27 @@
+feature,area,priority,original,clone,notes
+En-tête avec logo et liens Assistance / Connexion / S'inscrire,header,must,yes,partial,"Aide pointe vers la FAQ, Connexion et inscription sont des liens vides"
+Bouton d'essai dans l'en-tête,header,must,yes,yes,
+Hero avec titre et bouton d'essai principal,hero,must,yes,yes,
+Mention légale de l'offre (prix après essai et date de fin),hero,must,yes,yes,nos propres conditions
+Lien secondaire vers la grille des formules,hero,must,yes,yes,ancre #plans
+Grille de 4 formules (Personnel Étudiants Duo Famille),plans,must,yes,yes,noms et prix à nous
+Carte d'offre : prix mensuel et nombre de comptes,plans,must,yes,yes,
+Carte d'offre : liste des avantages,plans,must,yes,yes,
+Carte d'offre : bouton et condition d'éligibilité,plans,must,yes,yes,
+Mise en page responsive mobile,layout,must,yes,yes,
+Badge d'essai gratuit sur les cartes concernées,plans,should,yes,yes,
+Couleur d'accent par formule,plans,should,yes,yes,palette à nous
+Bloc avantages de la formule principale (4 lignes icône titre texte),benefits,should,yes,yes,
+Menu déroulant des formules dans l'en-tête,header,should,yes,yes,
+Bouton d'essai collant sur mobile,layout,should,yes,yes,
+Lien « ou inscrivez-vous gratuitement » sous la grille,plans,should,yes,yes,
+Pied de page avec liens légaux et paramètres des cookies,footer,should,yes,yes,
+Titre du hero avec mot qui change en boucle,hero,could,yes,yes,respecter prefers-reduced-motion
+Cartes de fonctionnalités par thème (perso social contenus),features,could,yes,yes,fonctionnalités et noms à nous
+Section appareils compatibles,features,could,yes,yes,sans logos de marques tierces
+Sélecteur de pays,footer,could,yes,partial,"menu présent, ne change ni langue ni prix"
+Catalogue musical livres audio et podcasts,content,skip,yes,skip,contenus sous licence
+Intégrations voiture montres enceintes,integrations,skip,yes,skip,partenariats et certifications
+Noms de fonctionnalités déposés (Jam daylist DJ),features,skip,yes,skip,marques de l'original
+Inscription paiement et vérification étudiante,checkout,should,yes,partial,Stripe Checkout en mode test + portail client ; pas d'inscription ni de vérification étudiante ; non testé avec une vraie clé
+Logo couleurs illustrations et textes de l'original,brand,skip,yes,skip,on crée les nôtres avec /replica-brand

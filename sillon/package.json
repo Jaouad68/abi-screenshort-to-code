@@ -1,0 +1,11 @@
+{
+  "name": "sillon",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stripe:setup": "node scripts/stripe-setup.mjs"
+  },
+  "dependencies": {
+    "stripe": "23.1.0"
+  }
+}
