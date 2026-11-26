@@ -224,6 +224,7 @@ p { margin: 0; }
 .footer__bottom { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5); align-items: center; margin-top: var(--s-7); padding-top: var(--s-5); border-top: 1px solid var(--line); color: var(--text-muted); }
 .footer__bottom button { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
 .country { display: inline-flex; align-items: center; gap: var(--s-2); }
+.demo-note { margin-top: var(--s-4); }
 .country select { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: var(--s-1) var(--s-2); }
 
 /* Sticky mobile CTA */
